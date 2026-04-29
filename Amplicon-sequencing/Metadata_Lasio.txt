@@ -1,0 +1,52 @@
+SampleID	Treatment	Antibiotic	AntibioticHigh	Homogenate	Replicate	Sample_Type	Picogreen	Negative	CopyNum
+L1	AntHigh+hom	Yes	Yes	Yes	AntHigh+hom1	Experimental	2.7	FALSE	278876
+L2	AntLow	Yes	No	No	AntLow1	Experimental	4.8	FALSE	343630
+L3	Ctr	No	No	No	Ctr2	Experimental	7.6	FALSE	624587
+L4	AntLow	Yes	No	No	AntLow1	Experimental	4.4	FALSE	50672
+L5	Ctr	No	No	No	Ctr2	Experimental	8.9	FALSE	1182879
+L6	AntHigh+hom	Yes	Yes	Yes	AntHigh+hom2	Experimental	4.7	FALSE	177302
+L7	Ctr	No	No	No	Ctr3	Experimental	4.2	FALSE	3628515
+L8	AntHigh	Yes	Yes	No	AntHigh2	Experimental	4.8	FALSE	871636
+L9	Ctr	No	No	No	Ctr3	Experimental	1.1	FALSE	502681
+L10	AntLow	Yes	No	No	AntLow3	Experimental	6.5	FALSE	33465252
+L11	AntHigh+hom	Yes	Yes	Yes	AntHigh+hom3	Experimental	3.1	FALSE	5576363
+L12	Ctr	No	No	No	Ctr4	Experimental	3.6	FALSE	10351323
+L13	AntHigh	Yes	Yes	No	AntHigh2	Experimental	3.3	FALSE	2166677
+L14	AntLow+hom	Yes	No	Yes	AntLow+hom1	Experimental	5.3	FALSE	18782110
+L15	AntLow	Yes	No	No	AntLow2	Experimental	4.7	FALSE	59959
+L16	AntHigh+hom	Yes	Yes	Yes	AntHigh+hom2	Experimental	7.7	FALSE	1606462
+L17	AntHigh	Yes	Yes	No	AntHigh3	Experimental	5.8	FALSE	312768
+L18	AntLow+hom	Yes	No	Yes	AntLow+hom3	Experimental	3.4	FALSE	834663
+L19	Ctr	No	No	No	Ctr1	Experimental	2.1	FALSE	137097
+L20	AntLow	Yes	No	No	AntLow2	Experimental	4.3	FALSE	6403998
+L21	AntLow	Yes	No	No	AntLow3	Experimental	4.7	FALSE	2568349
+L22	AntHigh	Yes	Yes	No	AntHigh2	Experimental	3.9	FALSE	200369
+L23	Ctr	No	No	No	Ctr4	Experimental	3.8	FALSE	6943395
+L24	AntLow+hom	Yes	No	Yes	AntLow+hom1	Experimental	4.1	FALSE	789612
+L25	AntLow	Yes	No	No	AntLow3	Experimental	5.1	FALSE	16418329
+L26	AntHigh	Yes	Yes	No	AntHigh3	Experimental	2.5	FALSE	91007
+L27	AntHigh	Yes	Yes	No	AntHigh1	Experimental	10.1	FALSE	113336276
+L28	AntLow	Yes	No	No	AntLow2	Experimental	9.7	FALSE	8499825
+L29	AntLow+hom	Yes	No	Yes	AntLow+hom2	Experimental	6.8	FALSE	506638
+L30	AntLow	Yes	No	No	AntLow1	Experimental	3.3	FALSE	297124
+L31	AntHigh	Yes	Yes	No	AntHigh1	Experimental	2.6	FALSE	1409468
+L32	Ctr	No	No	No	Ctr1	Experimental	4.4	FALSE	2561716
+L33	AntHigh+hom	Yes	Yes	Yes	AntHigh+hom2	Experimental	4.3	FALSE	439221
+L34	Ctr	No	No	No	Ctr2	Experimental	5.5	FALSE	787649
+L35	Ctr	No	No	No	Ctr4	Experimental	4.7	FALSE	2136041
+L36	AntLow+hom	Yes	No	Yes	AntLow+hom2	Experimental	4.1	FALSE	9125050
+L37	AntHigh	Yes	Yes	No	AntHigh1	Experimental	4.9	FALSE	66836
+L38	AntLow+hom	Yes	No	Yes	AntLow+hom3	Experimental	5.1	FALSE	7579981
+L39	AntLow+hom	Yes	No	Yes	AntLow+hom3	Experimental	12.7	FALSE	8093100
+L40	Ctr	No	No	No	Ctr3	Experimental	6.7	FALSE	63712
+L41	AntHigh+hom	Yes	Yes	Yes	AntHigh+hom1	Experimental	5.3	FALSE	635704
+L42	Ctr	No	No	No	Ctr1	Experimental	3.5	FALSE	111264
+L43	BeforeExperiment				BeforeExperiment	Before	2.5	FALSE	240136
+L44	BeforeExperiment				BeforeExperiment	Before	2.3	FALSE	786643
+L45	BeforeExperiment				BeforeExperiment	Before	6.7	FALSE	4047369
+L46	GlycerolPBScontrol(FirstStep)				GlycerolPBScontrol(FirstStep)	Control	0.1	TRUE	5943
+L47	GutHomFeedingSolution(SecondStep)				GutHomFeedingSolution(SecondStep)	Before	4.1	TRUE	186338794
+L48	ControlFeedingSolution(SecondStep)				ControlFeedingSolution(SecondStep)	Control	0.1	TRUE	13772
+L49	GutHomogenate				GutHomogenate	Before	4.5	FALSE	4727931
+Mock	Mock				Mock	Mock	2.6	FALSE	
+Neg	Neg				Neg	Control	0.01	TRUE	

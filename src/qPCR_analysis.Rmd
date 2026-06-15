@@ -94,7 +94,7 @@ names(empty)[1:4] <- c("Sample_ID","Target","Ct","SD")
 # Save the file
 
 ```{r}
-write.csv(empty, file="~/Desktop/simon_lasio/data/qPCR/rawdata.csv") # export data in .csv
+#write.csv(empty, file="~/Desktop/simon_lasio/data/qPCR/qpcr_rawdata.csv") # export data in .csv
 ```
 
 # You can start from here if you have the data
@@ -112,13 +112,16 @@ library(car)
 # Set working directory
 
 ```{r}
-setwd("~/Desktop/simon_lasio/data/qPCR")
+path <- "~/Desktop/simon_lasio/data/qPCR"
+knitr::opts_knit$set(root.dir = normalizePath(path)) 
+
 ```
 
 # Load data
 
 ```{r}
-cts = read.csv("rawdata.csv")
+#cts = read.csv("qpcr_rawdata.csv")
+cts <- empty
 ```
 
 # Preparation of the data

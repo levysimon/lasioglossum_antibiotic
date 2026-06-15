@@ -803,16 +803,18 @@ p1 <- ggplot(mdf, aes(x = SampleID, y = CopyNum)) +
     theme_minimal() +
     geom_bar(stat="identity", color = "Black", fill = "indianred") +
     ylab("16S rRNA gene copies") +
-    scale_y_log10(limits=c(1,1e10), breaks = c(1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9)) +
-    coord_cartesian(ylim = c(1e3,1e9)) +
-    # Added space = "free_x" here to unify bar widths
-    facet_nested(.~ Treatment + Replicate_num, scales = "free_x", space = "free_x", nest_line = TRUE) + 
+    scale_y_log10(limits=c(1,1e9), breaks = c(1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8)) +
+    coord_cartesian(ylim = c(1e3,1e8)) +
     theme(
+      axis.title.y = element_text(size = 10.5, face = "bold"),
+      axis.text.y = element_text(size = 9, color = "black"),
       axis.title.x = element_blank(),
       axis.text.x = element_blank(), 
       axis.ticks.x = element_blank(),
       legend.position = "bottom",
-      strip.text = element_text(size = 9)) +
+      strip.text = element_text(size = 10, face = "bold") # Optionnel : harmonise les titres de facettes
+    ) +
+      facet_nested(.~ Treatment + Replicate_num, scales = "free_x", space = "free_x", nest_line = TRUE) + 
     annotation_logticks(base = 10, sides = "l", scaled = TRUE,
                 short = unit(0.05, "cm"), mid = unit(0.1, "cm"), long = unit(0.2, "cm"),
                 colour = "black", size = 0.5, linetype = 1, alpha = 1)
@@ -853,6 +855,16 @@ p2 = ggplot(mdf, aes_string(x = "SampleID", y = "Abundance", fill = "Genus")) +
         geom_bar(stat = "identity", position = "stack", color = "black") +
         ylab("Relative abundance") +
         facet_nested(.~ Treatment+Replicate_num, scales = "free") +
+        theme(
+          # Axes en gras et stylisés
+          axis.title.y = element_text(size = 10.5, face = "bold"),
+          axis.text.y = element_text(size = 10, color = "black"),
+          axis.title.x = element_text(size = 10.5, face = "bold"),
+          axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 10, color = "black"),
+          legend.position="bottom",
+          legend.title = element_text(size = 10, face = "bold"),
+          strip.text = element_text(size = 8.5, face = "bold")
+        ) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), legend.position="bottom") +
         scale_fill_manual(values=sample(cbPalette(14)))
 
@@ -1720,8 +1732,8 @@ sig_brackets <- do.call(rbind, lapply(target_asvs, function(asv) {
 p_sig_pairs <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
   # Boxplot en premier plan pour qu'il soit bien visible
   geom_boxplot(outlier.shape = NA, fill = NA, color = "black", size = 0.5) +
-  # Points plus transparents (alpha = 0.4)
-  geom_jitter(aes(color = Replicate_num), width = 0.35, alpha = 0.4, size = 2) +
+  # Points plus transparents (alpha = 0.4) avec une seed fixe pour la reproductibilité
+  geom_point(aes(color = Replicate_num), alpha = 0.4, size = 2, position = position_jitter(width = 0.2, seed = 42)) + 
   
   # Crochets de significativité
   geom_segment(data = sig_brackets,

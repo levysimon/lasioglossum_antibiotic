@@ -31,7 +31,7 @@ setwd("~/Desktop/simon_lasio/data/behavior and activity/pca")
 
 ```{r}
 # === Paramètres ===
-file <- "mega.csv"
+file <- "pca.csv"
 delim <- ","                                      
 decimal_mark <- "."             
 

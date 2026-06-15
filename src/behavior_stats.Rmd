@@ -346,50 +346,83 @@ data_long$Behavior <- factor(data_long$Behavior,
 ### Creation of combined plot
 
 ```{r}
-p_combined <- ggplot() +
-  # A. IC
-  geom_rect(data = emm_all,
-            aes(xmin = as.numeric(antibiotic) - 0.3,
-                xmax = as.numeric(antibiotic) + 0.3,
-                ymin = asymp.LCL,  # Limite basse (Lower Confidence Limit)
-                ymax = asymp.UCL,  # Limite haute (Upper Confidence Limit)
-                fill = reinoculate),
-            alpha = 0.3, 
-            position = position_dodge(width = 0.8),
-            show.legend = FALSE) + # On cache la légende ici pour éviter les doublons
-  
-  # B. Predicted mean
-  geom_errorbar(data = emm_all,
-                aes(x = antibiotic, 
-                    ymin = response, 
-                    ymax = response,
-                    color = reinoculate),
-                width = 0.5, 
-                position = position_dodge(width = 0.8), 
-                size = 1.2) +
-  
-  # C. Raw data
-  geom_beeswarm(data = data_long,
-                aes(x = antibiotic, 
-                    y = Count, 
-                    color = reinoculate),
-                dodge.width = 0.8, 
-                cex = 1.2,        # Taille de dispersion
-                size = 1.5,       # Taille des points
-                alpha = 0.4) +    # Transparence
-  
-  # D. Facetting
-  facet_wrap(~ Behavior, scales = "free_y") + # Echelles Y libres car les comptes varient
-  theme_bw() +
-  scale_y_continuous(labels = scales::number_format(accuracy = 1)) +
-  labs(y = "Number of interactions", 
-       x = "Antibiotic dose",
-       color = "Reinoculation",
-       fill = "Reinoculation") +
-  theme(strip.text = element_text(size = 12, face = "bold"),
-        legend.position = "bottom")
 
-print(p_combined)
+p_combined_boxplot <- ggplot(data_long, aes(x = antibiotic, y = Count, fill = reinoculate)) +
+  
+  geom_boxplot(outlier.shape = NA, alpha = 0.3, color = "black", linewidth = 0.5,
+               position = position_dodge(width = 0.8)) +
+  
+  geom_point(aes(color = reinoculate), 
+             alpha = 0.4, size = 1.5, 
+             position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8, seed = 42)) +
+  
+  facet_wrap(~ Behavior, scales = "free_y") +
+  
+  theme_classic() + 
+  theme(
+    axis.line = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    strip.background = element_rect(color = "black", fill = NA, linewidth = 0), 
+    strip.text = element_text(face = "bold", size = 11),
+    axis.title = element_text(size = 12, face = "bold"),
+    panel.grid.major.y = element_line(color = "grey95"),
+    legend.position = "bottom"
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Number of interactions",
+    color = "Reinoculation",
+    fill  = "Reinoculation"
+  ) 
+
+print(p_combined_boxplot)
+ggsave("p_combined_boxplot.png", plot = p_combined_boxplot, width = 10, height = 7, dpi = 300)
+```
+
+```{r}
+p_model_pred <- ggplot() +
+  
+  geom_point(data = data_long, 
+             aes(x = antibiotic, y = Count, color = reinoculate), 
+             alpha = 0.7, size = 1.5, 
+             position = position_jitterdodge(jitter.width = 0.25, dodge.width = 0.8, seed = 2)) +
+  
+  geom_crossbar(data = emm_all,
+                aes(x = antibiotic, 
+                    y = response,          
+                    ymin = asymp.LCL,      
+                    ymax = asymp.UCL,      
+                    fill = reinoculate),
+                width = 0.65,               
+                color = "black",           
+                alpha = 0.3,               
+                linewidth = 0.3,           
+                position = position_dodge(width = 0.8)) +
+  
+  facet_wrap(~ Behavior, scales = "free_y") +
+  
+  theme_classic() + 
+  theme(
+    axis.line = element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    strip.background = element_rect(color = "black", fill = NA, linewidth = 0), 
+    strip.text = element_text(face = "bold", size = 11),
+    axis.title = element_text(size = 12, face = "bold"),
+    panel.grid.major.y = element_line(color = "grey95"),
+    legend.position = "bottom"
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Number of interactions",
+    color = "Reinoculation",
+    fill  = "Reinoculation"
+  ) 
+
+print(p_model_pred)
+
+# Sauvegarde
+ggsave("p_model_pred.png", plot = p_model_pred, width = 10, height = 7, dpi = 300)
+
 ```
 
 ## Save the plot

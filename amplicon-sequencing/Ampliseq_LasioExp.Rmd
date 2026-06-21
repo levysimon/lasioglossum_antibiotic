@@ -392,7 +392,6 @@ cat("Of those,", sum(match.ref), "were exact matches to the expected reference s
 ```{r}
 library(ggplot2)
 library(vegan) # ecological diversity analysis
-library(dplyr)
 library(scales) # scale functions for vizualizations
 library(grid)
 library(RColorBrewer)
@@ -401,6 +400,7 @@ library(cowplot)
 library(phyloseq)
 library(tidyverse)
 library(readxl)
+library(dplyr)
 
 # Set plotting theme
 theme_set(theme_bw())
@@ -544,18 +544,27 @@ write.table(tax_table(ps), file.path(taxonomy_dir, "TaxTable_ps.txt"), sep = "\t
 # The analysis can be started from here if the ps object was saved {#analysis-start}
 
 ```{r}
-library(ggplot2)
-library(vegan) # ecological diversity analysis
-library(dplyr)
-library(scales) # scale functions for vizualizations
-library(grid)
-library(RColorBrewer)
-library(reshape2) # data manipulation package
-library(cowplot)
+
+#Stats
 library(phyloseq)
+library(vegan) 
+library(DESeq2)
+library(multcomp)
+
 library(tidyverse)
-library(readxl)
-library(dada2)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+
+#Visualisation
+library(ggplot2)
+library(RColorBrewer)
+library(scales)
+library(grid)
+library(ggh4x)
+library(ggrepel)
+library(cowplot)
+library(patchwork)
 
 ps <- readRDS(ps_rds)
 
@@ -657,8 +666,6 @@ print(p1, width = 1000, height = 200)
 ## See the composition of the gut homogenate
 
 ```{r}
-library(dplyr)
-library(ggplot2)
 
 # --- 1. Subset the correct object ---
 # Use 'ps' (or whichever object gave you the list of 11 treatments above)
@@ -877,8 +884,6 @@ write.table(
 ## Histogram of qPCR 16S rRNA copy numbers
 
 ```{r}
-library(ggh4x)
-library(ggplot2)
 
 mdf = sample_data(ps.noncontam.filt)
 
@@ -1015,31 +1020,26 @@ plot_grid(
 ## Basic descriptive statistics
 
 ```{r}
-library(phyloseq)
-library(dplyr)
-library(tidyr)
 
-# 1. Transformer en abondance relative (%)
+# 1. Transform in relative abundance 
 ps_rel <- transform_sample_counts(ps.noncontam.filt, function(x) 100 * x / sum(x))
 
-# 2. Agglomérer au niveau Genre
+# 2. Join at the Genus level
 ps_genus <- tax_glom(ps_rel, "Genus")
 
-# 3. Transformer en data.frame pour calculs
+# 3. Transform into data.frame
 mdf_rel <- psmelt(ps_genus)
 
-# 4. Calculer Moyenne, Écart-type et Prévalence par Genre
+# 4. Stats
 genus_stats <- mdf_rel %>%
   group_by(Genus) %>%
   summarise(
     avg_abundance = mean(Abundance),
     sd_abundance = sd(Abundance),
-    # Prévalence : % d'échantillons où le genre est présent (> 0.1%)
     prevalence = sum(Abundance > 0.1) / n_distinct(SampleID) * 100
   ) %>%
   arrange(desc(avg_abundance))
 
-# Afficher les 10 premiers
 print(head(genus_stats, 10))
 
 ```
@@ -1072,7 +1072,6 @@ print(asv_stats)
 ## Alpha Diversity
 
 ```{r}
-library(dplyr)
 
 alpha_div <- estimate_richness(ps_exp, measures = c("Observed", "Shannon"))
 df_alpha <- data.frame(alpha_div, sample_data(ps_exp))
@@ -1382,8 +1381,6 @@ file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_interaction.t
 ```{r}
 # Testing after controlling pseudoreplication
 
-library(phyloseq)
-library(vegan)
 
 # 1. Setup output file
 sink(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt"))
@@ -1536,7 +1533,6 @@ tax_hom
 # Volcano plot 
 ############################################################
 
-library(ggplot2)
 library(ggrepel)
 
 volcano_df <- as.data.frame(res_ant)
@@ -1778,8 +1774,6 @@ write.csv(tax_info, file.path(results_dir, "ASV_FDR_Significant_Taxonomy.csv"))
 
 ```{r}
 ## Plot individual differences — ASVs with ANOVA p < 0.05 AND ≥1 significant pairwise comparison
-library(ggplot2)
-library(dplyr)
 library(tidyr)
 
 # --- DATA LOADING ---
@@ -1900,15 +1894,6 @@ ggsave(file.path(results_dir, "Significant_ASVs_FDR_Condensed_Boxplots.png"), pl
 # Multipanel visualisation
 
 ```{r}
-library(ggh4x)
-library(ggplot2)
-library(genefilter)
-library(RColorBrewer)
-library(grid)
-library(dplyr)
-library(tidyr)
-library(patchwork)
-
 
 # 1.PANEL A PREPARATION (qPCR + Abondances)
 # ==========================================
@@ -2071,9 +2056,7 @@ sous_bloc_B <- panel_B + labs(tag = "B")
 # 3. FINAL COMBINAISON  
 # ==========================================
 
-library(grid)
-library(patchwork)
-library(cowplot) 
+
 
 p1_colle <- p1 + 
   labs(tag = "A") + 
@@ -2464,8 +2447,6 @@ tax_hom
 # Volcano plot 
 ############################################################
 
-library(ggplot2)
-library(ggrepel)
 
 volcano_df <- as.data.frame(res_ant)
 volcano_df$Taxon <- rownames(volcano_df)

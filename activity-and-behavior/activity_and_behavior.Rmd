@@ -1,0 +1,2311 @@
+# Behavior and activity statistics
+
+## Load library
+
+```{r}
+library(here)         # Relative file path tracking
+
+library(tidyverse)    
+library(readr)        
+library(dplyr)        
+library(tidyr)        
+
+library(lme4)         
+library(lmerTest)     
+library(glmmTMB)      
+
+library(DHARMa)      
+library(car)         
+library(emmeans)     
+
+library(vegan)        
+library(dimensio)    
+
+library(ggplot2)      
+library(ggbeeswarm)
+library(patchwork)
+library(scales)
+```
+
+# Data pre-processing 
+### Behavioral data
+```{r}
+
+categories_all <- list(
+  control  = c(5, 8, 13, 40, 41, 42, 43),
+  low_ant  = c(2, 14, 15, 16, 24, 25, 26, 27),
+  high_ant = c(3, 7, 10, 18, 28, 29, 30, 31),
+  low_gut  = c(1, 6, 12, 20, 21, 22, 23, 34),
+  high_gut = c(4, 11, 17, 19, 32, 33),
+  gut_ctrl = c(35, 36, 37, 38, 39) # 2025 dataset only
+)
+
+
+
+
+category_conditions <- tibble(
+  category    = c('control', 'low_ant', 'high_ant', 'low_gut', 'high_gut', 'gut_ctrl'),
+  antibiotic  = c('zero',    'low',     'high',     'low',     'high',     'zero'),
+  réinoculate = c('No',      'No',      'No',       'Yes',     'Yes',      'Yes')
+)
+
+data_list <- list()
+counter <- 1
+
+for (cat_name in names(categories_all)) {
+  cat_files <- categories_all[[cat_name]]
+  
+  for (x in cat_files) {
+    # Determine the experimental year based on the dish index threshold
+    year <- if_else(x <= 15, 2024, 2025)
+    file_name <- paste0(year, "_petridish", x, ".csv")
+    
+    full_path <- here::here("activity-and-behavior", "data", "behavior_csv_raw", file_name) 
+    
+    if (!file.exists(full_path)) {
+      warning(paste("File not found:", file_name))
+      next
+    }
+    
+    df <- read_csv(full_path, show_col_types = FALSE)
+        df_filtered <- df %>% filter(time < 1800)
+    
+    bump_count      <- sum(df_filtered$class == 1, na.rm = TRUE)
+    touch_count     <- sum(df_filtered$class == 2, na.rm = TRUE)
+    avoidance_count <- sum(df_filtered$class == 5, na.rm = TRUE)
+    head_count      <- sum(df_filtered$class == 6, na.rm = TRUE)
+    
+    data_list[[counter]] <- tibble(
+      `petridish number` = x,
+      category = cat_name,
+      year = year,
+      `nb of bump` = bump_count,
+      `nb of avoidance` = avoidance_count,
+      `nb of head-to-head` = head_count,
+      `nb of touch` = touch_count,
+      `nb of antennal interaction` = head_count + touch_count #additional metric
+    )
+    
+    counter <- counter + 1
+  }
+}
+
+if (length(data_list) > 0) {
+  
+  df_behavior <- bind_rows(data_list) %>% 
+    left_join(category_conditions, by = "category") %>% 
+    dplyr::select(
+      `petridish number`, category, antibiotic, réinoculate, year,
+      `nb of bump`, `nb of avoidance`, `nb of head-to-head`, `nb of touch`, `nb of antennal interaction`
+    )
+}
+
+colnames(df_behavior)<- c("petridish.number", "category", "antibiotic", "reinoculate",
+                   "Year", "nb.of.bump", "nb.of.avoidance", "nb.of.head.to.head",
+                   "nb.of.touch", "nb.of.antennal.interaction")
+
+df_behavior$antibiotic <- factor(df_behavior$antibiotic)
+df_behavior$reinoculate <- factor(df_behavior$reinoculate)
+
+#Make sure the reference is zero antibiotic and no recolonisation, year as a factor
+df_behavior$antibiotic <- factor(df_behavior$antibiotic, levels = c("zero", "low", "high"))
+df_behavior$reinoculate <- relevel(df_behavior$reinoculate, ref = "No")
+df_behavior$Year <- factor(df_behavior$Year)
+
+df_behavior
+```
+
+### Inter-individual distance data
+
+```{r}
+data_dir <- here::here("activity-and-behavior", "data", "animal_ta")
+file_path <- file.path(data_dir, "inderindividual_dist.csv")
+           
+df_interind <- read_delim(file_path,
+                       delim = ";",
+                       locale = locale(decimal_mark = ","),
+                       trim_ws = TRUE,
+                       col_names = TRUE,
+                       progress = FALSE,
+                       guess_max = 2000)
+
+df_interind <- df_interind %>%
+  mutate(
+    Treatment = factor(Treatment),      
+    Treatment = relevel(Treatment, ref = "zero_no"),
+    Antibiotic = factor(Antibiotic, levels = c("zero", "low", "high")),
+    Reinoculation = factor(Reinoculation),
+    Reinoculation = relevel(Reinoculation, ref = "no"),
+    Year = factor(Year)   
+  )
+df_interind
+```
+### Activity data
+
+```{r}
+data_dir <- here::here("activity-and-behavior", "data", "animal_ta")
+file_path <- file.path(data_dir, "moving.csv")
+
+df_move <- read_delim(file = file_path,
+                       delim = ";",
+                       locale = locale(decimal_mark = ","),
+                       trim_ws = TRUE,
+                       col_names = TRUE,
+                       progress = FALSE,
+                       guess_max = 2000)
+
+df_move <- df_move %>%
+  mutate(
+    Treatment = factor(Treatment), 
+    Treatment = relevel(Treatment, ref = "zero_no"),
+    Antibiotic = factor(Antibiotic, levels = c("zero", "low", "high")),
+    Reinoculation = factor(Reinoculation),
+    Reinoculation = relevel(Reinoculation, ref = "no"),
+    Year = factor(Year), 
+    Arena = factor(Arena)
+  )
+df_move
+```
+
+
+### PCA on the 7 metrics 
+
+```{r}
+# 1. Clean behavior counts dataframe (On force les VALEURS en minuscules)
+df_counts_clean <- df_behavior %>%
+  rename_with(tolower) %>%
+  dplyr::rename(arena = petridish.number) %>%
+  mutate(
+    year        = as.character(year),
+    arena       = as.numeric(arena),
+    antibiotic  = tolower(as.character(antibiotic)),
+    reinoculate = tolower(as.character(reinoculate)) # Force "No"/"Yes" en "no"/"yes"
+  ) %>%
+  dplyr::select(-any_of("category"))
+
+# 2. Aggregate movement dataframe 
+df_move_aggregated <- df_move %>%
+  rename_with(tolower) %>%
+  mutate(
+    year        = as.character(year),
+    arena       = as.numeric(as.character(arena)), 
+    antibiotic  = tolower(as.character(antibiotic)),
+    reinoculate = tolower(as.character(reinoculation)), # S'assure que c'est bien "no"/"yes"
+    treatment   = tolower(as.character(treatment))
+  ) %>%
+  group_by(year, arena, treatment, antibiotic, reinoculate) %>%
+  summarise(
+    moy_prop_time_moving = mean(prop_time_moving, na.rm = TRUE),
+    moy_average_speed    = mean(average_speed, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 3. Clean inter-individual distance dataframe
+df_interind_clean <- df_interind %>%
+  rename_with(tolower) %>%
+  mutate(
+    year  = as.character(year), 
+    arena = as.numeric(arena)
+  ) %>%
+  dplyr::select(-any_of(c("treatment", "antibiotic", "reinoculation")))
+
+# 4. Final pipeline merge
+df_pca_7 <- df_move_aggregated %>%
+  left_join(df_counts_clean, by = c("year", "arena", "antibiotic", "reinoculate")) %>%
+  left_join(df_interind_clean, by = c("year", "arena")) %>%
+  mutate(
+    year        = factor(year),
+    arena       = factor(arena),
+    treatment   = factor(treatment),
+    treatment   = relevel(treatment, ref = "zero_no"),
+    antibiotic  = factor(antibiotic, levels = c("zero", "low", "high")),
+    reinoculate = factor(reinoculate, levels = c("no", "yes"))
+  )
+
+df_pca_7
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ==============================
+
+Now that the data is correctly pre-processed, we can start the EDA and the analysis 
+
+
+## Behavioral analysis
+
+### Basic stats
+```{r}
+moyenne_bump <- tapply(df_behavior$nb.of.bump, df_behavior$category, mean, na.rm = TRUE)
+ecarts_bump <- tapply(df_behavior$nb.of.bump, df_behavior$category, sd, na.rm = TRUE)
+
+resultats_bump <- data.frame(
+  Moyenne = moyenne_bump,
+  Ecart_Type = ecarts_bump
+)
+
+moyenne_avoidance <- tapply(df_behavior$nb.of.avoidance, df_behavior$category, mean, na.rm = TRUE)
+ecarts_avoidance <- tapply(df_behavior$nb.of.avoidance, df_behavior$category, sd, na.rm = TRUE)
+
+resultats_avoidance <- data.frame(
+  Moyenne = moyenne_avoidance,
+  Ecart_Type = ecarts_avoidance
+)
+
+moyenne_head_to_head <- tapply(df_behavior$nb.of.head.to.head, df_behavior$category, mean, na.rm = TRUE)
+ecarts_head_to_head <- tapply(df_behavior$nb.of.head.to.head, df_behavior$category, sd, na.rm = TRUE)
+
+resultats_head_to_head <- data.frame(
+  Moyenne = moyenne_head_to_head,
+  Ecart_Type = ecarts_head_to_head
+)
+
+moyenne_touch <- tapply(df_behavior$nb.of.touch, df_behavior$category, mean, na.rm = TRUE)
+ecarts_touch <- tapply(df_behavior$nb.of.touch, df_behavior$category, sd, na.rm = TRUE)
+
+resultats_touch <- data.frame(
+  Moyenne = moyenne_touch,
+  Ecart_Type = ecarts_touch
+)
+
+formater_stats <- function(moyenne, et) {
+  paste0(round(moyenne, 2), " \u00B1 ", round(et, 2)) # \u00B1 is the symbol +/-
+}
+
+tableau_publication <- data.frame(
+  Category = rownames(resultats_bump), 
+  stringsAsFactors = FALSE
+)
+
+tableau_publication$`Random bump` <- formater_stats(
+  moyenne_bump, 
+  ecarts_bump
+)
+
+tableau_publication$`Short antennal touch` <- formater_stats(
+  moyenne_touch, 
+  ecarts_touch
+)
+
+tableau_publication$`Head-to-head interaction` <- formater_stats(
+  moyenne_head_to_head, 
+  ecarts_head_to_head
+)
+
+tableau_publication$Avoidance <- formater_stats(
+  moyenne_avoidance, 
+  ecarts_avoidance
+)
+
+colnames(tableau_publication)[1] <- "Treatment"
+
+tableau_publication
+
+#Save table 
+result_dir <- here::here("activity-and-behavior", "result", "behavior")
+
+if (!dir.exists(result_dir)) {
+  dir.create(result_dir, recursive = TRUE)
+}
+output_file_path <- file.path(result_dir, "table_behavior_stats.csv")
+write.csv(tableau_publication, file = output_file_path, row.names = FALSE)
+```
+
+## Linear mixed models (3 x 2 model)
+
+### Single antennal touch
+
+```{r}
+aggregate(nb.of.touch ~ antibiotic, df_behavior, sum) 
+
+
+# Negative Binomial GLMM 
+model_nb2_single_touch <- glmmTMB(
+  nb.of.touch ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_single_touch)
+Anova(model_nb2_single_touch, type=3)
+
+
+#Additive model
+model_nb2_add_single_touch <- glmmTMB(
+  nb.of.touch ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_add_single_touch)
+Anova(model_nb2_add_single_touch, type = 2)
+
+#to test if the interaction if significant
+anova(model_nb2_single_touch,model_nb2_add_single_touch)
+```
+
+### Head to head interaction
+
+```{r}
+aggregate(nb.of.head.to.head ~ antibiotic, df_behavior, sum)
+
+#Negative Binomial GLMM (NB2)
+model_nb2_head <- glmmTMB(
+  nb.of.head.to.head ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_head)
+Anova(model_nb2_head, type=3)
+
+
+#Additive model
+model_nb2_head_add <- glmmTMB(
+  nb.of.head.to.head ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_head_add)
+Anova(model_nb2_head_add, type=2)
+
+#to test if the interaction if significant
+anova(model_nb2_head,model_nb2_head_add)
+```
+
+### Avoidance
+
+```{r}
+aggregate(nb.of.avoidance ~ antibiotic, df_behavior, sum) 
+
+
+# Negative Binomial GLMM (NB2)
+model_nb2_avoid <- glmmTMB(
+  nb.of.avoidance ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_avoid)
+Anova(model_nb2_avoid, type=3)
+
+
+#Additive model
+model_nb2_add_avoid <- glmmTMB(
+  nb.of.avoidance ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_add_avoid)
+Anova(model_nb2_add_avoid, type=2)
+
+#to test if the interaction if significant
+anova(model_nb2_avoid, model_nb2_add_avoid)
+```
+
+### Bumps
+
+```{r}
+aggregate(nb.of.bump ~ antibiotic, df_behavior, sum) 
+
+
+# Negative Binomial GLMM
+model_nb2_bump <- glmmTMB(
+  nb.of.bump ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_bump)
+Anova(model_nb2_bump, type=3)
+
+
+#Additive model
+model_nb2_add_bump <- glmmTMB(
+  nb.of.bump ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_add_bump)
+Anova(model_nb2_add_bump, type = 2)
+
+#to test if the interaction if significant
+anova(model_nb2_bump, model_nb2_add_bump)
+```
+
+## Test residuals 
+
+```{r}
+### Function to run DHARMa diagnostics
+
+check_my_model <- function(model, title = "Model Diagnostics") {
+  cat("\n--- Diagnostics for:", title, "---\n")
+  # 1. Simulate residuals
+  res <- simulateResiduals(fittedModel = model, plot = FALSE)
+  # 2. Plot QQ-plot and Residuals vs. Predicted
+  plot(res)
+  # 3. Specific tests
+  print(testDispersion(res))      # Over/Under-dispersion
+  print(testZeroInflation(res))   # Zero-inflation
+  print(testOutliers(res))        # Outlier detection
+}
+
+
+# Diagnostics for Single Antennal Touch
+check_my_model(model_nb2_single_touch, "3x2 Single Antennal Touch")
+
+# Diagnostics for Head to Head
+check_my_model(model_nb2_head, "3x2 Head to Head")
+
+# Diagnostics for Avoidance
+check_my_model(model_nb2_avoid, "3x2 Avoidance")
+
+# Diagnostics for Bump
+check_my_model(model_nb2_bump, "3x2 Bump")
+```
+
+
+## Visualisation behaviors
+
+
+```{r}
+### Extraction of predictions (EMMEANS) for the 4 behavioral metrics
+get_emm_data <- function(model, label_name) {
+  emm <- emmeans(model, ~ antibiotic * reinoculate, type = "response")
+  df <- as.data.frame(emm)
+  df$Behavior <- label_name
+  return(df)
+}
+
+df_touch <- get_emm_data(model_nb2_single_touch, "Single Antennal Touch")
+df_head  <- get_emm_data(model_nb2_head, "Head to Head")
+df_avoid <- get_emm_data(model_nb2_avoid, "Avoidance")
+df_bump  <- get_emm_data(model_nb2_bump, "Bump")
+
+emm_all <- rbind(df_touch, df_head, df_avoid, df_bump)
+```
+
+### Preparation of raw data (long format)
+
+```{r}
+df_behavior_long <- df_behavior %>%
+  pivot_longer(
+    cols = c("nb.of.touch", "nb.of.head.to.head", "nb.of.avoidance", "nb.of.bump"),
+    names_to = "variable",
+    values_to = "Count"
+  ) %>%
+  mutate(Behavior = case_when(
+    variable == "nb.of.touch" ~ "Single Antennal Touch",
+    variable == "nb.of.head.to.head" ~ "Head to Head",
+    variable == "nb.of.avoidance" ~ "Avoidance",
+    variable == "nb.of.bump" ~ "Bump"
+  ))
+
+# Have the right order for the plot
+emm_all$Behavior <- factor(emm_all$Behavior, 
+                           levels = c("Single Antennal Touch", "Bump", "Head to Head", "Avoidance"))
+df_behavior_long$Behavior <- factor(df_behavior_long$Behavior, 
+                             levels = c("Single Antennal Touch", "Bump","Head to Head", "Avoidance"))
+
+
+```
+
+### Boxplot
+```{r}
+p_combined_boxplot <- ggplot(df_behavior_long, aes(x = antibiotic, y = Count, fill = reinoculate)) +
+  stat_boxplot(
+    geom = "errorbar",
+    width = 0.1,
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  stat_summary(
+    fun = median,
+    geom = "crossbar",
+    mapping = aes(ymin = after_stat(y), ymax = after_stat(y)),
+    width = 0.3,
+    linewidth = 0.8,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    shape = 21,
+    colour = "black",
+    stroke = 0.3,
+    size = 3.5,         
+    alpha = 0.9,         
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  facet_wrap(~ Behavior, scales = "free_y") +
+  scale_fill_manual(
+    values = c("No" = "#4F77B4", "Yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Number of interactions",
+    fill = "Re-inoculation"
+  )
+
+print(p_combined_boxplot)
+
+
+ggsave(
+  filename = here::here("activity-and-behavior","result", "behavior","behavior_combined_3x2_boxplot.png"), 
+  plot = p_combined_boxplot, 
+  width = 10, 
+  height = 7, 
+  dpi = 300
+)
+```
+### Model prediction plot
+```{r}
+p_model_pred <- ggplot() +
+  geom_errorbar(
+    data = as.data.frame(emm_all),
+    aes(x = antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = reinoculate),
+    width = 0.1, 
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  geom_errorbar(
+    data = as.data.frame(emm_all),
+    aes(x = antibiotic, ymin = response, ymax = response, group = reinoculate),
+    width = 0.5, 
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    data = df_behavior_long,
+    aes(x = antibiotic, y = Count, fill = reinoculate),
+    shape = 21,
+    colour = "black",
+    stroke = 0.3,
+    size = 3.5,         
+    alpha = 0.9,         
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  facet_wrap(~ Behavior, scales = "free_y") +
+  scale_fill_manual(
+    values = c("No" = "#4F77B4", "Yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Number of interactions",
+    fill = "Re-inoculation"
+  )
+
+print(p_model_pred)
+
+
+ggsave(
+  filename = here::here("activity-and-behavior","result", "behavior","behavior_combined_3x2_model_prediction.png"), 
+  plot = p_model_pred, 
+  width = 10, 
+  height = 7, 
+  dpi = 300
+)
+
+
+```
+
+
+## PCA on 3 x 2 model 
+
+### PCA for Treatment (3X2)
+
+```{r}
+data2 <- df_behavior[, !(names(df_behavior) %in% c("antibiotic", "reinoculate", "Year", "petridish.number", "nb.of.antennal.interaction", "total.interactions"))]
+head(data2)
+X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "category")
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+p1 <- viz_individuals(
+  x = X,
+  extra_quali = data2$category,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data2[, sapply(data2, is.numeric)]
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, df_behavior$category)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_treat <- permutest(dispersion_mod, permutations = 999)
+permu_treat
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_treat <- adonis2(dist_matrix ~ category, strata=df_behavior$Year, data = df_behavior, method = "euclidean")
+ado_treat
+
+```
+
+### PCA for Antibiotic (3 levels)
+
+```{r}
+data3 <- df_behavior[, !(names(df_behavior) %in% c("category", "reinoculate", "Year", "petridish.number", "nb.of.antennal.interaction", "total.interactions"))]
+head(data3)
+
+X <- dimensio::pca(data3, center = TRUE, scale = FALSE, sup_quali = "antibiotic")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+viz_individuals(
+  x = X,
+  extra_quali = data3$antibiotic,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data3[, sapply(data3, is.numeric)]
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, df_behavior$antibiotic)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_ant <- permutest(dispersion_mod, permutations = 999)
+permu_ant
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_ant <- adonis2(dist_matrix ~ antibiotic, strata=df_behavior$Year, data = df_behavior, method = "euclidean")
+ado_ant
+```
+### PCA for reinoculation (2 levels)
+
+```{r}
+data4 <- df_behavior[, !(names(df_behavior) %in% c("category", "antibiotic", "Year", "petridish.number", "nb.of.antennal.interaction", "total.interactions"))]
+head(data4)
+
+X <- dimensio::pca(data4, center = TRUE, scale = FALSE, sup_quali = "reinoculate")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+viz_individuals(
+  x = X,
+  extra_quali = data4$reinoculate,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data4[, sapply(data4, is.numeric)]
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, df_behavior$reinoculate)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_reino <- permutest(dispersion_mod, permutations = 999)
+permu_reino
+
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_reino <- adonis2(dist_matrix ~ reinoculate, strata=df_behavior$Year, data = df_behavior, method = "euclidean")
+ado_reino
+
+```
+
+## Save result for LMM and PCA 3 x 2 model 
+```{r}
+sink(here::here("activity-and-behavior", "result", "behavior", "behavior_3x2_summary.txt"), split = TRUE)
+
+cat("\n\n=====================================\n")
+cat("3 x 2 MODEL — GLMM RESULTS\n")
+cat("=====================================\n\n")
+
+cat("\n--- Single Antennal Touch ---\n")
+summary(model_nb2_single_touch)
+summary(model_nb2_add_single_touch)
+
+anova(model_nb2_single_touch, model_nb2_add_single_touch)
+
+cat("\n--- Head-to-Head Interaction ---\n")
+summary(model_nb2_head)
+Anova(model_nb2_head, type = 3)
+summary(model_nb2_head_add)
+Anova(model_nb2_head_add, type = 2)
+
+anova(model_nb2_head, model_nb2_head_add)
+
+cat("\n--- Avoidance ---\n")
+summary(model_nb2_avoid)
+Anova(model_nb2_avoid, type = 3)
+summary(model_nb2_add_avoid)
+Anova(model_nb2_add_avoid, type = 2)
+
+anova(model_nb2_avoid, model_nb2_add_avoid)
+
+cat("\n--- Bump ---\n")
+summary(model_nb2_bump)
+Anova(model_nb2_bump, type = 3)
+summary(model_nb2_add_bump)
+Anova(model_nb2_add_bump, type = 2)
+
+anova(model_nb2_bump, model_nb2_add_bump)
+
+cat("\n--- PCA 3x2 ---\n")
+permu_treat 
+ado_treat
+permu_ant 
+ado_ant
+permu_reino  
+ado_reino
+
+sink()
+```
+
+## Linear mixed models (2 x 2 model)
+```{r}
+# We join togheter low and zero into the "zero category"
+df_behavior <- df_behavior
+df_behavior$antibiotic[df_behavior$antibiotic %in% c("low", "zero")] <- "zero"
+df_behavior$antibiotic <- factor(df_behavior$antibiotic)
+levels(df_behavior$antibiotic)
+
+#Make sure the reference is zero antibiotic and no recolonisation, year as a factor
+df_behavior$antibiotic <- relevel(df_behavior$antibiotic, ref = "zero")
+df_behavior$reinoculate <- relevel(df_behavior$reinoculate, ref = "No")
+df_behavior$Year <- factor(df_behavior$Year)
+```
+
+
+
+### Single antennal touch
+
+```{r}
+aggregate(nb.of.touch ~ antibiotic, df_behavior, sum) 
+
+
+# Negative Binomial GLMM 
+model_nb2_single_touch_red <- glmmTMB(
+  nb.of.touch ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_single_touch_red)
+
+
+#Additive model
+model_nb2_add_single_touch_red <- glmmTMB(
+  nb.of.touch ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_add_single_touch_red)
+
+anova(model_nb2_add_single_touch_red, model_nb2_single_touch_red)
+```
+
+### Head to head interaction
+
+```{r}
+aggregate(nb.of.head.to.head ~ antibiotic, df_behavior, sum)
+
+#Negative Binomial GLMM (NB2)
+model_nb2_head_red <- glmmTMB(
+  nb.of.head.to.head ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_head_red)
+
+
+model_nb2_add_head_red <- glmmTMB(
+  nb.of.head.to.head ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+summary(model_nb2_add_head_red)
+
+
+anova(model_nb2_head_red, model_nb2_add_head_red)
+```
+
+### Avoidance
+
+```{r}
+aggregate(nb.of.avoidance ~ antibiotic, df_behavior, sum) 
+
+# Negative Binomial GLMM (NB2)
+model_nb2_avoid_red <- glmmTMB(
+  nb.of.avoidance ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_avoid_red)
+
+
+#Additive model 
+model_nb2_add_avoid_red <- glmmTMB(
+  nb.of.avoidance ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_add_avoid_red)
+
+anova(model_nb2_avoid_red, model_nb2_add_avoid_red)
+```
+
+### Bumps
+
+```{r}
+aggregate(nb.of.bump ~ antibiotic, df_behavior, sum) 
+
+# Negative Binomial GLMM
+model_nb2_bump_red <- glmmTMB(
+  nb.of.bump ~ antibiotic * reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_bump_red)
+
+#Additive model
+model_nb2_add_bump_red <- glmmTMB(
+  nb.of.bump ~ antibiotic + reinoculate + (1 | Year),
+  family = nbinom2,
+  data = df_behavior
+)
+
+summary(model_nb2_add_bump_red)
+
+anova(model_nb2_bump_red, model_nb2_add_bump_red)
+```
+
+
+## Models comparison between 3x2 and 2x2 (if both are significant)
+
+```{r}
+anova(model_nb2_add_single_touch, model_nb2_add_single_touch_red)
+
+anova(model_nb2_add_head_red, model_nb2_head_add)
+
+anova(model_nb2_add_avoid, model_nb2_add_avoid_red)
+
+anova(model_nb2_add_bump, model_nb2_add_bump_red)
+```
+
+## PCA on 2 x 2 model 
+
+### PCA for Treatment (2X2)
+
+```{r}
+data2 <- df_behavior[, !(names(df_behavior) %in% c("antibiotic", "reinoculate", "Year", "petridish.number", "nb.of.antennal.interaction", "total.interactions"))]
+head(data2)
+
+X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "category")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+viz_individuals(
+  x = X,
+  extra_quali = data2$category,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data2[, sapply(data2, is.numeric)]
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, df_behavior$category)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_treat2x2 <- permutest(dispersion_mod, permutations = 999)
+permu_treat2x2
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_treat2x2 <- adonis2(dist_matrix ~ category, strata=df_behavior$Year, data = df_behavior, method = "euclidean")
+ado_treat2x2
+
+```
+
+### PCA for antibiotic (2 levels)
+
+```{r}
+data3 <- df_behavior[, !(names(df_behavior) %in% c("category", "reinoculate", "Year", "petridish.number", "nb.of.antennal.interaction", "total.interactions"))]
+head(data3)
+
+X <- dimensio::pca(data3, center = TRUE, scale = TRUE, sup_quali = "antibiotic")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+viz_individuals(
+  x = X,
+  extra_quali = data3$antibiotic,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data3[, sapply(data3, is.numeric)]
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, df_behavior$category)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_ant2x2 <- permutest(dispersion_mod, permutations = 999)
+permu_ant2x2
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_ant2x2 <- adonis2(dist_matrix ~ category, strata=df_behavior$Year, data = df_behavior, method = "euclidean")
+ado_ant2x2
+
+
+```
+
+### PCA for réinoculation (2 levels)
+
+```{r}
+data4 <- df_behavior[, !(names(df_behavior) %in% c("category", "antibiotic", "Year", "petridish.number", "nb.of.antennal.interaction", "total.interactions"))]
+head(data4)
+
+X <- dimensio::pca(data4, center = TRUE, scale = TRUE, sup_quali = "reinoculate")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+viz_individuals(
+  x = X,
+  extra_quali = data4$reinoculate,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data4[, sapply(data4, is.numeric)]
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, df_behavior$category)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_reino2x2 <- permutest(dispersion_mod, permutations = 999)
+permu_reino2x2
+
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_reino2x2 <- adonis2(dist_matrix ~ category, strata=df_behavior$Year, data = df_behavior, method = "euclidean")
+ado_reino2x2
+
+```
+
+## Save result for LMM and PCA 3 x 2 model 
+```{r}
+sink(here::here("activity-and-behavior", "result", "behavior", "behavior_2x2_summary.txt"), split = TRUE)
+
+cat("\n\n=====================================\n")
+cat("2 x 2 MODEL — GLMM RESULTS\n")
+cat("=====================================\n\n")
+
+cat("\n--- Single Antennal Touch ---\n")
+summary(model_nb2_single_touch_red)
+summary(model_nb2_add_single_touch_red)
+
+cat("\n--- Head-to-Head Interaction ---\n")
+summary(model_nb2_head_red)
+summary(model_nb2_add_head_red)
+
+cat("\n--- Avoidance ---\n")
+summary(model_nb2_avoid_red)
+summary(model_nb2_add_avoid_red)
+
+cat("\n--- Bump ---\n")
+summary(model_nb2_bump_red)
+summary(model_nb2_add_bump_red)
+
+
+cat("\n--- PCA 2x2 ---\n")
+
+permu_treat2x2
+ado_treat2x2
+permu_ant2x2
+ado_ant2x2
+permu_reino2x2
+ado_reino2x2
+
+cat("\n=====================================\n")
+cat("END OF ANALYSIS\n")
+cat("=====================================\n")
+
+sink()
+```
+
+#==============================
+# Analysis for interindividual data 
+
+## Basic stats
+```{r}
+moyenne_Mean_dist <- tapply(df_interind$Mean_dist, df_interind$Treatment, mean, na.rm = TRUE)
+ecarts_Mean_dist <- tapply(df_interind$Mean_dist, df_interind$Treatment, sd, na.rm = TRUE)
+
+resultats_mean_dist <- data.frame(
+  Moyenne_cm = moyenne_Mean_dist,
+  Ecart_Type_cm = ecarts_Mean_dist
+)
+
+resultats_mean_dist
+
+#save table
+dir.create(here::here("activity-and-behavior", "result", "inter_individual_dist"), recursive = TRUE, showWarnings = FALSE)
+
+write.csv(resultats_mean_dist, here::here("activity-and-behavior", "result", "inter_individual_dist", "table_dist_interind.csv"), row.names = TRUE)
+
+```
+
+
+
+# LMM model on 3 x 2 
+```{r}
+hist(df_interind$Mean_dist, breaks = 15)
+qqnorm(df_interind$Mean_dist)
+
+#fit the model
+model_gauss <- lmer(Mean_dist ~ Antibiotic * Reinoculation + (1 | Year),data = df_interind)
+
+#residuals tests
+simulateResiduals(model_gauss) |> plot()
+testDispersion(model_gauss)
+testResiduals(model_gauss)
+
+a1 <- Anova(model_gauss, type = "III") 
+a1
+
+s1 <- summary(model_gauss)
+s1
+
+emm <- emmeans(model_gauss, ~ Antibiotic * Reinoculation)
+emm_df <- as.data.frame(emm)
+pairs(emm)
+```
+
+### Visualisation
+```{r}
+emm <- emmeans(model_gauss, ~ Antibiotic * Reinoculation)
+emm_df <- as.data.frame(emm)
+pairs(emm)
+
+p1 <- ggplot() +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation),
+    width = 0.1, 
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation),
+    width = 0.5, 
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    data = df_interind,
+    aes(x = Antibiotic, y = Mean_dist, fill = Reinoculation),
+    shape = 21,
+    colour = "black",
+    stroke = 0.3,
+    size = 3.5,         
+    alpha = 0.9,         
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  scale_fill_manual(
+    values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Mean interindividual distance [cm]",
+    fill = "Re-inoculation"
+  )
+
+print(p1)
+
+#save the plot
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "inter_individual_dist", "mean_interind_3x2_plot.png"), 
+  plot = p1, 
+  width = 12, 
+  height = 8, 
+  dpi = 300
+)
+```
+
+
+### additive model (Just to have it - The interaction is significant)
+```{r}
+model_gauss_add <- lmer(Mean_dist ~ Antibiotic + Reinoculation + (1 | Year),data = df_interind)
+simulateResiduals(model_gauss_add) |> plot()
+testDispersion(model_gauss_add) 
+testResiduals(model_gauss_add) 
+
+summary(model_gauss_add)
+Anova(model_gauss, type = "III") 
+
+
+anova(model_gauss, model_gauss_add)
+```
+
+
+# LMM model on 2x2 (reduced) model 
+```{r}
+# joining LOW and ZERO
+df_interind$Antibiotic[df_interind$Antibiotic %in% c("low", "zero")] <- "zero"
+
+df_interind<- df_interind %>%
+  mutate(Treatment = paste(Antibiotic, Reinoculation, sep = "_"))
+
+df_interind <- df_interind %>%
+  mutate(
+    Treatment = factor(Treatment),              
+    Treatment = relevel(Treatment, ref = "zero_no"),
+    Antibiotic = factor(Antibiotic),
+    Antibiotic = relevel(Antibiotic, ref = "zero"),
+    Reinoculation = factor(Reinoculation),
+    Reinoculation = relevel(Reinoculation, ref = "no"),
+    Year = factor(Year)   
+  )
+
+
+levels(df_interind$Treatment)
+
+
+hist(df_interind$Mean_dist, breaks = 15)
+qqnorm(df_interind$Mean_dist)
+
+model_gauss_low <- lmer(Mean_dist ~ Antibiotic * Reinoculation + (1 | Year),data = df_interind)
+simulateResiduals(model_gauss_low) |> plot()
+testDispersion(model_gauss_low)
+testResiduals(model_gauss_low)
+
+s2 <- summary(model_gauss_low)
+s2
+a2 <- a1 <- Anova(model_gauss_low, type = "III") 
+a2
+
+emm <- emmeans(model_gauss_low, ~ Antibiotic * Reinoculation)
+emm_df <- as.data.frame(emm)
+pairs(emm)
+```
+
+### Visualisation
+```{r}
+emm <- emmeans(model_gauss_low, ~ Antibiotic * Reinoculation)
+emm_df <- as.data.frame(emm)
+pairs(emm)
+
+p2 <- ggplot() +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation),
+    width = 0.1, 
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation),
+    width = 0.5, 
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    data = df_interind,
+    aes(x = Antibiotic, y = Mean_dist, fill = Reinoculation),
+    shape = 21,
+    colour = "black",
+    stroke = 0.3,
+    size = 3.5,         
+    alpha = 0.9,         
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  scale_fill_manual(
+    values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Mean interindividual distance [cm]",
+    fill = "Re-inoculation"
+  )
+
+print(p2)
+
+#save the plot
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "inter_individual_dist", "mean_interind_2x2_plot.png"), 
+  plot = p2, 
+  width = 10, 
+  height = 7, 
+  dpi = 300
+)
+```
+
+### additive model
+```{r}
+model_gauss_low_add <- lmer(Mean_dist ~ Antibiotic + Reinoculation + (1 | Year),data = df_interind)
+simulateResiduals(model_gauss_low_add) |> plot()
+testDispersion(model_gauss_low_add); 
+testResiduals(model_gauss_low_add) # tests supplémentaires
+
+summary(model_gauss_low_add)
+anova(model_gauss_low_add)
+```
+
+
+# Save the result in a .txt file
+
+```{r}
+sink(here::here("activity-and-behavior", "result", "inter_individual_dist", "interind_dist_result.txt"), split = TRUE)
+
+cat("Interind dist for full 3x2 model\n\n")
+a1 
+s1
+
+cat("Interind dist for reduced 2x2 model\n\n")
+a2
+s2
+
+sink()
+```
+
+
+
+#==============================
+#Analysis for activity (avg speed + time spent moving) 
+
+## Basic stats
+```{r}
+#DESCRIPTIVES STATISTICS
+moyenne_speed <- tapply(df_move$Average_Speed, df_move$Treatment, mean, na.rm = TRUE)
+ecarts_speed <- tapply(df_move$Average_Speed, df_move$Treatment, sd, na.rm = TRUE)
+
+resultats_speed <- data.frame(
+  Moyenne = moyenne_speed,
+  Ecart_Type = ecarts_speed
+)
+
+moyenne_prop <- tapply(df_move$Prop_time_moving, df_move$Treatment, mean, na.rm = TRUE)
+ecarts_prop <- tapply(df_move$Prop_time_moving, df_move$Treatment, sd, na.rm = TRUE)
+
+resultats_prop <- data.frame(
+  Moyenne = moyenne_prop,
+  Ecart_Type = ecarts_prop
+)
+
+#save table
+dir.create(here::here("activity-and-behavior", "result", "activity"), recursive = TRUE, showWarnings = FALSE)
+
+write.csv(resultats_speed, here::here("activity-and-behavior", "result", "activity", "avg_speed_table.csv"), row.names = TRUE)
+write.csv(resultats_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
+```
+
+
+
+#------------------------------------------------------
+# Average speed analysis
+
+## LLM full model
+
+```{r}
+hist(df_move$Average_Speed, breaks = 50)
+qqnorm(df_move$Average_Speed)
+
+model_lmm <- lmer(Average_Speed ~ Antibiotic * Reinoculation + (1 | Year:Arena), data = df_move)
+simulateResiduals(model_lmm) |> plot()
+testDispersion(model_lmm)
+testResiduals(model_lmm)
+
+s1 <- summary(model_lmm)
+s1
+a1 <- Anova(model_lmm, type=3)
+a1 
+
+```
+
+## Visualisation
+### Simple box plot 
+```{r}
+p_boxplot <- ggplot(df_move, aes(x = Antibiotic, y = Average_Speed, fill = Reinoculation)) +
+  stat_boxplot(
+    geom = "errorbar",
+    width = 0.1,
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  stat_summary(
+    fun = median,
+    geom = "crossbar",
+    mapping = aes(ymin = after_stat(y), ymax = after_stat(y)),
+    width = 0.5,
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    shape = 21,
+    colour = "black",
+    stroke = 0.3,
+    size = 3.5,         
+    alpha = 0.9,         
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  scale_fill_manual(
+    values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Average speed [cm/sec]",
+    fill = "Re-inoculation"
+  )
+
+print(p_boxplot)
+
+
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "activity", "avgspeed_boxplot.pdf"), 
+  plot = p_boxplot, 
+  width = 9, 
+  height = 5
+)
+```
+
+### The model prediction
+```{r}
+emm <- emmeans(model_lmm, ~ Antibiotic * Reinoculation)
+emm_df <- as.data.frame(emm)
+
+p_model <- ggplot() +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation),
+    width = 0.1, 
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation),
+    width = 0.5, 
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    data = df_move, 
+    aes(x = Antibiotic, y = Average_Speed, fill = Reinoculation), 
+    shape = 21,            
+    colour = "black",       
+    stroke = 0.3,          
+    alpha = 0.9, 
+    size = 3.5, 
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  scale_fill_manual(
+    values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Average speed [cm/sec]",
+    fill = "Re-inoculation"   
+  )
+
+print(p_model)
+
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "activity", "avg_speed_model_pred.pdf"), 
+  plot = p_model, 
+  width = 9, 
+  height = 5
+)
+```
+
+### Additive model
+
+```{r}
+model_lmm_add <- lmer(Average_Speed ~ Antibiotic + Reinoculation + (1 | Year:Arena), data = df_move)
+simulateResiduals(model_lmm_add) |> plot()
+testDispersion(model_lmm_add)
+testResiduals(model_lmm_add)
+
+s2 <- summary(model_lmm_add)
+s2
+```
+
+## Reduced model
+
+```{r}
+#Same stats but joining LOW and ZERO
+df_move_red <- df_move
+df_move_red$Antibiotic[df_move_red$Antibiotic %in% c("low", "zero")] <- "zero"
+df_move_red<- df_move_red %>%
+  mutate(Treatment = paste(Antibiotic, Reinoculation, sep = "_"))
+
+df_move_red <- df_move_red %>%
+  mutate(
+    Treatment = factor(Treatment),                   # d’abord en facteur
+    Treatment = relevel(Treatment, ref = "zero_no"),
+    Antibiotic = factor(Antibiotic),
+    Antibiotic = relevel(Antibiotic, ref = "zero"),
+    Reinoculation = factor(Reinoculation),
+    Reinoculation = relevel(Reinoculation, ref = "no"),
+    Year = factor(Year),
+    Arena = factor(Arena)
+  )
+df_move_red$Antibiotic <- factor(df_move_red$Antibiotic, levels = c("zero", "high"))
+```
+
+## LLM reduced
+
+```{r}
+hist(df_move_red$Average_Speed, breaks = 50)
+qqnorm(df_move_red$Average_Speed)
+
+model_lmm_red <- lmer(Average_Speed ~ Antibiotic * Reinoculation + (1 | Year:Arena), data = df_move_red)
+simulateResiduals(model_lmm_red) |> plot()
+testDispersion(model_lmm_red)
+testResiduals(model_lmm_red)
+
+s3 <- summary(model_lmm_red)
+s3
+a3 <- Anova(model_lmm_red, type=3)
+a3 
+```
+
+### additive model
+
+```{r}
+
+model_lmm_add <- lmer(Average_Speed ~ Antibiotic + Reinoculation + (1 | Year:Arena), data = df_move_red)
+simulateResiduals(model_lmm_add) |> plot()
+testDispersion(model_lmm_add)
+testResiduals(model_lmm_add)
+
+s4 <- summary(model_lmm_add)
+s4
+```
+
+## Save the result in a .txt file
+
+```{r}
+sink(here::here("activity-and-behavior", "result", "activity", "avg_speed_result.txt"), split = TRUE)
+
+cat("\n\n   Full model 3x2 for avg speed \n\n")
+ 
+s1
+a1
+cat("\n\n additive \n\n")
+s2
+
+
+cat("\n\n Reduced model 2x2 for avg speed \n\n")
+cat("\n")
+s3
+a3
+cat("\n\n additive \n\n")
+s4
+
+sink()
+```
+
+# ------------------------------------------------------
+
+# Proportion of time spent moving 
+
+
+
+# LLM Full model
+
+```{r}
+hist(df_move$Prop_time_moving, breaks = 35)
+qqnorm(df_move$Prop_time_moving)
+range(df_move$Prop_time_moving)
+
+#Beta-regression should be the best
+
+# transform y to (0,1) range
+n <- length(df_move$Prop_time_moving)
+y_adj <- (df_move$Prop_time_moving * (n - 1) + 0.5) / n
+df_move$prop_time_adj <- y_adj
+range(df_move$prop_time_adj)
+
+model_beta <- glmmTMB(prop_time_adj ~ Antibiotic * Reinoculation + (1|Year/Arena),
+                      family = beta_family(link="logit"),
+                      data=df_move) 
+
+#Verifications check
+res <- simulateResiduals(model_beta)
+plot(res); 
+testDispersion(res)
+testUniformity(res)
+testResiduals(res) 
+testZeroInflation(model_beta) 
+
+# Models summary
+s1 <- summary(model_beta)
+s1
+a1 <- Anova(model_beta, type=3)
+a1 
+```
+
+### Visualisation
+```{r}
+p_boxplot_beta <- ggplot(df_move, aes(x = Antibiotic, y = prop_time_adj, fill = Reinoculation)) +
+  stat_boxplot(
+    geom = "errorbar",
+    width = 0.1,
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  stat_summary(
+    fun = median,
+    geom = "crossbar",
+    mapping = aes(ymin = after_stat(y), ymax = after_stat(y)),
+    width = 0.5,
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    shape = 21,
+    colour = "black",
+    stroke = 0.3,
+    size = 3.5,         
+    alpha = 0.9,         
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  scale_fill_manual(
+    values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Proportion of time moving",
+    fill = "Re-inoculation"
+  )
+
+print(p_boxplot_beta)
+
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "activity", "prop_box_plot.pdf"), 
+  plot = p_boxplot_beta, 
+  width = 9, 
+  height = 5
+)
+
+```
+
+
+```{r}
+emm <- emmeans(model_beta, ~ Antibiotic * Reinoculation, type = "response") 
+emm_df <- as.data.frame(emm)
+
+p_pred_model_prop <- ggplot() +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = Reinoculation),
+    width = 0.1, 
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  geom_errorbar(
+    data = emm_df,
+    aes(x = Antibiotic, ymin = response, ymax = response, group = Reinoculation),
+    width = 0.5, 
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  geom_point(
+    data = df_move, 
+    aes(x = Antibiotic, y = prop_time_adj, fill = Reinoculation), 
+    shape = 21,            
+    colour = "black",       
+    stroke = 0.3,          
+    alpha = 0.9, 
+    size = 3.5, 
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  scale_fill_manual(
+    values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "Proportion of time moving",
+    fill = "Re-inoculation"   
+  )
+
+print(p_pred_model_prop)
+
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "activity", "prop_pred_model.pdf"), 
+  plot = p_pred_model_prop, 
+  width = 9, 
+  height = 5
+)
+
+```
+
+
+### Additive model (just to have it)
+
+```{r}
+model_beta_add <- glmmTMB(prop_time_adj ~ Antibiotic + Reinoculation + (1|Year/Arena),
+                          family = beta_family(link="logit"),
+                          data=df_move) 
+
+#Verifications check
+res <- simulateResiduals(model_beta_add)
+plot(res); 
+testDispersion(res)
+testUniformity(res)
+testResiduals(res) 
+testZeroInflation(model_beta_add) 
+
+#Résumé modele
+s2 <- summary(model_beta_add)
+s2
+a2 <- Anova(model_beta_add, type=3)
+a2
+```
+
+# Reduced model
+
+## LLM reduced
+
+```{r}
+
+hist(df_move_red$Prop_time_moving, breaks = 35)
+qqnorm(df_move_red$Prop_time_moving)
+range(df_move_red$Prop_time_moving)
+
+#Beta-regression should be the best
+# transform y to (0,1) range
+n <- length(df_move_red$Prop_time_moving)
+y_adj <- (df_move_red$Prop_time_moving * (n - 1) + 0.5) / n
+df_move_red$prop_time_adj <- y_adj
+range(df_move_red$prop_time_adj)
+
+model_beta <- glmmTMB(prop_time_adj ~ Antibiotic * Reinoculation + (1|Year/Arena),
+                      family = beta_family(link="logit"),
+                      data=df_move_red) 
+
+#Verifications check
+res <- simulateResiduals(model_beta)
+plot(res); 
+testDispersion(res)
+testUniformity(res)
+testResiduals(res) 
+testZeroInflation(model_beta) 
+
+
+#Résumé modele
+s3 <- summary(model_beta)
+s3
+a3 <- Anova(model_beta, type=3)
+a3
+```
+### additive model
+
+```{r}
+model_beta_add <- glmmTMB(prop_time_adj ~ Antibiotic + Reinoculation + (1|Year/Arena),
+                          family = beta_family(link="logit"),
+                          data=df_move_red)
+
+#Verifications check
+res <- simulateResiduals(model_beta_add)
+plot(res); 
+testDispersion(res)
+testUniformity(res)
+testResiduals(res) 
+testZeroInflation(model_beta) 
+
+#Résumé modele
+s4 <- summary(model_beta_add)
+s4
+a4 <- Anova(model_beta_add, type=3)
+a4
+```
+
+#Save the result in a .txt file
+
+```{r}
+sink(here::here("activity-and-behavior", "result", "activity", "prop_time_moving_result.txt"), split = TRUE)
+
+cat("\n\n  Full model 3x2 for prop of time moving \n\n")
+cat("\n")
+
+s1
+a1
+
+cat("\n\n additive \n\n")
+cat("\n")
+
+s2
+a2
+
+
+cat("\n\n Reduced model 2x2 for pro of time moving \n\n")
+cat("\n")
+
+s3
+a3
+cat("\n\n additive \n\n")
+cat("\n")
+
+s4
+a4
+
+sink()
+```
+
+##Combined plot 
+```{r}
+model_lmm <- lmer(Average_Speed ~ Antibiotic * Reinoculation + (1 | Year:Arena), data = df_move)
+model_beta <- glmmTMB(prop_time_adj ~ Antibiotic * Reinoculation + (1 | Year/Arena), family = beta_family(link = "logit"), data = df_move)
+
+emm_lmm_df <- as.data.frame(emmeans(model_lmm, ~ Antibiotic * Reinoculation))
+emm_beta_df <- as.data.frame(emmeans(model_beta, ~ Antibiotic * Reinoculation, type = "response"))
+
+p_model <- ggplot() +
+  geom_errorbar(data = emm_lmm_df, aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
+  geom_errorbar(data = emm_lmm_df, aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
+  geom_point(data = df_move, aes(x = Antibiotic, y = Average_Speed, fill = Reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
+  scale_fill_manual(values = c("no" = "#4F77B4", "yes" = "#FFBF00"), labels = c("No", "Yes")) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1), axis.text.x = element_text(margin = margin(t = 5))) +
+  labs(x = "Antibiotic dose", y = "Average speed [cm/sec]", fill = "Re-inoculation")
+
+p_pred_model_prop <- ggplot() +
+  geom_errorbar(data = emm_beta_df, aes(x = Antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = Reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
+  geom_errorbar(data = emm_beta_df, aes(x = Antibiotic, ymin = response, ymax = response, group = Reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
+  geom_point(data = df_move, aes(x = Antibiotic, y = prop_time_adj, fill = Reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
+  scale_fill_manual(values = c("no" = "#4F77B4", "yes" = "#FFBF00"), labels = c("No", "Yes")) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  theme_classic() + 
+  theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1), axis.text.x = element_text(margin = margin(t = 5))) +
+  labs(x = "Antibiotic dose", y = "Proportion of time moving", fill = "Re-inoculation")
+
+combined_plot <- (p_model + p_pred_model_prop) + 
+  plot_layout(guides = "collect") + 
+  plot_annotation(tag_levels = 'A') & 
+  theme(legend.position = "bottom", plot.tag = element_text(face = "bold", size = 16))
+
+print(combined_plot)
+
+ggsave(filename = here::here("activity-and-behavior", "result", "activity", "combined_activity_metrics.pdf"), plot = combined_plot, width = 12, height = 5.5)
+
+```
+#===============================
+# PCA ON 7 METRICS
+
+
+### PCA for Treatment (3 x 2 levels)
+
+```{r}
+data2 <- df_pca_7[, !(names(df_pca_7) %in% c("antibiotic", "year", "reinoculate","category", "nb.of.antennal.interaction","arena"))]
+head(data2)
+
+X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "treatment")
+eig <- get_eigenvalues(X)
+eig
+screeplot(X, cumulative = TRUE)
+
+viz_variables(X)
+
+
+viz_individuals(
+  x = X,
+  extra_quali = data2$treatment,
+  color = c("#4477AA", "#EE6677", "#528833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+# === 3) MULTIVARIATE STATISTICS (PERMANOVA & BETADISPER) ===
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data2[, sapply(data2, is.numeric)]
+
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+
+dispersion_mod <- betadisper(dist_matrix,data2$treatment)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_treat <- permutest(dispersion_mod, permutations = 999)
+permu_treat
+
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Treatment
+ado_treat <- adonis2(dist_matrix ~ treatment, strata = df_pca_7$year, data = data2, method = "euclidean")
+ado_treat
+
+```
+
+### PCA for Antibiotic
+
+```{r}
+data3 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "year", "reinoculate","category", "nb.of.antennal.interaction","arena"))]
+data3$antibiotic <- as.character(data3$antibiotic)
+head(data3)
+
+X <- dimensio::pca(data3, center = TRUE, scale = FALSE, sup_quali = "antibiotic")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+viz_individuals(
+  x = X,
+  extra_quali = data3$antibiotic,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+# === 3) MULTIVARIATE STATISTICS (PERMANOVA & BETADISPER) ===
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data3[, sapply(data3, is.numeric)]
+
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, data3$antibiotic)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_ant <- permutest(dispersion_mod, permutations = 999)
+permu_ant
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_ant <- adonis2(dist_matrix ~ antibiotic, strata=df_pca_7$year, data = data3, method = "euclidean")
+ado_ant
+
+```
+
+### PCA for réinoculation
+
+```{r}
+data4 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "antibiotic", "year","category", "nb.of.antennal.interaction","arena"))]
+
+head(data4)
+
+X <- dimensio::pca(data4, center = TRUE, scale = FALSE, sup_quali = "reinoculate")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+viz_individuals(
+  x = X,
+  extra_quali = data4$reinoculate,
+  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
+  legend = list(x = "topright") ,
+  ellipse = list(type = "tolerance", level = 0.95)
+)
+
+
+set.seed(123) 
+# A. Data Preparation for Vegan
+stats_matrix <- data4[, sapply(data4, is.numeric)]
+# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+
+
+# B. Check for Homogeneity of Dispersion (Betadisper)
+# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix, data4$reinoculate)
+
+# Visualize the dispersion
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+
+# BETADIASPER RESULT - Test significance of dispersion
+permu_reino <- permutest(dispersion_mod, permutations = 999)
+permu_reino
+
+# C. PERMANOVA (Adonis2)
+# This tests: "Are the centers of the groups significantly different?"
+set.seed(123) # Ensures results are reproducible
+# Test 1: Simple effect of Antibiotic
+ado_reino <- adonis2(dist_matrix ~ reinoculate, strata=df_pca_7$year, data = data4, method = "euclidean")
+ado_reino
+
+```
+
+### PCA on the PC1
+
+#### extract the PC1
+
+```{r}
+data5 <- df_pca_7[, !(names(df_pca_7) %in% c("antibiotic", "year", "reinoculate","category", "nb.of.antennal.interaction","arena"))]
+head(data5)
+
+X <- dimensio::pca(data5, center = TRUE, scale = FALSE, sup_quali = "treatment")
+
+get_eigenvalues(X)
+screeplot(X, cumulative = TRUE)
+biplot(X, type = "form", labels = "variables")
+biplot(X, type = "covariance", labels = "variables")
+viz_variables(X)
+
+pca_scores <- get_coordinates(X)
+
+combined_interaction_data <- pca_scores$F1
+
+df_pca_7$combined <- combined_interaction_data
+```
+
+#### LMM on PC1
+
+```{r}
+hist(df_pca_7$combined, breaks = 10)
+qqnorm(df_pca_7$combined)
+
+
+model_lmm <- lmer(combined ~ antibiotic * reinoculate + (1 | year), data = df_pca_7)
+
+
+res <- simulateResiduals(model_lmm)
+plot(res)
+testDispersion(res)
+testUniformity(res) # This is the standard test for residual distribution
+
+
+s1 <- summary(model_lmm)
+s1
+a1 <- Anova(model_lmm, type=3)
+a1
+
+```
+
+### Visualisation
+
+```{r}
+
+emm <- emmeans(model_lmm, ~ antibiotic * reinoculate)
+all_pairwise <- pairs(emm)
+emm_df <- as.data.frame(emm)
+
+p1 <- ggplot() +
+  # 1. Résultats du modèle LMM : Moustaches IC95 (En noir, fines)
+  geom_errorbar(
+    data = emm_df,
+    aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculate),
+    width = 0.1, 
+    linewidth = 0.5,
+    position = position_dodge(0.8)
+  ) +
+  # 2. Résultats du modèle LMM : Ligne horizontale pour la Moyenne prédite
+  geom_errorbar(
+    data = emm_df,
+    aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculate),
+    width = 0.5, 
+    linewidth = 1.2,
+    position = position_dodge(0.8)
+  ) +
+  # 3. Données brutes : Points individuels avec contour noir (style habituel)
+  geom_point(
+    data = df_pca_7, 
+    aes(x = antibiotic, y = combined, fill = reinoculate), 
+    shape = 21,            
+    colour = "black",       
+    stroke = 0.3,          
+    alpha = 0.9, 
+    size = 3.5, 
+    position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+  ) +
+  # 4. Palette de couleurs et étiquettes épurées
+  scale_fill_manual(
+    values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+    labels = c("No", "Yes")
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  # 5. Thème classique épuré (Cadre noir complet, pas de lignes d'axes)
+  theme_classic() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1),
+    legend.position = "bottom",
+    axis.text.x = element_text(margin = margin(t = 5))
+  ) +
+  labs(
+    x = "Antibiotic dose",
+    y = "PC1 value",
+    fill = "Re-inoculation"   
+  )
+
+print(p1)
+
+dir.create(
+  path = here::here("activity-and-behavior", "result", "PCA_on_7metrics"), 
+  showWarnings = FALSE, 
+  recursive = TRUE
+)
+
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "PCA_on_7metrics", "PC1_Plot.pdf"), 
+  plot = p1, 
+  width = 9, 
+  height = 5
+)
+
+```
+
+# Save the result in a .txt file
+
+```{r}
+sink(
+  file = here::here("activity-and-behavior", "result", "PCA_on_7metrics", "pca_result.txt"), 
+  split = TRUE
+)
+
+cat("===================================================\n")
+cat("               PCA ON THE 7 METRICS                \n")
+cat("===================================================\n\n")
+
+cat("--- Eigenvalues & Variance Explained ---\n")
+print(eig)
+cat("\n\n")
+
+cat("--- PCA for Treatment ---\n")
+print(permu_treat)
+print(ado_treat)
+cat("\n\n")
+
+cat("--- PCA for Antibiotic ---\n")
+print(permu_ant)
+print(ado_ant)
+cat("\n\n")
+
+cat("--- PCA for Reinoculation ---\n")
+print(permu_reino)
+print(ado_reino)
+cat("\n\n")
+
+cat("--- Linear Mixed Model on PC1 ---\n")
+print(a1) 
+print(s1) 
+
+sink()
+
+```

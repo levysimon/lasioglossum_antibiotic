@@ -1,0 +1,34 @@
+time,code,class,duration
+83.248,Single antennal touch,2,
+138.119,Random bump,1,
+208.564,head-to-head-interaction,6,12.050000000000011
+231.55,Single antennal touch,2,
+235.335,head-to-head-interaction,6,5.8419999999999845
+244.735,head-to-head-interaction,6,7.429999999999978
+257.788,Random bump,1,
+262.059,head-to-head-interaction,6,3.069999999999993
+273.567,Single antennal touch,2,
+779.42,Random bump,1,
+789.914,Random bump,1,
+811.742,Single antennal touch,2,
+829.936,Random bump,1,
+833.761,Random bump,1,
+835.818,Single antennal touch,2,
+839.205,head-to-head-interaction,6,2.5599999999999454
+945.454,Single antennal touch,2,
+948.272,Single antennal touch,2,
+955.421,Random bump,1,
+979.394,Single antennal touch,2,
+1013.94,Avoidance,5,
+1019.188,Single antennal touch,2,
+1031.147,head-to-head-interaction,6,3.879000000000133
+1067.505,Random bump,1,
+1076.976,Single antennal touch,2,
+1083.054,Avoidance,5,
+1086.308,Avoidance,5,
+1116.364,Single antennal touch,2,
+1124.037,Single antennal touch,2,
+1144.813,Random bump,1,
+1601.564,Avoidance,5,
+1649.752,Single antennal touch,2,
+1817.942,END,0,

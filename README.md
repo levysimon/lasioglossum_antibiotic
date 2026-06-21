@@ -4,8 +4,9 @@ We combined behavioral and activity tracking, survival analysis, qPCR, and ampli
 
 
 ## Pipeline Structure
-
-* **`survival-analysis/`**: Cleans longitudinal monitoring data, runs Log-Rank tests, and generates Kaplan-Meier survival curves.
-* **`qpcr/`**: Aggregates raw plate data, handles absolute quantification via standard curves, and fits Linear Mixed-Effects Models (`lme4::lmer`) to evaluate 16S rRNA gene copy numbers.
 * **`amplicon-sequencing/`**: Houses the DADA2 and Phyloseq workflows for quality filtering, taxonomic assignment against the Silva database, and community composition analysis.
+* **`qpcr/`**: Aggregates raw plate data, handles absolute quantification via standard curves, and fits Linear Mixed-Effects Models (`lme4::lmer`) to evaluate 16S rRNA gene copy numbers.
+* **`survival-analysis/`**: Cleans longitudinal monitoring data, runs Log-Rank tests, and generates Kaplan-Meier survival curves.
+
+
 ------------------------------------------------------------------------

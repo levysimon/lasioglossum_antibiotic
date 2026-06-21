@@ -595,23 +595,34 @@ set.seed(1)
 ## Rarefaction curves
 
 ```{r}
+
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
-n = 4
-cols = gg_color_hue(n)
+sample_data(ps)$Sample_Cols <- gg_color_hue(4)[as.factor(sample_data(ps)$Sample_Type)]
 
-ps@sam_data$Sample_Cols<-cols[as.factor(ps@sam_data$Sample_Type)]
-
-
-dev.new()
-pdf(file="Rarefactions.pdf",width=5,height=4, pointsize=4)
-rarecurve(as.matrix(data.frame(otu_table(ps))), ylab = "Number of ASVs", xlab = "Number of sequences", col= sample_data(ps)$Sample_Cols, step= 50, cex=0.5)
+pdf(file = file.path(results_dir, "Rarefactions.pdf"), width = 5, height = 4, pointsize = 4)
+rarecurve(
+  as.matrix(data.frame(otu_table(ps))), 
+  ylab = "Number of ASVs", 
+  xlab = "Number of sequences", 
+  col = sample_data(ps)$Sample_Cols, 
+  step = 50, 
+  cex = 0.5
+)
 dev.off()
 
-rarecurve(as.matrix(data.frame(otu_table(ps))), ylab = "Number of ASVs", xlab = "Number of sequences", col= ps@sam_data$Sample_Cols, step= 50, cex=0.5)
+rarecurve(
+  as.matrix(data.frame(otu_table(ps))), 
+  ylab = "Number of ASVs", 
+  xlab = "Number of sequences", 
+  col = sample_data(ps)$Sample_Cols, 
+  step = 50, 
+  cex = 0.5
+)
+
 ```
 
 ## Retain only ASVs that have at least 1% relative abundance in minimum 1 sample
@@ -689,18 +700,14 @@ ggplot(hom_summary[1:15, ], aes(x = reorder(Genus, Mean_Abundance), y = Mean_Abu
 ```{r}
 ps.blanks <- subset_samples(ps, Sample_Type == "Control") 
 ps.mock <- subset_samples(ps, Treatment == "Mock")
-# ps.H2O <- subset_samples(ps, Treatment == "H2O")
-# ps.inoculum <- subset_samples(ps, Treatment == "inoculum")
+
 
 library(genefilter)
 proportions.blanks = transform_sample_counts(ps.blanks, function(x) {x/sum(x)})
 Filtered.blanks = filter_taxa(proportions.blanks, filterfun(kOverA(1, 0.01)), TRUE)
 proportions.mock = transform_sample_counts(ps.mock, function(x) {x/sum(x)})
 Filtered.mock = filter_taxa(proportions.mock, filterfun(kOverA(1, 0.01)), TRUE)
-# proportions.H2O = transform_sample_counts(ps.H2O, function(x) {x/sum(x)})
-# Filtered.H2O = filter_taxa(proportions.H2O, filterfun(kOverA(1, 0.001)), TRUE)
-# proportions.inoculum = transform_sample_counts(ps.inoculum, function(x) {x/sum(x)})
-# Filtered.inoculum = filter_taxa(proportions.inoculum, filterfun(kOverA(1, 0.001)), TRUE)
+
 ```
 
 ```{r}
@@ -735,14 +742,12 @@ print(p3, width = 1000, height = 200)
 ## Save plots to pdf
 
 ```{r}
-dev.new()
-pdf(file="Barplots_allsample-LasioProject.pdf",width=12,height=6, pointsize=4)
-p1
+pdf(file = file.path(results_dir, "Barplots_allsample-LasioProject.pdf"), width = 12, height = 6, pointsize = 4)
+print(p1)  # On utilise explicitement print() pour s'assurer que le graphique s'écrit dans le PDF
 dev.off()
 
-dev.new()
-pdf(file="Barplots_ControlSamples-LasioProject.pdf", width=14,height=20, pointsize=4)
-plot_grid(p2, p3, labels = c("A", "B"), ncol = 1, nrow = 4, rel_heights = c(2,1))
+pdf(file = file.path(results_dir, "Barplots_ControlSamples-LasioProject.pdf"), width = 14, height = 20, pointsize = 4)
+plot_grid(p2, p3, labels = c("A", "B"), ncol = 1, nrow = 4, rel_heights = c(2, 1))
 dev.off()
 ```
 
@@ -753,8 +758,17 @@ df <- as.data.frame(sample_data(ps)) # Put sample_data into a ggplot-friendly da
 df$LibrarySize <- sample_sums(ps)
 df <- df[order(df$LibrarySize),]
 df$Index <- seq(nrow(df))
-ggplot(data=df, aes(x=Index, y=LibrarySize, color=Negative)) + geom_point() 
-ggsave(file="DistributionLibrarySizes.pdf", width=8, height=6, useDingbats=FALSE)
+p_libsize <- ggplot(data=df, aes(x=Index, y=LibrarySize, color=Negative)) + geom_point() 
+p_libsize
+
+ggsave(
+  filename = file.path(results_dir, "DistributionLibrarySizes.pdf"), 
+  plot = p_libsize,
+  width = 8, 
+  height = 6, 
+  useDingbats = FALSE
+)
+
 ```
 
 ## Check which sequences are likely to be contaminants (frequency method)
@@ -771,9 +785,20 @@ which(contamdf.freq$contaminant)
 ## Plot frequencies of identified contaminants vs. their concentrations after PCR
 
 ```{r}
-plot_frequency(ps, taxa_names(ps)[sample(which(contamdf.freq$contaminant), )], conc="Picogreen") + 
+p_contam <- plot_frequency(ps, taxa_names(ps)[sample(which(contamdf.freq$contaminant), )], conc="Picogreen") + 
   xlab("DNA Concentration (PicoGreen ng/μl)")
-ggsave(file="ContaminantFreqVsPicogreenConc.pdf", width=12, height=10, useDingbats=FALSE)
+
+p_contam
+
+# 4. Sauvegarde automatique dans le dossier 'results'
+ggsave(
+  filename = file.path(results_dir, "ContaminantFreqVsPicogreenConc.pdf"), 
+  plot = p_contam,
+  width = 12, 
+  height = 10, 
+  useDingbats = FALSE
+)
+
 ```
 
 ## Check which sequences are likely to be contaminants (prevalence method)
@@ -795,9 +820,22 @@ ps.pa.pos <- prune_samples(sample_data(ps.pa)$Negative == "FALSE", ps.pa)
 # Make data.frame of prevalence in positive and negative samples
 df.pa <- data.frame(pa.pos=taxa_sums(ps.pa.pos), pa.neg=taxa_sums(ps.pa.neg),
                       contaminant=contamdf.prev$contaminant)
-ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + geom_point(size=3, position=position_jitter(h=0.05,w=0.05)) +
-  xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
-ggsave(file="ContaminantPrevalences.pdf", width=8, height=6, useDingbats=FALSE)
+
+p_prevalence <- ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + 
+  geom_point(size=3, position=position_jitter(h=0.05,w=0.05)) +
+  xlab("Prevalence (Negative Controls)") + 
+  ylab("Prevalence (True Samples)")
+
+p_prevalence
+
+ggsave(
+  filename = file.path(results_dir, "ContaminantPrevalences.pdf"), 
+  plot = p_prevalence,
+  width = 8, 
+  height = 6, 
+  useDingbats = FALSE
+)
+
 ```
 
 ## Both methods combined
@@ -829,14 +867,16 @@ ps.noncontam.filt
 ## Save filtered ASV table (not normalised by qPCR yet)
 
 ```{r}
-write.table(otu_table(ps.noncontam.filt), "LasioProject_ASVtable_OnlyExpSamples.txt", sep="\t")
+write.table(
+  otu_table(ps.noncontam.filt), 
+  file = file.path(results_dir, "LasioProject_ASVtable_OnlyExpSamples.txt"), 
+  sep = "\t"
+)
 ```
 
 ## Histogram of qPCR 16S rRNA copy numbers
 
 ```{r}
-
-
 library(ggh4x)
 library(ggplot2)
 
@@ -892,8 +932,15 @@ mdf$Replicate_num <- gsub("[^0-9]", "", mdf$Replicate)
 
 library(RColorBrewer)
 
-
-cbPalette<-colorRampPalette(brewer.pal(12, "Paired"))
+custom_14_colors <- c(
+  "#4D4F4D" , #Yersina
+  "#ffea00", #saccaribacter
+  brewer.pal(7, "Paired"),
+  "#ff9100",#wolbachia
+  "#c77dff", #lactobacillus
+  "#00296b", # commensalisus
+  "#f72585", # konskania
+  "#018571" ) #spiroplasma 
 
 set.seed(4) # Change the number within parentheses to change the order of colors in the plot. Here we use set.seed to make the colors reproducible, because in scale_fill_manual we use "sample" to shuffle the color order.
 p2 = ggplot(mdf, aes_string(x = "SampleID", y = "Abundance", fill = "Genus")) +
@@ -912,7 +959,7 @@ p2 = ggplot(mdf, aes_string(x = "SampleID", y = "Abundance", fill = "Genus")) +
           strip.text = element_text(size = 8.5, face = "bold")
         ) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), legend.position="bottom") +
-        scale_fill_manual(values=sample(cbPalette(14)))
+        scale_fill_manual(values = sample(custom_14_colors))
 
 print(p2, width = 1000, height = 200)
 
@@ -943,14 +990,26 @@ grid.draw(gt)
 ## Plot qPCR and ampliseq bars together (and export to pdf)
 
 ```{r}
-dev.new()
-pdf(file="Barplots_Experimentalsamples.pdf",width=12,height=8, pointsize=4)
+pdf(file = file.path(results_dir, "Barplots_Experimentalsamples.pdf"), width = 12, height = 8, pointsize = 4)
 
-plot_grid(p1, gt, ncol = 1, nrow = , rel_widths=c(2,2), rel_heights = c(4,6), align = 'v')
+plot_grid(
+  p1, gt, 
+  ncol = 1, 
+  rel_widths = c(2, 2), 
+  rel_heights = c(4, 6), 
+  align = 'v'
+)
 
 dev.off()
 
-plot_grid(p1, gt, ncol = 1, nrow = , rel_widths=c(2,2), rel_heights = c(4,6), align = 'v')
+
+plot_grid(
+  p1, gt, 
+  ncol = 1, 
+  rel_widths = c(2, 2), 
+  rel_heights = c(4, 6), 
+  align = 'v'
+)
 ```
 
 ## Basic descriptive statistics
@@ -1069,7 +1128,11 @@ ps_copies <- phyloseq(otu_table(copies, taxa_are_rows=T),
 ## Save ASV table
 
 ```{r}
-write.table(otu_table(ps_copies), "LasioProject_ASVtable_qPCRnormalised.txt", sep="\t")
+write.table(
+  otu_table(ps_copies), 
+  file = file.path(results_dir, "LasioProject_ASVtable_qPCRnormalised.txt"), 
+  sep = "\t"
+)
 ```
 
 ## Ordinations using qPCR-normalized counts for the whole dataset
@@ -1077,7 +1140,6 @@ write.table(otu_table(ps_copies), "LasioProject_ASVtable_qPCRnormalised.txt", se
 ```{r}
 set.seed(91193)
 
-# Ordinate using Principal Coordinate analysis
 bee_pcoa <- ordinate(
   physeq = ps_copies, 
   method = "PCoA", 
@@ -1085,14 +1147,13 @@ bee_pcoa <- ordinate(
   trymax = 100
 )
 
-# Scree plot
-plot_ordination(
+p_scree <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
-  type="scree"
+  type = "scree"
 )
+p_scree
 
-# Plot PCoA with ellipses
 p1 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -1106,13 +1167,15 @@ p1 <- plot_ordination(
   geom_point(aes(color = Treatment), alpha = 1, size = 3) +
   stat_ellipse(aes(color = Treatment), linewidth = 1)
 
+p1
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio.pdf"),
+  plot = p1,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio.pdf",
   useDingbats = FALSE
 )
 
-# Plot PCoA with ellipses
 p2 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -1126,13 +1189,15 @@ p2 <- plot_ordination(
   geom_point(aes(color = Antibiotic), alpha = 1, size = 3) +
   stat_ellipse(aes(color = Antibiotic), linewidth = 1)
 
+p2
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio_Antibiotic.pdf"),
+  plot = p2,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio_Antibiotic.pdf",
   useDingbats = FALSE
 )
 
-# Plot PCoA with ellipses
 p3 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -1146,13 +1211,15 @@ p3 <- plot_ordination(
   geom_point(aes(color = AntibioticHigh), alpha = 1, size = 3) +
   stat_ellipse(aes(color = AntibioticHigh), linewidth = 1)
 
+p3
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio_AntibioticHigh.pdf"),
+  plot = p3,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio_AntibioticHigh.pdf",
   useDingbats = FALSE
 )
 
-# Plot PCoA with ellipses
 p4 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -1166,11 +1233,15 @@ p4 <- plot_ordination(
   geom_point(aes(color = Homogenate), alpha = 1, size = 3) +
   stat_ellipse(aes(color = Homogenate), linewidth = 1)
 
+p4
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio_Homogenate.pdf"),
+  plot = p4,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio_Homogenate.pdf",
   useDingbats = FALSE
 )
+
 ```
 
 ## Run a Permanova test with Adonis.
@@ -1178,7 +1249,7 @@ ggsave(
 ```{r}
 set.seed(8650)
 
-sink("Adonis-Betadisper_FourGroups.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
 print("###############################################################")
 print("Differences between four groups - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -1197,9 +1268,9 @@ beta <- betadisper(bray, sampledf$Treatment)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_FourGroups.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
 
-sink("Adonis-Betadisper_AntibioticEffect.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect.txt"))
 print("###############################################################")
 print("Differences between antibiotic exposed and non exposed (any dose) - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -1218,9 +1289,9 @@ beta <- betadisper(bray, sampledf$Antibiotic)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_AntibioticEffect.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect.txt"))
 
-sink("Adonis-Betadisper_AntibioticHigh.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh.txt"))
 print("###############################################################")
 print("Differences between antibiotic high and other treatments - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -1239,9 +1310,9 @@ beta <- betadisper(bray, sampledf$AntibioticHigh)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_AntibioticHigh.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh.txt"))
 
-sink("Adonis-Betadisper_Homogenate.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_Homogenate.txt"))
 print("###############################################################")
 print("Differences between homogenate recolonization Yes vs no - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -1260,9 +1331,9 @@ beta <- betadisper(bray, sampledf$Homogenate)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_Homogenate.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_Homogenate.txt"))
 
-sink("Adonis-Betadisper_AntibioticEffect_interaction.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect_interaction.txt"))
 print("###############################################################")
 print("Differences between antibiotic exposed and non exposed (any dose) - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -1281,9 +1352,9 @@ beta <- betadisper(bray, sampledf$Antibiotic)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_AntibioticEffect_interaction.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect_interaction.txt"))
 
-sink("Adonis-Betadisper_AntibioticHigh_interaction.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_interaction.txt"))
 print("###############################################################")
 print("Differences between antibiotic high and rest - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -1302,34 +1373,37 @@ beta <- betadisper(bray, sampledf$AntibioticHigh)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_AntibioticHigh_interaction.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_interaction.txt"))
 ```
+
 
 # Testing after controlling pseudoreplication
 
 ```{r}
+# Testing after controlling pseudoreplication
+
 library(phyloseq)
 library(vegan)
 
 # 1. Setup output file
-sink("Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt"))
 cat("###############################################################\n")
 cat("Differences between treatment groups (AntibioticHigh * Homogenate) - Bray-Curtis dissimilarities (pseudoreplicates accounted for)\n")
 cat("--- Centroid-based PERMANOVA ---\n")
 
 # Assuming ps_copies is already loaded
-# 1️⃣ Compute Bray-Curtis distance matrix
+# Compute Bray-Curtis distance matrix
 bray <- phyloseq::distance(ps_copies, method = "bray", weighted = TRUE)
 
-# 2️⃣ Extract sample metadata
+# Extract sample metadata
 sampledf <- data.frame(sample_data(ps_copies))
 
-# 3️⃣ Collapse pseudoreplicates: compute centroids per arena (Replicate)
+# Collapse pseudoreplicates: compute centroids per arena (Replicate)
 # This results in one 'observation' (centroid) per Replicate
 beta <- betadisper(bray, sampledf$Replicate)
 centroids <- beta$centroids 
 
-# 4️⃣ Build metadata for centroids
+# Build metadata for centroids
 # Since treatment is consistent within Replicate, unique() works perfectly
 meta_centroids <- unique(sampledf[, c("Replicate", "AntibioticHigh", "Homogenate")])
 
@@ -1339,7 +1413,7 @@ meta_centroids <- meta_centroids[match(rownames(centroids), meta_centroids$Repli
 # Sanity check: ensure the number of rows matches
 # if(nrow(meta_centroids) != nrow(centroids)) stop("Metadata alignment error!") 
 
-# 5️⃣ PERMANOVA on collapsed data (centroids)
+# PERMANOVA on collapsed data (centroids)
 adonis_res <- adonis2(
  centroids ~ AntibioticHigh + Homogenate, # Interaction is not significant
  data = meta_centroids,
@@ -1352,7 +1426,7 @@ print(adonis_res)
 cat("\n###############################################################\n")
 cat("--- Homogeneity of Dispersion Check (Betadisper) ---\n")
 
-# 6️⃣ Optional: check homogeneity of dispersion on original samples
+# Optional: check homogeneity of dispersion on original samples
 # NOTE: This is run on the original (non-collapsed) distances (bray) 
 # and the combined factor (or a single factor like AntibioticHigh)
 # It tests the assumption that the variance (spread) around the group mean is equal.
@@ -1361,11 +1435,11 @@ perm_res <- permutest(beta_disp)
 print(perm_res)
 
 sink()
-file.show("Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt"))
 
 ```
 
-# Some stats - checking which bacteria differ between treatments - Based only on relative abundance
+# Some stats - checking which bacteria differ between treatments - Based **only on relative abundance**
 
 ```{r}
 library(DESeq2)
@@ -1553,16 +1627,14 @@ results_summary <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# store ALL pairwise tests (important!)
 sig_pairs_all <- data.frame(
   ASV = character(),
   group1 = character(),
   group2 = character(),
-  p_bonf = numeric(),   # from Tukey (Bonferroni)
+  p_bonf = numeric(),   
   stringsAsFactors = FALSE
 )
 
-# helper
 p_to_sig <- function(p) {
   if      (p < 0.001) "***"
   else if (p < 0.01)  "**"
@@ -1574,7 +1646,7 @@ p_to_sig <- function(p) {
 # --- 4. MAIN LOOP ---
 t <- levels(as.factor(copynums$Group))
 
-sink("Tukey-ASVstats.txt") 
+sink(file.path(results_dir, "Tukey-ASVstats.txt")) 
 cat("--- ASV STATISTICAL SUMMARY ---\n\n")
 
 for (ii in t){ 
@@ -1608,7 +1680,6 @@ for (ii in t){
       pairwise_pvals <- res$test$pvalues
       contrast_names <- names(res$test$coefficients)
       
-      # store ALL pairwise comparisons
       for (j in seq_along(contrast_names)) {
         
         p_bonf <- pairwise_pvals[j]
@@ -1648,6 +1719,7 @@ for (ii in t){
 }
 
 sink()
+file.show(file.path(results_dir, "Tukey-ASVstats.txt"))
 
 # --- 5. FDR CORRECTION (ANOVA LEVEL) ---
 results_summary$anova_pval_fdr <- p.adjust(results_summary$anova_pval, method = "BH")
@@ -1658,7 +1730,6 @@ sig_pairs_all$p_fdr <- p.adjust(sig_pairs_all$p_bonf, method = "BH")
 sig_pairs_all$sig_fdr <- sig_pairs_all$p_fdr < 0.05
 sig_pairs_all$sig_symbol <- sapply(sig_pairs_all$p_fdr, p_to_sig)
 
-# OPTIONAL: keep only FDR-significant pairs
 sig_pairs_sig <- sig_pairs_all[sig_pairs_all$sig_fdr, ]
 
 # --- 7. SUMMARY ---
@@ -1671,27 +1742,26 @@ asvs_pairwise_sig <- unique(sig_pairs_sig$ASV)
 
 cat("=== SUMMARY ===\n")
 cat("Total ASVs tested:                        ", total_tested, "\n")
-cat("ASVs with ANOVA (FDR < 0.05):             ", n_anova_sig, "\n")
+cat("ASVs with ANOVA (FDR < 0.05):              ", n_anova_sig, "\n")
 cat("  ->", paste(asvs_anova_sig, collapse = ", "), "\n\n")
 cat("ASVs with >=1 FDR-significant pairwise:   ", n_pairwise_sig, "\n")
 cat("  ->", paste(asvs_pairwise_sig, collapse = ", "), "\n")
 
 # --- 8. EXPORT ---
-write.csv(results_summary, "ASV_stats_summary.csv", row.names = FALSE)
-write.csv(sig_pairs_all,   "ASV_all_pairs.csv",     row.names = FALSE)
-write.csv(sig_pairs_sig,   "ASV_sig_pairs.csv",     row.names = FALSE)
-
+write.csv(results_summary, file.path(results_dir, "ASV_stats_summary.csv"), row.names = FALSE)
+write.csv(sig_pairs_all,   file.path(results_dir, "ASV_all_pairs.csv"),     row.names = FALSE)
+write.csv(sig_pairs_sig,   file.path(results_dir, "ASV_sig_pairs.csv"),     row.names = FALSE)
 ```
 
-## Who are the ASV that significantly changed ? anova \< 0.05 .
+
+## Who are the ASV that significantly changed ? anova ≤ 0.05 .
 
 ```{r}
 
-# head(target_asvs)
-# head(taxa_names(ps_copies))
-
 ## Who are the ASV that significantly changed? We plot the ones with ANOVA < 0.05.
-sig_summary <- read.csv("ASV_stats_summary.csv")
+
+# 1. Read input using the results directory path
+sig_summary <- read.csv(file.path(results_dir, "ASV_stats_summary.csv"))
 
 # Explicitly use FDR column
 target_asvs <- sig_summary$ASV[sig_summary$anova_pval_fdr < 0.05]
@@ -1699,11 +1769,12 @@ target_asvs <- sig_summary$ASV[sig_summary$anova_pval_fdr < 0.05]
 tax_info <- as.data.frame(tax_table(ps_copies)[target_asvs, ])
 print(tax_info)
 
-write.csv(tax_info, "ASV_FDR_Significant_Taxonomy.csv")
+# 2. Export output directly into the results directory
+write.csv(tax_info, file.path(results_dir, "ASV_FDR_Significant_Taxonomy.csv"))
 
 ```
 
-## Plot indvidual anova \< 0.05 + at least one pairwise comparison that is p\<0.05
+## Plot indvidual anova ≤ 0.05 + at least one pairwise comparison that is p ≤ 0.05
 
 ```{r}
 ## Plot individual differences — ASVs with ANOVA p < 0.05 AND ≥1 significant pairwise comparison
@@ -1711,14 +1782,14 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 
-# --- 1. CHARGEMENT DES DONNÉES ---
-sig_summary   <- read.csv("ASV_stats_summary.csv")
-sig_pairs_all <- read.csv("ASV_sig_pairs.csv")
+# --- DATA LOADING ---
+sig_summary   <- read.csv(file.path(results_dir, "ASV_stats_summary.csv"))
+sig_pairs_all <- read.csv(file.path(results_dir, "ASV_sig_pairs.csv"))
 
-# FILTRE : Uniquement les ASV significatifs
+# FILTER : Only ASV that are ≤ 0.05
 target_asvs <- sig_summary$ASV[sig_summary$anova_sig == TRUE & sig_summary$any_pairwise_sig == TRUE]
 
-# --- 2. PRÉPARATION DES LABELS (TAXONOMIE + P-VALUE ANOVA) ---
+
 tax_df <- as.data.frame(as(tax_table(ps_copies), "matrix"))
 tax_df$Group <- rownames(tax_df)
 tax_df <- tax_df %>%
@@ -1733,14 +1804,12 @@ tax_df <- tax_df %>%
     ASV_Label = paste0(Group, " (", Genus, ")\n", anova_label)
   )
 
-# --- 3. PRÉPARATION DES DONNÉES DU GRAPHIQUE ---
 df_plot <- copynums %>%
   filter(Group %in% target_asvs) %>%
   mutate(Replicate_num = as.factor(gsub("[^0-9]", "", Replicate))) %>%
   left_join(tax_df[, c("Group", "ASV_Label")], by = "Group") %>%
   mutate(Treatment = factor(Treatment, levels = c("Ctr", "AntLow", "AntHigh", "AntLow+hom", "AntHigh+hom")))
 
-# --- 4. CONSTRUCTION DES CROCHETS DE SIGNIFICATIVITÉ (BRACKETS) ---
 treatment_levels <- c("Ctr", "AntLow", "AntHigh", "AntLow+hom", "AntHigh+hom")
 x_pos <- setNames(seq_along(treatment_levels), treatment_levels)
 
@@ -1772,21 +1841,16 @@ sig_brackets <- do.call(rbind, lapply(target_asvs, function(asv) {
   }))
 }))
 
-# --- 5. DESSIN DU GRAPHIQUE ---
 p_sig_pairs <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
   
-  # 1. Données brutes : Remplissage bleu avec contour noir
   geom_point(fill = "#4F77B4",       
              shape = 21,             
              color = "black",        
              stroke = 0.5,           
              alpha = 0.9,            
              size = 3.5,             
-             # Note : réduction subtile du jitter (0.18 au lieu de 0.23) pour éviter que les points 
-             # ne bavent hors de l'axe maintenant que le graphique est plus serré.
-             position = position_jitter(width = 0.18, seed = 42)) + 
+            position = position_jitter(width = 0.18, seed = 42)) + 
   
-  # 2. Boxplot classique au premier plan (Fin et noir)
   geom_boxplot(outlier.shape = NA, 
                fill = NA, 
                color = "black", 
@@ -1794,7 +1858,6 @@ p_sig_pairs <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
                linewidth = 0.8, 
                fatten = 1.5) +   
 
-  # 3. Crochets de significativité resserrés
   geom_segment(data = sig_brackets,
                aes(x = x_left, xend = x_right, y = y_bracket, yend = y_bracket),
                inherit.aes = FALSE, color = "black", linewidth = 0.4) +
@@ -1805,12 +1868,10 @@ p_sig_pairs <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
                aes(x = x_right, xend = x_right, y = y_bracket - 0.03, yend = y_bracket),
                inherit.aes = FALSE, color = "black", linewidth = 0.4) +
   
-  # Étoiles de significativité
   geom_text(data = sig_brackets,
             aes(x = (x_left + x_right) / 2, y = y_bracket + 0.02, label = sig),
             inherit.aes = FALSE, size = 5, fontface = "bold") +
   
-  # Faceting & Thème (Cadre noir complet style graphique 2)
   facet_wrap(~ ASV_Label, scales = "free_y", ncol = 3) +
   theme_classic() + 
   theme(
@@ -1820,11 +1881,9 @@ p_sig_pairs <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
     strip.text = element_text(face = "bold.italic", size = 11),
     axis.title = element_text(size = 12, face = "bold"),
     axis.text = element_text(size = 10, color = "black"),
-    # MODIFICATION 1 : On donne un style vertical aux textes de l'axe X si les labels se superposent
     axis.text.x = element_text(angle = 45, hjust = 1), 
     panel.grid.major.y = element_line(color = "grey95"),
     legend.position = "none",
-    # MODIFICATION 2 : aspect.ratio force chaque facette à être plus haute que large
     aspect.ratio = 1.3 
   ) +
   labs(
@@ -1834,12 +1893,11 @@ p_sig_pairs <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
 
 print(p_sig_pairs)
 
-# MODIFICATION 3 : Réduction de la largeur d'exportation (de 12 à 9.5) pour compacter l'image globale
-ggsave("Significant_ASVs_FDR_Condensed_Boxplots.png", plot = p_sig_pairs, width = 9.5, height = 8, dpi = 300)
+ggsave(file.path(results_dir, "Significant_ASVs_FDR_Condensed_Boxplots.png"), plot = p_sig_pairs, width = 9.5, height = 8, dpi = 300)
 
 ```
 
-## Multipanel
+# Multipanel visualisation
 
 ```{r}
 library(ggh4x)
@@ -1851,11 +1909,11 @@ library(dplyr)
 library(tidyr)
 library(patchwork)
 
-# ==========================================
-# 1. PRÉPARATION DU PANEL A (qPCR + Abondances)
+
+# 1.PANEL A PREPARATION (qPCR + Abondances)
 # ==========================================
 
-# --- Graphe p1 : qPCR ---
+# --- qPCR ---
 mdf1 = sample_data(ps.noncontam.filt)
 mdf1$Treatment <- factor(mdf1$Treatment, levels = c("Ctr", "AntLow", "AntHigh", "AntLow+hom", "AntHigh+hom"))
 mdf1$Replicate_num <- gsub("[^0-9]", "", mdf1$Replicate)
@@ -1880,7 +1938,7 @@ p1 <- ggplot(mdf1, aes(x = SampleID, y = CopyNum)) +
                       short = unit(0.05, "cm"), mid = unit(0.1, "cm"), long = unit(0.2, "cm"),
                       colour = "black", size = 0.5, linetype = 1, alpha = 1)
 
-# --- Graphe p2 : Barres cumulées ---
+# --- p2 : relative abundance ---
 mothur_proportions = transform_sample_counts(ps.noncontam.filt, function(x) {x/sum(x)})
 Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(1, 0.01)), TRUE)
 mdf2 = psmelt(Filtered)
@@ -1888,7 +1946,16 @@ mdf2 = psmelt(Filtered)
 mdf2$Treatment <- factor(mdf2$Treatment, levels = c("Ctr", "AntLow", "AntHigh", "AntLow+hom", "AntHigh+hom"), ordered = TRUE)
 mdf2$Replicate_num <- gsub("[^0-9]", "", mdf2$Replicate)
 
-cbPalette <- colorRampPalette(brewer.pal(12, "Paired"))
+custom_14_colors <- c(
+  "#4D4F4D" , #Yersina
+  "#ffea00", #saccaribacter
+  brewer.pal(7, "Paired"),
+  "#ff9100",#wolbachia
+  "#c77dff", #lactobacillus
+  "#00296b", # commensalisus
+  "#f72585", # konskania
+  "#018571" ) #spiroplasma 
+
 set.seed(4)
 
 p2 = ggplot(mdf2, aes(x = SampleID, y = Abundance, fill = Genus)) +
@@ -1905,19 +1972,18 @@ p2 = ggplot(mdf2, aes(x = SampleID, y = Abundance, fill = Genus)) +
     legend.title = element_text(size = 10, face = "bold"),
     strip.text = element_blank()
   ) +
-  scale_fill_manual(values=sample(cbPalette(14)))
+  scale_fill_manual(values = sample(custom_14_colors))
 
-# Assemblage du bloc de gauche avec son étiquette "A"
+# Putting them together
 sous_bloc_A <- (p1 / p2) + 
   plot_layout(heights = c(4, 6)) +
   labs(tag = "A")
 
-# ==========================================
-# 2. PRÉPARATION DU PANEL B (Boxplots verticaux)
-# ==========================================
+# 2.PANEL B PRÉPARATION 
+# ========================================
 
-sig_summary   <- read.csv("ASV_stats_summary.csv")
-sig_pairs_all <- read.csv("ASV_sig_pairs.csv")
+sig_summary   <- read.csv(file.path(results_dir, "ASV_stats_summary.csv"))
+sig_pairs_all <- read.csv(file.path(results_dir, "ASV_sig_pairs.csv"))
 target_asvs   <- sig_summary$ASV[sig_summary$anova_sig == TRUE & sig_summary$any_pairwise_sig == TRUE]
 
 tax_df <- as.data.frame(as(tax_table(ps_copies), "matrix"))
@@ -1970,7 +2036,7 @@ sig_brackets <- do.call(rbind, lapply(target_asvs, function(asv) {
   }))
 }))
 
-# Génération des boxplots forcés en une seule colonne (ncol = 1)
+
 panel_B <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
   geom_point(fill = "#00b4ff", shape = 21, color = "black", stroke = 0.5, alpha = 0.85, size = 3.5,
              position = position_jitter(width = 0.18, seed = 3 )) + 
@@ -1979,7 +2045,7 @@ panel_B <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
   geom_segment(data = sig_brackets, aes(x = x_left, xend = x_left, y = y_bracket - 0.03, yend = y_bracket), inherit.aes = FALSE, color = "black", linewidth = 0.4) +
   geom_segment(data = sig_brackets, aes(x = x_right, xend = x_right, y = y_bracket - 0.03, yend = y_bracket), inherit.aes = FALSE, color = "black", linewidth = 0.4) +
   geom_text(data = sig_brackets, aes(x = (x_left + x_right) / 2, y = y_bracket + 0.02, label = sig), inherit.aes = FALSE, size = 5, fontface = "bold") +
-  # CHANGEMENT ICI : ncol = 1 pour empiler verticalement
+
   facet_wrap(~ ASV_Label, scales = "free_y", ncol = 1) +
   theme_classic() + 
   theme(
@@ -1992,7 +2058,6 @@ panel_B <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
     axis.text.x = element_text(angle = 45, hjust = 1), 
     panel.grid.major.y = element_line(color = "grey95"),
     legend.position = "none",
-    # Optionnel : supprime ou ajuste l'aspect.ratio si les boites deviennent trop écrasées
     aspect.ratio = 0.8 
   ) +
   labs(
@@ -2000,19 +2065,16 @@ panel_B <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
     y = expression(bold(Log[10]) ~ bold(Absolute ~ Abundance))
   )
 
-# Ajout de l'étiquette "B" sur le bloc vertical
 sous_bloc_B <- panel_B + labs(tag = "B")
 
 
-# ==========================================
-# 3. COMBINAISON FINALE (MÉTHODE GROB OPTIMISÉE)
+# 3. FINAL COMBINAISON  
 # ==========================================
 
 library(grid)
 library(patchwork)
-library(cowplot) # Nécessaire pour forcer l'alignement des axes
+library(cowplot) 
 
-# 1. On intègre les tags A et B directement dans les graphiques avant conversion
 p1_colle <- p1 + 
   labs(tag = "A") + 
   theme(
@@ -2027,129 +2089,44 @@ panel_B_colle <- panel_B +
   labs(tag = "B") +
   theme(plot.tag = element_text(size = 20, face = "bold"))
 
-# 2. ALIGNEMENT PARFAIT DE L'AXE Y (Correction du décalage)
-# Cette fonction force p1 et p2 à avoir exactement la même largeur sur la gauche
 aligned_plots <- cowplot::align_plots(p1_colle, p2_colle, align = "v", axis = "l")
 
 g1 <- aligned_plots[[1]]
 g2 <- aligned_plots[[2]]
 
-# 3. Nettoyage des espaces blancs (Ta méthode de découpe, qui est parfaite ici)
 panels_g1 <- grep("panel", g1$layout$name)
 bottom_g1 <- unique(g1$layout$b[panels_g1])
-g1 <- g1[-(bottom_g1 + 1), ] # Retire l'espace sous la qPCR
+g1 <- g1[-(bottom_g1 + 1), ] 
 
 panels_g2 <- grep("panel", g2$layout$name)
 top_g2 <- unique(g2$layout$t[panels_g2])
-g2 <- g2[-(top_g2 - 1), ] # Retire l'espace au-dessus de l'abondance
+g2 <- g2[-(top_g2 - 1), ] 
 
-# 4. Assemblage du bloc de gauche
-# wrap_elements() protège nos grobs découpés pour que patchwork ne les déforme pas
 sous_bloc_A <- (wrap_elements(full = g1) / wrap_elements(full = g2)) + 
   plot_layout(heights = c(4, 6))
 
-# 5. Assemblage final (A et B côte à côte)
 final_plot <- (sous_bloc_A | panel_B_colle) + 
   plot_layout(widths = c(3.8, 1)) & 
   theme(plot.margin = margin(t = 15, r = 15, b = 15, l = 15, unit = "pt"))
 
-# Affichage du rendu final
+
 grid.newpage()
 grid.draw(final_plot)
 
-# Sauvegarde au format PDF de haute qualité
-ggsave("Combined_Microbiome_Fin3al_Perfect.pdf", plot = final_plot, width = 18, height = 9, dpi = 300)
+ggsave(file.path(results_dir, "Combined_Microbiome_Final.pdf"), plot = final_plot, width = 18, height = 9, dpi = 300)
+
 ```
 
-## Extra-tests // Correlation between the number of Wolbachia and the absolute number of genes
 
-```{r}
-library(phyloseq)
-library(ggplot2)
-library(ggpubr) #
 
-# 1. Isoler la quantité de Wolbachia par échantillon
-# On somme tous les ASVs identifiés comme Wolbachia
-ps_wol <- subset_taxa(ps_copies, Genus == "Wolbachia")
-wol_counts <- sample_sums(ps_wol)
-
-# 2. Calculer le total de bactéries (Total Load) par échantillon
-total_load <- sample_sums(ps_copies)
-
-# 3. Créer un data frame pour la corrélation
-df_corr <- data.frame(
-  SampleID = names(total_load),
-  Wolbachia_Load = wol_counts,
-  Total_Bacterial_Load = total_load
-)
-
-# 4. Appliquer le log10 (avec +1 pour éviter log(0))
-df_corr$log_Wol <- log10(df_corr$Wolbachia_Load + 1)
-df_corr$log_Total <- log10(df_corr$Total_Bacterial_Load + 1)
-
-# 5. Test de corrélation de Spearman
-spearman_test <- cor.test(df_corr$log_Wol, df_corr$log_Total, method = "spearman")
-print(spearman_test)
-
-# 6. Visualisation
-p_corr <- ggplot(df_corr, aes(x = log_Wol, y = log_Total)) +
-  geom_point(aes(color = log_Total), size = 3, alpha = 0.7) +
-  geom_smooth(method = "lm", color = "black", linetype = "dashed") +
-  stat_cor(method = "spearman", label.x = 2, label.y = max(df_corr$log_Total)) +
-  labs(
-    title = "Corrélation entre Wolbachia et Charge Bactérienne Totale",
-    x = "Log10(Abondance Wolbachia)",
-    y = "Log10(Total qPCR)"
-  ) +
-  theme_minimal()
-
-p_corr
-# ggsave(p_corr,
-#   height = 5, width = 7, dpi = 300,
-#   filename = "corr2.pdf",
-#   useDingbats = FALSE
-# )
-```
-
-## Correlation test between the relative propotion and the absolute number of genes
-
-```{r}
-# Calcul de la proportion relative (0 à 1)
-df_corr$Relative_Wol <- df_corr$Wolbachia_Load / df_corr$Total_Bacterial_Load
-df_corr$Percent_Wol <- df_corr$Relative_Wol * 100
-
-# Test de Spearman entre la charge totale et la proportion
-spearman_prop <- cor.test(df_corr$log_Total, df_corr$Relative_Wol, method = "spearman")
-print(spearman_prop)
-
-p1 <- ggplot(df_corr, aes(x = log_Total, y = Percent_Wol)) +
-  geom_point(color = "darkorange", size = 3, alpha = 0.7) +
-  geom_smooth(method = "lm", color = "black", linetype = "solid") + # "loess" pour voir la tendance non-linéaire
-  stat_cor(method = "spearman") +
-  labs(
-    title = "Influence de la Charge Totale sur la Dominance de Wolbachia",
-    x = "Log10(Charge Bactérienne Totale)",
-    y = "Proportion de Wolbachia (%)"
-  ) +
-  theme_minimal()
-
-p1
-
-# ggsave(
-#   height = 5, width = 7, dpi = 300,
-#   filename = "corr.pdf",
-#   useDingbats = FALSE
-# )
-```
-
-#Let's try to filter out Wolbachia and run analyses again
+# Let's try to filter out Wolbachia and run analyses again
 
 ```{r}
 # Filter out Wolbachia
 ps_no_wolbachia <- subset_taxa(ps.noncontam.filt, Genus != "Wolbachia")
 ```
 
-## Retain only ASVs that have at least 1% relative abundance in minimum 1 sample
+## Retain only ASVs that have at least 1% relative abundance in minimum 3 sample
 
 ```{r}
 library(genefilter)
@@ -2188,18 +2165,13 @@ ps_copies = proportions
 
 ```
 
-## Save ASV table
-
-```{r}
-# write.table(otu_table(ps_copies), "BeeTracking_ASVtable_qPCRnormalised_Filtered.txt", sep="\t")
-```
 
 ## Ordinations using qPCR-normalized counts for the whole dataset
 
 ```{r}
+
 set.seed(91193)
 
-# Ordinate using Principal Coordinate analysis
 bee_pcoa <- ordinate(
   physeq = ps_copies, 
   method = "PCoA", 
@@ -2207,14 +2179,13 @@ bee_pcoa <- ordinate(
   trymax = 100
 )
 
-# Scree plot
-plot_ordination(
+p_scree <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
-  type="scree"
+  type = "scree"
 )
+p_scree
 
-# Plot PCoA with ellipses
 p1 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -2228,13 +2199,15 @@ p1 <- plot_ordination(
   geom_point(aes(color = Treatment), alpha = 1, size = 3) +
   stat_ellipse(aes(color = Treatment), linewidth = 1)
 
+p1
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio_NoWolbachia.pdf"),
+  plot = p1,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio_NoWolbachia.pdf",
   useDingbats = FALSE
 )
 
-# Plot PCoA with ellipses
 p2 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -2248,13 +2221,15 @@ p2 <- plot_ordination(
   geom_point(aes(color = Antibiotic), alpha = 1, size = 3) +
   stat_ellipse(aes(color = Antibiotic), linewidth = 1)
 
+p2
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio_Antibiotic_NoWolbachia.pdf"),
+  plot = p2,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio_Antibiotic_NoWolbachia.pdf",
   useDingbats = FALSE
 )
 
-# Plot PCoA with ellipses
 p3 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -2268,13 +2243,15 @@ p3 <- plot_ordination(
   geom_point(aes(color = AntibioticHigh), alpha = 1, size = 3) +
   stat_ellipse(aes(color = AntibioticHigh), linewidth = 1)
 
+p3
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio_AntibioticHigh_NoWolbachia.pdf"),
+  plot = p3,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio_AntibioticHigh_NoWolbachia.pdf",
   useDingbats = FALSE
 )
 
-# Plot PCoA with ellipses
 p4 <- plot_ordination(
   physeq = ps_copies,
   ordination = bee_pcoa,
@@ -2288,11 +2265,15 @@ p4 <- plot_ordination(
   geom_point(aes(color = Homogenate), alpha = 1, size = 3) +
   stat_ellipse(aes(color = Homogenate), linewidth = 1)
 
+p4
+
 ggsave(
+  filename = file.path(results_dir, "Ordinations_PCoA_Bray-Lasio_Homogenate_NoWolbachia.pdf"),
+  plot = p4,
   height = 5, width = 7, dpi = 300,
-  filename = "Ordinations_PCoA_Bray-Lasio_Homogenate_NoWolbachia.pdf",
   useDingbats = FALSE
 )
+
 ```
 
 ## Run a Permanova test with Adonis.
@@ -2300,7 +2281,7 @@ ggsave(
 ```{r}
 set.seed(8650)
 
-sink("Adonis-Betadisper_FourGroups_NoWolbachia.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_FourGroups_NoWolbachia.txt"))
 print("###############################################################")
 print("Differences between four groups - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -2319,9 +2300,9 @@ beta <- betadisper(bray, sampledf$Treatment)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_FourGroups_NoWolbachia.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_FourGroups_NoWolbachia.txt"))
 
-sink("Adonis-Betadisper_AntibioticEffect_NoWolbachia.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect_NoWolbachia.txt"))
 print("###############################################################")
 print("Differences between antibiotic exposed and non exposed (any dose) - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -2340,9 +2321,9 @@ beta <- betadisper(bray, sampledf$Antibiotic)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_AntibioticEffect_NoWolbachia.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect_NoWolbachia.txt"))
 
-sink("Adonis-Betadisper_AntibioticHigh_NoWolbachia.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_NoWolbachia.txt"))
 print("###############################################################")
 print("Differences between antibiotic high and other treatments - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -2361,9 +2342,9 @@ beta <- betadisper(bray, sampledf$AntibioticHigh)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_AntibioticHigh_NoWolbachia.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_NoWolbachia.txt"))
 
-sink("Adonis-Betadisper_Homogenate_NoWolbachia.txt")
+sink(file.path(results_dir, "Adonis-Betadisper_Homogenate_NoWolbachia.txt"))
 print("###############################################################")
 print("Differences between homogenate recolonization Yes vs no - Bray-Curtis dissimilarities")
 # Calculate bray curtis distance matrix
@@ -2382,10 +2363,12 @@ beta <- betadisper(bray, sampledf$Homogenate)
 permutest(beta)
 
 sink()
-file.show("Adonis-Betadisper_Homogenate_NoWolbachia.txt")
+file.show(file.path(results_dir, "Adonis-Betadisper_Homogenate_NoWolbachia.txt"))
 ```
 
-# Some stats - checking which bacteria differ between treatments
+
+## Some stats - checking which bacteria differ between treatments
+We don't expect this to change as we already test on the data wi
 
 ```{r}
 library(DESeq2)
@@ -2579,9 +2562,8 @@ anova(model_simpson)
 ## To save the session
 
 ```{r}
-save.image(file.path(results_dir, "MelinaProject_Ampliseq.rdata"))
-# Close R, Re-open R
-#load(file.path(results_dir, "MelinaProject_Ampliseq.rdata"))
+# save.image(file.path(results_dir, "Lasio_Project_Ampliseq.rdata"))
+# load(file.path(results_dir, "Lasio_Project_Ampliseq.rdata"))
 ```
 
 ## Session info

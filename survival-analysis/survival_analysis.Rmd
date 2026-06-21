@@ -328,5 +328,9 @@ file.show(output_file)
 ```
 
 
+## Session info
 
+```{r}
+sessionInfo()
+```
 

@@ -1,7 +1,6 @@
 # Load packages
 
 ```{r}
-library(readxl)
 library(here)
 library(tidyverse)
 library(survival)
@@ -14,15 +13,20 @@ library(dplyr)
 
 # Preprocess the data 
 ```{r}
-file_2024 <- here::here("survival-analysis", "data", "survival_2024_with_pd_number.xlsx")
-file_2025 <- here::here("survival-analysis", "data", "survival_2025_with_pd_number.xlsx")
+file_2024 <- here::here("survival", "data", "survival_2024_with_pd_number.csv")
+file_2025 <- here::here("survival", "data", "survival_2025_with_pd_number.csv")
 
-tableau_2024 <- read_excel(file_2024)
-tableau_2025 <- read_excel(file_2025)
+tableau_2024 <- read_delim(file_2024, delim = ";", locale = locale(encoding = "latin1"))
+tableau_2025 <- read_delim(file_2025, delim=";",locale = locale(encoding = "latin1"))
 
 
 transform_survival <- function(df, year_val) {
-    colnames(df)[1] <- "Category"
+  
+  # Fix encoding issues in column names and character columns
+  colnames(df) <- iconv(colnames(df), to = "UTF-8", sub = "byte")
+  df <- df %>% mutate(across(where(is.character), ~iconv(., to = "UTF-8", sub = "byte")))
+  
+  colnames(df)[1] <- "Category"
   colnames(df)[2] <- "Petridish_number"
   colnames(df)[3] <- "Start"
   
@@ -31,8 +35,8 @@ transform_survival <- function(df, year_val) {
   
   time_dict <- tibble(
     column_name = colnames(df)[3:ncol(df)],
-    time_hours = as.numeric(time_row[1, 3:ncol(df)])
-  ) %>% filter(!is.na(time_hours)) 
+    time_hours  = as.numeric(time_row[1, 3:ncol(df)])
+  ) %>% filter(!is.na(time_hours))
   
   data_clean <- df %>%
     filter(!is.na(Category), !str_detect(tolower(Category), "time")) %>%
@@ -40,8 +44,8 @@ transform_survival <- function(df, year_val) {
   
   data_long <- data_clean %>%
     pivot_longer(
-      cols = any_of(time_dict$column_name),
-      names_to = "column_name",
+      cols      = any_of(time_dict$column_name),
+      names_to  = "column_name",
       values_to = "alive_count"
     ) %>%
     left_join(time_dict, by = "column_name") %>%
@@ -58,30 +62,31 @@ transform_survival <- function(df, year_val) {
   
   morts <- survival_events %>%
     filter(new_dead > 0) %>%
-    uncount(new_dead) %>% 
+    uncount(new_dead) %>%
     mutate(status = 1, time = time_hours)
   
   censures <- survival_events %>%
     group_by(Category, Petridish_number) %>%
-    slice_tail(n = 1) %>% 
+    slice_tail(n = 1) %>%
     ungroup() %>%
     filter(alive_count > 0) %>%
-    uncount(alive_count) %>% 
+    uncount(alive_count) %>%
     mutate(status = 0, time = time_hours)
   
   final_df <- bind_rows(morts, censures) %>%
     mutate(
       Category_base = str_trim(tolower(Category)),
-      Antibiotic = case_when(
+      Antibiotic    = case_when(
         str_detect(Category_base, "high") ~ "high",
-        str_detect(Category_base, "low") ~ "low",
-        TRUE ~ "no"
+        str_detect(Category_base, "low")  ~ "low",
+        TRUE                              ~ "no"
       ),
       Reinoculation = if_else(str_detect(Category_base, "gut|homogenate"), "yes", "no"),
-      Treatment = paste0(Antibiotic, "_", Reinoculation),
-      Year = year_val
+      Treatment     = paste0(Antibiotic, "_", Reinoculation),
+      Year          = year_val
     ) %>%
-    dplyr::select(Category_base, Antibiotic, Reinoculation, Year, Petridish_number, time, status, Treatment)
+    dplyr::select(Category_base, Antibiotic, Reinoculation, Year, 
+                  Petridish_number, time, status, Treatment)
   
   return(final_df)
 }
@@ -263,7 +268,7 @@ survdiff(Surv(time, status) ~ Antibiotic, data = subset(surv_individual, Antibio
 # Save the plot and stats
 
 ```{r}
-results_dir <- here::here("survival-analysis", "result")
+results_dir <- here::here("survival", "result")
 
 if (!dir.exists(results_dir)) {
   dir.create(results_dir, recursive = TRUE)

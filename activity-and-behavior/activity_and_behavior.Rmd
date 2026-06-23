@@ -19,11 +19,7 @@ knitr::opts_chunk$set(
 
 ```{r}
 library(here)         # Relative file path tracking
-
-library(tidyverse)    
-library(readr)        
-library(dplyr)        
-library(tidyr)        
+library(tidyverse) #include readr, dplyr, tidyr     
 
 library(lme4)         
 library(lmerTest)     
@@ -54,7 +50,7 @@ categories_all <- list(
   high_ant = c(3, 7, 10, 18, 28, 29, 30, 31),
   low_gut  = c(1, 6, 12, 20, 21, 22, 23, 34),
   high_gut = c(4, 11, 17, 19, 32, 33),
-  gut_ctrl = c(35, 36, 37, 38, 39) # 2025 dataset only
+  gut_ctrl = c(35, 36, 37, 38, 39)
 )
 
 category_conditions <- tibble(
@@ -436,15 +432,15 @@ check_my_model <- function(model, title = "Model Diagnostics") {
   cat("\n--- Diagnostics for:", title, "---\n")
   res <- simulateResiduals(fittedModel = model, plot = FALSE)
   plot(res)
-  testDispersion(res)     # Over/Under-dispersion
-  testZeroInflation(res)   # Zero-inflation
-  testOutliers(res)    # Outlier detection
+  print(testDispersion(res))      
+  print(testZeroInflation(res))   
+  print(testOutliers(res))
 }
 
-check_my_model(model_nb2_single_touch, "3x2 Single Antennal Touch")
-check_my_model(model_nb2_head, "3x2 Head to Head")
-check_my_model(model_nb2_avoid, "3x2 Avoidance")
-check_my_model(model_nb2_bump, "3x2 Bump")
+check_my_model(model_nb2_add_single_touch, "3x2 Single Antennal Touch")
+check_my_model(model_nb2_head_add, "3x2 Head to Head")
+check_my_model(model_nb2_add_avoid, "3x2 Avoidance")
+check_my_model(model_nb2_add_bump, "3x2 Bump")
 ```
 
 ## Visualisation behaviors
@@ -963,9 +959,9 @@ qqnorm(df_interind$mean.dist)
 model_gauss <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = df_interind)
 
 #residuals tests
-simulateResiduals(model_gauss) |> plot()
-testDispersion(model_gauss)
-testResiduals(model_gauss)
+res <- simulateResiduals(model_gauss) 
+testDispersion(res)
+testResiduals(res)
 
 a1 <- Anova(model_gauss, type = "III")
 a1
@@ -1162,10 +1158,10 @@ cat("\n[1B. Additive Model (Main Effects Type II)]\n")
 print(Anova(model_gauss_add, type = "II"))
 cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
 print(anova(model_gauss_add, model_gauss))
-cat("\n[1D. the interaction model is a better fit\n")
-emm <- emmeans(model_gauss, ~ antibiotic * reinoculation)
-pairs(emm, by = "antibiotic")
-pairs(emm, by = "reinoculation", adjust = "tukey")
+cat("\n[1D. the interaction model is a better fit]\n")
+print(emm <- emmeans(model_gauss, ~ antibiotic * reinoculation))
+print(pairs(emm, by = "antibiotic"))
+print(pairs(emm, by = "reinoculation", adjust = "tukey"))
 cat("\n=====================================\n")
 cat("--- 2. REDUCED MODEL (2 x 2) ---\n")
 cat("=====================================\n")
@@ -1608,7 +1604,7 @@ y_adj <- (df_move_red$prop.time.moving * (n - 1) + 0.5) / n
 df_move_red$prop_time_adj <- y_adj
 range(df_move_red$prop_time_adj)
 
-model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year/arena),
+model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year:arena),
                       family = beta_family(link="logit"),
                       data=df_move_red) 
 
@@ -1708,6 +1704,7 @@ viz_individuals(
 
 set.seed(67) 
 # Data Preparation for Vegan
+stats_matrix <- data2[, sapply(data2, is.numeric)]
 dist_matrix <- vegdist(stats_matrix, method = "euclidean")
 
 # B. Check for Homogeneity of Dispersion (Betadisper) "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.

@@ -115,25 +115,7 @@ df_behavior$antibiotic <- factor(df_behavior$antibiotic, levels = c("zero", "low
 df_behavior$reinoculation <- factor(df_behavior$reinoculation)
 df_behavior$reinoculation <- relevel(df_behavior$reinoculation, ref = "no")
 df_behavior$year <- factor(df_behavior$year)
-
-df_behavior
 ```
-
-    ## # A tibble: 42 × 9
-    ##    arena treatment antibiotic reinoculation year  nb.of.bump nb.of.avoidance
-    ##    <dbl> <chr>     <fct>      <fct>         <fct>      <int>           <int>
-    ##  1     5 zero_no   zero       no            2024           7               0
-    ##  2     8 zero_no   zero       no            2024          16               7
-    ##  3    13 zero_no   zero       no            2024          10               0
-    ##  4    40 zero_no   zero       no            2025           9               1
-    ##  5    41 zero_no   zero       no            2025           5               3
-    ##  6    42 zero_no   zero       no            2025          15               3
-    ##  7    43 zero_no   zero       no            2025           6               0
-    ##  8     2 low_no    low        no            2024          26               0
-    ##  9    14 low_no    low        no            2024          19               2
-    ## 10    15 low_no    low        no            2024          11               2
-    ## # ℹ 32 more rows
-    ## # ℹ 2 more variables: nb.of.head.to.head <int>, nb.of.touch <int>
 
 ### Inter-individual distance data
 
@@ -160,23 +142,7 @@ df_interind <- df_interind %>%
     reinoculation = relevel(reinoculation, ref = "no"),
     year = factor(year)   
   )
-df_interind
 ```
-
-    ## # A tibble: 42 × 6
-    ##    treatment antibiotic reinoculation year  arena mean.dist
-    ##    <fct>     <fct>      <fct>         <fct> <dbl>     <dbl>
-    ##  1 low_yes   low        yes           2024      1      4.46
-    ##  2 low_no    low        no            2024      2      4.80
-    ##  3 high_no   high       no            2024      3      5.58
-    ##  4 high_yes  high       yes           2024      4      4.20
-    ##  5 zero_no   zero       no            2024      5      4.64
-    ##  6 low_yes   low        yes           2024      6      6.49
-    ##  7 high_no   high       no            2024      7      4.09
-    ##  8 zero_no   zero       no            2024      8      5.43
-    ##  9 high_no   high       no            2024     10      2.42
-    ## 10 high_yes  high       yes           2024     11      4.78
-    ## # ℹ 32 more rows
 
 ### Activity data
 
@@ -204,23 +170,7 @@ df_move <- df_move %>%
     year = factor(year), 
     arena = factor(arena)
   )
-df_move
 ```
-
-    ## # A tibble: 84 × 7
-    ##    treatment antibiotic reinoculation year  arena prop.time.moving average.speed
-    ##    <fct>     <fct>      <fct>         <fct> <fct>            <dbl>         <dbl>
-    ##  1 low_yes   low        yes           2024  1               0.0314         0.104
-    ##  2 low_yes   low        yes           2024  1               0.510          0.994
-    ##  3 low_no    low        no            2024  2               0.695          1.31 
-    ##  4 low_no    low        no            2024  2               0.751          1.62 
-    ##  5 high_no   high       no            2024  3               0.107          0.216
-    ##  6 high_no   high       no            2024  3               0.561          1.03 
-    ##  7 high_yes  high       yes           2024  4               0.423          0.645
-    ##  8 high_yes  high       yes           2024  4               0.445          0.667
-    ##  9 zero_no   zero       no            2024  5               0.238          0.412
-    ## 10 zero_no   zero       no            2024  5               0.102          0.216
-    ## # ℹ 74 more rows
 
 ### PCA on the 7 metrics
 
@@ -250,27 +200,7 @@ df_pca_7 <- df_move_aggregated %>%
     antibiotic  = factor(antibiotic, levels = c("zero", "low", "high")),
     reinoculation = factor(reinoculation, levels = c("no", "yes"))
   )
-
-df_pca_7
 ```
-
-    ## # A tibble: 42 × 12
-    ##    year  arena treatment antibiotic reinoculation moy_prop_time_moving
-    ##    <fct> <fct> <fct>     <fct>      <fct>                        <dbl>
-    ##  1 2024  1     low_yes   low        yes                         0.271 
-    ##  2 2024  2     low_no    low        no                          0.723 
-    ##  3 2024  3     high_no   high       no                          0.334 
-    ##  4 2024  4     high_yes  high       yes                         0.434 
-    ##  5 2024  5     zero_no   zero       no                          0.170 
-    ##  6 2024  6     low_yes   low        yes                         0.0343
-    ##  7 2024  7     high_no   high       no                          0.273 
-    ##  8 2024  8     zero_no   zero       no                          0.677 
-    ##  9 2024  10    high_no   high       no                          0.212 
-    ## 10 2024  11    high_yes  high       yes                         0.498 
-    ## # ℹ 32 more rows
-    ## # ℹ 6 more variables: moy_average_speed <dbl>, nb.of.bump <int>,
-    ## #   nb.of.avoidance <int>, nb.of.head.to.head <int>, nb.of.touch <int>,
-    ## #   mean.dist <dbl>
 
 # ==============================
 
@@ -356,28 +286,8 @@ tableau_publication
     ## 5   zero_no   9.7 ± 4.3             12.4 ± 8                1.4 ± 1.1   2 ± 2.6
     ## 6  zero_yes   5.6 ± 5.5            6.6 ± 6.5                1.4 ± 1.1 0.4 ± 0.5
 
-``` r
-#Save table 
-result_dir <- here::here("activity-and-behavior", "result", "behavior")
-
-if (!dir.exists(result_dir)) {
-  dir.create(result_dir, recursive = TRUE)
-}
-output_file_path <- file.path(result_dir, "table_behavior_stats.csv")
-write.csv(tableau_publication, file = output_file_path, row.names = FALSE)
-```
-
 \#—————————————————— \## Linear mixed models (3 x 2 model) \### Single
 antennal touch
-
-``` r
-aggregate(nb.of.touch ~ antibiotic, df_behavior, sum) 
-```
-
-    ##   antibiotic nb.of.touch
-    ## 1       zero         120
-    ## 2        low         244
-    ## 3       high         180
 
 ``` r
 # Full model
@@ -838,9 +748,9 @@ check_my_model <- function(model, title = "Model Diagnostics") {
   cat("\n--- Diagnostics for:", title, "---\n")
   res <- simulateResiduals(fittedModel = model, plot = FALSE)
   plot(res)
-  print(testDispersion(res))      # Over/Under-dispersion
-  print(testZeroInflation(res))   # Zero-inflation
-  print(testOutliers(res))        # Outlier detection
+  testDispersion(res)     # Over/Under-dispersion
+  testZeroInflation(res)   # Zero-inflation
+  testOutliers(res)    # Outlier detection
 }
 
 check_my_model(model_nb2_single_touch, "3x2 Single Antennal Touch")
@@ -849,27 +759,7 @@ check_my_model(model_nb2_single_touch, "3x2 Single Antennal Touch")
     ## 
     ## --- Diagnostics for: 3x2 Single Antennal Touch ---
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-2.png)<!-- -->
-
-    ## 
-    ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    ##  simulated
-    ## 
-    ## data:  simulationOutput
-    ## dispersion = 0.75619, p-value = 0.544
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-3.png)<!-- -->
-
-    ## 
-    ##  DHARMa zero-inflation test via comparison to expected zeros with
-    ##  simulation under H0 = fitted model
-    ## 
-    ## data:  simulationOutput
-    ## ratioObsSim = 4.8077, p-value = 0.032
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-2.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-3.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-4.png)<!-- -->
 
     ## 
     ##  DHARMa bootstrapped outlier test
@@ -890,27 +780,7 @@ check_my_model(model_nb2_head, "3x2 Head to Head")
     ## 
     ## --- Diagnostics for: 3x2 Head to Head ---
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-5.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-6.png)<!-- -->
-
-    ## 
-    ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    ##  simulated
-    ## 
-    ## data:  simulationOutput
-    ## dispersion = 1.015, p-value = 0.816
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-7.png)<!-- -->
-
-    ## 
-    ##  DHARMa zero-inflation test via comparison to expected zeros with
-    ##  simulation under H0 = fitted model
-    ## 
-    ## data:  simulationOutput
-    ## ratioObsSim = 0.96411, p-value = 1
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-8.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-5.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-6.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-7.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-8.png)<!-- -->
 
     ## 
     ##  DHARMa bootstrapped outlier test
@@ -931,27 +801,7 @@ check_my_model(model_nb2_avoid, "3x2 Avoidance")
     ## 
     ## --- Diagnostics for: 3x2 Avoidance ---
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-9.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-10.png)<!-- -->
-
-    ## 
-    ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    ##  simulated
-    ## 
-    ## data:  simulationOutput
-    ## dispersion = 0.70624, p-value = 0.68
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-11.png)<!-- -->
-
-    ## 
-    ##  DHARMa zero-inflation test via comparison to expected zeros with
-    ##  simulation under H0 = fitted model
-    ## 
-    ## data:  simulationOutput
-    ## ratioObsSim = 1.1111, p-value = 0.576
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-12.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-9.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-10.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-11.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-12.png)<!-- -->
 
     ## 
     ##  DHARMa bootstrapped outlier test
@@ -972,27 +822,7 @@ check_my_model(model_nb2_bump, "3x2 Bump")
     ## 
     ## --- Diagnostics for: 3x2 Bump ---
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-13.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-14.png)<!-- -->
-
-    ## 
-    ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    ##  simulated
-    ## 
-    ## data:  simulationOutput
-    ## dispersion = 0.72889, p-value = 0.512
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-15.png)<!-- -->
-
-    ## 
-    ##  DHARMa zero-inflation test via comparison to expected zeros with
-    ##  simulation under H0 = fitted model
-    ## 
-    ## data:  simulationOutput
-    ## ratioObsSim = 1.8473, p-value = 0.48
-    ## alternative hypothesis: two.sided
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-11-16.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-13.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-14.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-15.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-16.png)<!-- -->
 
     ## 
     ##  DHARMa bootstrapped outlier test
@@ -1095,7 +925,7 @@ p_combined_boxplot <- ggplot(df_behavior_long, aes(x = antibiotic, y = Count, fi
 p_combined_boxplot
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -1156,7 +986,7 @@ p_model_pred <- ggplot() +
 p_model_pred
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -1203,25 +1033,25 @@ get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 ``` r
 biplot(X, type = "form", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-2.png)<!-- -->
 
 ``` r
 biplot(X, type = "covariance", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-3.png)<!-- -->
 
 ``` r
 viz_variables(X)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-4.png)<!-- -->
 
 ``` r
 p1 <- viz_individuals(
@@ -1233,7 +1063,7 @@ p1 <- viz_individuals(
 )
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-5.png)<!-- -->
 
 ``` r
 # Data Preparation for Vegan
@@ -1246,13 +1076,13 @@ dispersion_mod <- betadisper(dist_matrix, df_behavior$treatment)
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-6.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-6.png)<!-- -->
 
 ``` r
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-7.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-7.png)<!-- -->
 
 ``` r
 # BETADIASPER RESULT - Test significance of dispersion
@@ -2336,25 +2166,25 @@ get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 ``` r
 biplot(X, type = "form", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-23-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-2.png)<!-- -->
 
 ``` r
 biplot(X, type = "covariance", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-23-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-3.png)<!-- -->
 
 ``` r
 viz_variables(X)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-23-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-4.png)<!-- -->
 
 ``` r
 viz_individuals(
@@ -2366,7 +2196,7 @@ viz_individuals(
 )
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-23-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-5.png)<!-- -->
 
 ``` r
 # Data Preparation for Vegan
@@ -2379,13 +2209,13 @@ dispersion_mod <- betadisper(dist_matrix, df_behavior_reduce$treatment)
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-23-6.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-6.png)<!-- -->
 
 ``` r
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-23-7.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-7.png)<!-- -->
 
 ``` r
 # BETADIASPER RESULT - Test significance of dispersion
@@ -2944,13 +2774,13 @@ write.csv(resultats_mean_dist, here::here("activity-and-behavior", "result", "in
 hist(df_interind$mean.dist, breaks = 15)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
 
 ``` r
 qqnorm(df_interind$mean.dist)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-2.png)<!-- -->
 
 ``` r
 #fit the model
@@ -2960,13 +2790,13 @@ model_gauss <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = d
 simulateResiduals(model_gauss) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-26-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-3.png)<!-- -->
 
 ``` r
 testDispersion(model_gauss)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-26-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-4.png)<!-- -->
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -2980,7 +2810,7 @@ testDispersion(model_gauss)
 testResiduals(model_gauss)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-26-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-5.png)<!-- -->
 
     ## $uniformity
     ## 
@@ -3173,7 +3003,7 @@ p1 <- ggplot() +
 p1
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -3214,13 +3044,13 @@ levels(df_interind_reduced$treatment)
 hist(df_interind_reduced$mean.dist, breaks = 15)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
 
 ``` r
 qqnorm(df_interind_reduced$mean.dist)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-28-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-2.png)<!-- -->
 
 ``` r
 #fit the model
@@ -3230,13 +3060,13 @@ model_gauss_red <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data
 simulateResiduals(model_gauss_red) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-28-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-3.png)<!-- -->
 
 ``` r
 testDispersion(model_gauss_red)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-28-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-4.png)<!-- -->
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -3250,7 +3080,7 @@ testDispersion(model_gauss_red)
 testResiduals(model_gauss_red)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-28-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-5.png)<!-- -->
 
     ## $uniformity
     ## 
@@ -3396,7 +3226,7 @@ p2 <- ggplot() +
 p2
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -3688,13 +3518,13 @@ write.csv(resultats_prop, here::here("activity-and-behavior", "result", "activit
 hist(df_move$average.speed, breaks = 50)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
 
 ``` r
 qqnorm(df_move$average.speed)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-32-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-2.png)<!-- -->
 
 ``` r
 #Full model
@@ -3702,13 +3532,13 @@ model_avg.speed <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:a
 simulateResiduals(model_avg.speed) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-32-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-3.png)<!-- -->
 
 ``` r
 testDispersion(model_avg.speed)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-32-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-4.png)<!-- -->
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -3722,7 +3552,7 @@ testDispersion(model_avg.speed)
 testResiduals(model_avg.speed)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-32-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-5.png)<!-- -->
 
     ## $uniformity
     ## 
@@ -3888,7 +3718,7 @@ p_boxplot <- ggplot(df_move, aes(x = antibiotic, y = average.speed, fill = reino
 p_boxplot
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -3950,7 +3780,7 @@ p_model <- ggplot() +
 p_model
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -3986,13 +3816,13 @@ df_move_red$antibiotic <- factor(df_move_red$antibiotic, levels = c("zero", "hig
 hist(df_move_red$average.speed, breaks = 50)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
 
 ``` r
 qqnorm(df_move_red$average.speed)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-35-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-2.png)<!-- -->
 
 ``` r
 #Full model
@@ -4000,13 +3830,13 @@ model_avg.speed_red <- lmer(average.speed ~ antibiotic * reinoculation + (1 | ye
 simulateResiduals(model_avg.speed_red) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-35-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-3.png)<!-- -->
 
 ``` r
 testDispersion(model_avg.speed_red)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-35-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-4.png)<!-- -->
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -4020,7 +3850,7 @@ testDispersion(model_avg.speed_red)
 testResiduals(model_avg.speed_red)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-35-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-5.png)<!-- -->
 
     ## $uniformity
     ## 
@@ -4458,13 +4288,13 @@ sink()
 hist(df_move$prop.time.moving, breaks = 35)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-37-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
 
 ``` r
 qqnorm(df_move$prop.time.moving)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-37-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-2.png)<!-- -->
 
 ``` r
 range(df_move$prop.time.moving)
@@ -4492,13 +4322,13 @@ res <- simulateResiduals(model_beta)
 plot(res); 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-37-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-3.png)<!-- -->
 
 ``` r
 testDispersion(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-37-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-4.png)<!-- -->
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -4512,7 +4342,7 @@ testDispersion(res)
 testUniformity(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-37-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-5.png)<!-- -->
 
     ## 
     ##  Asymptotic one-sample Kolmogorov-Smirnov test
@@ -4525,7 +4355,7 @@ testUniformity(res)
 testResiduals(res) 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-37-6.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-6.png)<!-- -->
 
     ## $uniformity
     ## 
@@ -4564,7 +4394,7 @@ testResiduals(res)
 testZeroInflation(model_beta) 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-37-7.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-7.png)<!-- -->
 
     ## 
     ##  DHARMa zero-inflation test via comparison to expected zeros with
@@ -4709,7 +4539,7 @@ p_boxplot_beta <- ggplot(df_move, aes(x = antibiotic, y = prop_time_adj, fill = 
 p_boxplot_beta
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -4772,7 +4602,7 @@ p_pred_model_prop <- ggplot() +
 p_pred_model_prop
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -4791,13 +4621,13 @@ ggsave(
 hist(df_move_red$prop.time.moving, breaks = 35)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
 ``` r
 qqnorm(df_move_red$prop.time.moving)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-2.png)<!-- -->
 
 ``` r
 range(df_move_red$prop.time.moving)
@@ -4825,13 +4655,13 @@ res <- simulateResiduals(model_beta_red)
 plot(res); 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-3.png)<!-- -->
 
 ``` r
 testDispersion(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-4.png)<!-- -->
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -4845,7 +4675,7 @@ testDispersion(res)
 testUniformity(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-5.png)<!-- -->
 
     ## 
     ##  Asymptotic one-sample Kolmogorov-Smirnov test
@@ -4858,7 +4688,7 @@ testUniformity(res)
 testResiduals(res) 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-6.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-6.png)<!-- -->
 
     ## $uniformity
     ## 
@@ -4897,7 +4727,7 @@ testResiduals(res)
 testZeroInflation(model_beta_red) 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-7.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-7.png)<!-- -->
 
     ## 
     ##  DHARMa zero-inflation test via comparison to expected zeros with
@@ -5340,13 +5170,13 @@ eig
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-1.png)<!-- -->
 
 ``` r
 viz_variables(X)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-42-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-2.png)<!-- -->
 
 ``` r
 viz_individuals(
@@ -5358,7 +5188,7 @@ viz_individuals(
 )
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-42-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-3.png)<!-- -->
 
 ``` r
 set.seed(67) 
@@ -5372,13 +5202,13 @@ dispersion_mod <- betadisper(dist_matrix,df_pca_7$treatment)
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-42-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-4.png)<!-- -->
 
 ``` r
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-42-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-5.png)<!-- -->
 
 ``` r
 # BETADIASPER RESULT - Test significance of dispersion
@@ -5483,25 +5313,25 @@ get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
 
 ``` r
 biplot(X, type = "form", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-2.png)<!-- -->
 
 ``` r
 biplot(X, type = "covariance", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-3.png)<!-- -->
 
 ``` r
 viz_variables(X)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-4.png)<!-- -->
 
 ``` r
 pca_scores <- get_coordinates(X)
@@ -5517,13 +5347,13 @@ df_pca_7$combined <- combined_interaction_data
 hist(df_pca_7$combined, breaks = 10)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
 
 ``` r
 qqnorm(df_pca_7$combined)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-2.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-2.png)<!-- -->
 
 ``` r
 model_lmm <- lmer(combined ~ antibiotic * reinoculation + (1 | year), data = df_pca_7)
@@ -5532,13 +5362,13 @@ res <- simulateResiduals(model_lmm)
 plot(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-3.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-3.png)<!-- -->
 
 ``` r
 testDispersion(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-4.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-4.png)<!-- -->
 
     ## 
     ##  DHARMa nonparametric dispersion test via sd of residuals fitted vs.
@@ -5552,7 +5382,7 @@ testDispersion(res)
 testUniformity(res) # This is the standard test for residual distribution
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-5.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-5.png)<!-- -->
 
     ## 
     ##  Asymptotic one-sample Kolmogorov-Smirnov test
@@ -5672,7 +5502,7 @@ p1 <- ggplot() +
 p1
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
+![](activity_and_behavior_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
 
 ``` r
 dir.create(

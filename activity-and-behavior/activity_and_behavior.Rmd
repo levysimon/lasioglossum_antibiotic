@@ -125,8 +125,6 @@ df_behavior$antibiotic <- factor(df_behavior$antibiotic, levels = c("zero", "low
 df_behavior$reinoculation <- factor(df_behavior$reinoculation)
 df_behavior$reinoculation <- relevel(df_behavior$reinoculation, ref = "no")
 df_behavior$year <- factor(df_behavior$year)
-
-df_behavior
 ```
 
 ### Inter-individual distance data
@@ -153,7 +151,6 @@ df_interind <- df_interind %>%
     reinoculation = relevel(reinoculation, ref = "no"),
     year = factor(year)   
   )
-df_interind
 ```
 
 ### Activity data
@@ -181,7 +178,6 @@ df_move <- df_move %>%
     year = factor(year), 
     arena = factor(arena)
   )
-df_move
 ```
 
 
@@ -213,8 +209,6 @@ df_pca_7 <- df_move_aggregated %>%
     antibiotic  = factor(antibiotic, levels = c("zero", "low", "high")),
     reinoculation = factor(reinoculation, levels = c("no", "yes"))
   )
-
-df_pca_7
 ```
 
 # ==============================
@@ -287,7 +281,9 @@ tableau_publication$Avoidance <- formater_stats(
 colnames(tableau_publication)[1] <- "Treatment"
 
 tableau_publication
+```
 
+```{r, include=FALSE}
 #Save table 
 result_dir <- here::here("activity-and-behavior", "result", "behavior")
 
@@ -302,8 +298,6 @@ write.csv(tableau_publication, file = output_file_path, row.names = FALSE)
 ## Linear mixed models (3 x 2 model)
 ### Single antennal touch
 ```{r}
-aggregate(nb.of.touch ~ antibiotic, df_behavior, sum) 
-
 # Full model
 model_nb2_single_touch <- glmmTMB(
   nb.of.touch ~ antibiotic * reinoculation + (1 | year),
@@ -440,9 +434,9 @@ check_my_model <- function(model, title = "Model Diagnostics") {
   cat("\n--- Diagnostics for:", title, "---\n")
   res <- simulateResiduals(fittedModel = model, plot = FALSE)
   plot(res)
-  print(testDispersion(res))      # Over/Under-dispersion
-  print(testZeroInflation(res))   # Zero-inflation
-  print(testOutliers(res))        # Outlier detection
+  testDispersion(res)     # Over/Under-dispersion
+  testZeroInflation(res)   # Zero-inflation
+  testOutliers(res)    # Outlier detection
 }
 
 check_my_model(model_nb2_single_touch, "3x2 Single Antennal Touch")

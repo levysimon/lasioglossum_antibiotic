@@ -4,6 +4,8 @@ We combined behavioral and activity tracking, survival analysis, qPCR, and ampli
 
 
 ## Pipeline Structure
+* **`activity-and-behavior/`**: Parses raw behavioral event logs (30 min arenas), loads inter-individual distance and locomotor activity data, and fits Negative Binomial GLMMs (glmmTMB) and Gaussian LMMs (lmer) under 3 × 2 and 2 × 2 factorial designs. Includes a multivariate PCA on 7 metrics with PERMANOVA, and produces a combined 6-panel figure.
+
 * **`amplicon-sequencing/`**: Houses the DADA2 and Phyloseq workflows for quality filtering, taxonomic assignment against the Silva database, and community composition analysis.
 * **`qpcr/`**: Aggregates raw plate data, handles absolute quantification via standard curves, and fits Linear Mixed-Effects Models (`lme4::lmer`) to evaluate 16S rRNA gene copy numbers.
 * **`survival-analysis/`**: Cleans longitudinal monitoring data, runs Log-Rank tests, and generates Kaplan-Meier survival curves.

@@ -1,13 +1,10 @@
 # Load packages
 
 ```{r}
-library(here)
-library(tidyverse)
-library(survival)
-library(survminer)
-library(ggplot2)
-library(purrr)
-library(dplyr)
+library(here)       # For relative file paths
+library(tidyverse)  # Includes ggplot2, dplyr, purrr, readr, tidyr, stringr
+library(survival)   # For core survival analysis models
+library(survminer)  # For ggplot-based survival curves (ggsurvplot)
 ```
 
 

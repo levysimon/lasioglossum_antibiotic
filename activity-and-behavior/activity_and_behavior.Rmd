@@ -964,8 +964,8 @@ sink()
 
 ## Basic stats
 ```{r}
-moyenne_Mean_dist <- tapply(df_interind$Mean_dist, df_interind$Treatment, mean, na.rm = TRUE)
-ecarts_Mean_dist <- tapply(df_interind$Mean_dist, df_interind$Treatment, sd, na.rm = TRUE)
+moyenne_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, mean, na.rm = TRUE)
+ecarts_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, sd, na.rm = TRUE)
 
 resultats_mean_dist <- data.frame(
   Moyenne_cm = moyenne_Mean_dist,
@@ -985,11 +985,11 @@ write.csv(resultats_mean_dist, here::here("activity-and-behavior", "result", "in
 
 # LMM model on 3 x 2 
 ```{r}
-hist(df_interind$Mean_dist, breaks = 15)
-qqnorm(df_interind$Mean_dist)
+hist(df_interind$mean.dist, breaks = 15)
+qqnorm(df_interind$mean.dist)
 
 #fit the model
-model_gauss <- lmer(Mean_dist ~ Antibiotic * Reinoculation + (1 | Year),data = df_interind)
+model_gauss <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = df_interind)
 
 #residuals tests
 simulateResiduals(model_gauss) |> plot()
@@ -1002,35 +1002,39 @@ a1
 s1 <- summary(model_gauss)
 s1
 
-emm <- emmeans(model_gauss, ~ Antibiotic * Reinoculation)
+# On compare "yes" vs "no" au sein de chaque dose (Seulement 3 comparaisons !)
+pairs(emm, by = "antibiotic", adjust = "tukey")
+pairs(emm, by = "reinoculation", adjust = "tukey")
+
+emm <- emmeans(model_gauss, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
 pairs(emm)
 ```
 
 ### Visualisation
 ```{r}
-emm <- emmeans(model_gauss, ~ Antibiotic * Reinoculation)
+emm <- emmeans(model_gauss, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
 pairs(emm)
 
 p1 <- ggplot() +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation),
+    aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculation),
     width = 0.1, 
     linewidth = 0.5,
     position = position_dodge(0.8)
   ) +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation),
+    aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculation),
     width = 0.5, 
     linewidth = 1.2,
     position = position_dodge(0.8)
   ) +
   geom_point(
     data = df_interind,
-    aes(x = Antibiotic, y = Mean_dist, fill = Reinoculation),
+    aes(x = antibiotic, y = mean.dist, fill = reinoculation),
     shape = 21,
     colour = "black",
     stroke = 0.3,
@@ -1070,7 +1074,7 @@ ggsave(
 
 ### additive model (Just to have it - The interaction is significant)
 ```{r}
-model_gauss_add <- lmer(Mean_dist ~ Antibiotic + Reinoculation + (1 | Year),data = df_interind)
+model_gauss_add <- lmer(mean.dist ~ antibiotic + reinoculation + (1 | year),data = df_interind)
 simulateResiduals(model_gauss_add) |> plot()
 testDispersion(model_gauss_add) 
 testResiduals(model_gauss_add) 
@@ -1083,33 +1087,35 @@ anova(model_gauss, model_gauss_add)
 ```
 
 
-# LMM model on 2x2 (reduced) model 
+# Reduced model 
 ```{r}
 # joining LOW and ZERO
-df_interind$Antibiotic[df_interind$Antibiotic %in% c("low", "zero")] <- "zero"
+df_interind_reduced <- df_interind
 
-df_interind<- df_interind %>%
-  mutate(Treatment = paste(Antibiotic, Reinoculation, sep = "_"))
+df_interind_reduced$antibiotic[df_interind_reduced$antibiotic %in% c("low", "zero")] <- "zero"
 
-df_interind <- df_interind %>%
+df_interind_reduced<- df_interind_reduced %>%
+  mutate(treatment = paste(antibiotic, reinoculation, sep = "_"))
+
+df_interind_reduced <- df_interind_reduced %>%
   mutate(
-    Treatment = factor(Treatment),              
-    Treatment = relevel(Treatment, ref = "zero_no"),
-    Antibiotic = factor(Antibiotic),
-    Antibiotic = relevel(Antibiotic, ref = "zero"),
-    Reinoculation = factor(Reinoculation),
-    Reinoculation = relevel(Reinoculation, ref = "no"),
-    Year = factor(Year)   
+    treatment = factor(treatment),              
+    treatment = relevel(treatment, ref = "zero_no"),
+    antibiotic = factor(antibiotic),
+    antibiotic = relevel(antibiotic, ref = "zero"),
+    reinoculation = factor(reinoculation),
+    reinoculation = relevel(reinoculation, ref = "no"),
+    year = factor(year)   
   )
 
 
-levels(df_interind$Treatment)
+levels(df_interind_reduced$treatment)
 
 
-hist(df_interind$Mean_dist, breaks = 15)
-qqnorm(df_interind$Mean_dist)
+hist(df_interind_reduced$mean.dist, breaks = 15)
+qqnorm(df_interind_reduced$mean.dist)
 
-model_gauss_low <- lmer(Mean_dist ~ Antibiotic * Reinoculation + (1 | Year),data = df_interind)
+model_gauss_low <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = df_interind_reduced)
 simulateResiduals(model_gauss_low) |> plot()
 testDispersion(model_gauss_low)
 testResiduals(model_gauss_low)
@@ -1119,35 +1125,35 @@ s2
 a2 <- Anova(model_gauss_low, type = "III") 
 a2
 
-emm <- emmeans(model_gauss_low, ~ Antibiotic * Reinoculation)
+emm <- emmeans(model_gauss_low, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
 pairs(emm)
 ```
 
 ### Visualisation
 ```{r}
-emm <- emmeans(model_gauss_low, ~ Antibiotic * Reinoculation)
+emm <- emmeans(model_gauss_low, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
 pairs(emm)
 
 p2 <- ggplot() +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation),
+    aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculation),
     width = 0.1, 
     linewidth = 0.5,
     position = position_dodge(0.8)
   ) +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation),
+    aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculation),
     width = 0.5, 
     linewidth = 1.2,
     position = position_dodge(0.8)
   ) +
   geom_point(
-    data = df_interind,
-    aes(x = Antibiotic, y = Mean_dist, fill = Reinoculation),
+    data = df_interind_reduced,
+    aes(x = antibiotic, y = mean.dist, fill = reinoculation),
     shape = 21,
     colour = "black",
     stroke = 0.3,
@@ -1186,7 +1192,7 @@ ggsave(
 
 ### additive model
 ```{r}
-model_gauss_low_add <- lmer(Mean_dist ~ Antibiotic + Reinoculation + (1 | Year),data = df_interind)
+model_gauss_low_add <- lmer(mean.dist ~ antibiotic + reinoculation + (1 | year),data = df_interind_reduced)
 simulateResiduals(model_gauss_low_add) |> plot()
 testDispersion(model_gauss_low_add); 
 testResiduals(model_gauss_low_add) # tests supplémentaires
@@ -1202,12 +1208,16 @@ anova(model_gauss_low_add)
 sink(here::here("activity-and-behavior", "result", "inter_individual_dist", "interind_dist_result.txt"), split = TRUE)
 
 cat("Interind dist for full 3x2 model\n\n")
-a1 
+s1 <- summary(model_gauss)
 s1
+a1 <- Anova(model_gauss, type = "III") 
+a1
 
 cat("Interind dist for reduced 2x2 model\n\n")
-a2
+s2 <- summary(model_gauss_low)
 s2
+a2 <- Anova(model_gauss_low, type = "III") 
+a2
 
 sink()
 ```
@@ -1254,7 +1264,7 @@ write.csv(resultats_prop, here::here("activity-and-behavior", "result", "activit
 hist(df_move$Average_Speed, breaks = 50)
 qqnorm(df_move$Average_Speed)
 
-model_lmm <- lmer(Average_Speed ~ Antibiotic * Reinoculation + (1 | Year:Arena), data = df_move)
+model_lmm <- lmer(Average_Speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move)
 simulateResiduals(model_lmm) |> plot()
 testDispersion(model_lmm)
 testResiduals(model_lmm)
@@ -1269,7 +1279,7 @@ a1
 ## Visualisation
 ### Simple box plot 
 ```{r}
-p_boxplot <- ggplot(df_move, aes(x = Antibiotic, y = Average_Speed, fill = Reinoculation)) +
+p_boxplot <- ggplot(df_move, aes(x = antibiotic, y = Average_Speed, fill = reinoculation)) +
   stat_boxplot(
     geom = "errorbar",
     width = 0.1,
@@ -1322,27 +1332,27 @@ ggsave(
 
 ### The model prediction
 ```{r}
-emm <- emmeans(model_lmm, ~ Antibiotic * Reinoculation)
+emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
 
 p_model <- ggplot() +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation),
+    aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculation),
     width = 0.1, 
     linewidth = 0.5,
     position = position_dodge(0.8)
   ) +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation),
+    aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculation),
     width = 0.5, 
     linewidth = 1.2,
     position = position_dodge(0.8)
   ) +
   geom_point(
     data = df_move, 
-    aes(x = Antibiotic, y = Average_Speed, fill = Reinoculation), 
+    aes(x = antibiotic, y = Average_Speed, fill = reinoculation), 
     shape = 21,            
     colour = "black",       
     stroke = 0.3,          
@@ -1380,7 +1390,7 @@ ggsave(
 ### Additive model
 
 ```{r}
-model_lmm_add <- lmer(Average_Speed ~ Antibiotic + Reinoculation + (1 | Year:Arena), data = df_move)
+model_lmm_add <- lmer(Average_Speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move)
 simulateResiduals(model_lmm_add) |> plot()
 testDispersion(model_lmm_add)
 testResiduals(model_lmm_add)
@@ -1394,22 +1404,22 @@ s2
 ```{r}
 #Same stats but joining LOW and ZERO
 df_move_red <- df_move
-df_move_red$Antibiotic[df_move_red$Antibiotic %in% c("low", "zero")] <- "zero"
+df_move_red$antibiotic[df_move_red$antibiotic %in% c("low", "zero")] <- "zero"
 df_move_red<- df_move_red %>%
-  mutate(Treatment = paste(Antibiotic, Reinoculation, sep = "_"))
+  mutate(Treatment = paste(antibiotic, reinoculation, sep = "_"))
 
 df_move_red <- df_move_red %>%
   mutate(
     Treatment = factor(Treatment),                   # d’abord en facteur
     Treatment = relevel(Treatment, ref = "zero_no"),
-    Antibiotic = factor(Antibiotic),
-    Antibiotic = relevel(Antibiotic, ref = "zero"),
-    Reinoculation = factor(Reinoculation),
-    Reinoculation = relevel(Reinoculation, ref = "no"),
-    Year = factor(Year),
-    Arena = factor(Arena)
+    antibiotic = factor(antibiotic),
+    antibiotic = relevel(antibiotic, ref = "zero"),
+    reinoculation = factor(reinoculation),
+    reinoculation = relevel(reinoculation, ref = "no"),
+    year = factor(year),
+    arena = factor(arena)
   )
-df_move_red$Antibiotic <- factor(df_move_red$Antibiotic, levels = c("zero", "high"))
+df_move_red$antibiotic <- factor(df_move_red$antibiotic, levels = c("zero", "high"))
 ```
 
 ## LLM reduced
@@ -1418,7 +1428,7 @@ df_move_red$Antibiotic <- factor(df_move_red$Antibiotic, levels = c("zero", "hig
 hist(df_move_red$Average_Speed, breaks = 50)
 qqnorm(df_move_red$Average_Speed)
 
-model_lmm_red <- lmer(Average_Speed ~ Antibiotic * Reinoculation + (1 | Year:Arena), data = df_move_red)
+model_lmm_red <- lmer(Average_Speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move_red)
 simulateResiduals(model_lmm_red) |> plot()
 testDispersion(model_lmm_red)
 testResiduals(model_lmm_red)
@@ -1433,7 +1443,7 @@ a3
 
 ```{r}
 
-model_lmm_add <- lmer(Average_Speed ~ Antibiotic + Reinoculation + (1 | Year:Arena), data = df_move_red)
+model_lmm_add <- lmer(Average_Speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move_red)
 simulateResiduals(model_lmm_add) |> plot()
 testDispersion(model_lmm_add)
 testResiduals(model_lmm_add)
@@ -1486,7 +1496,7 @@ y_adj <- (df_move$Prop_time_moving * (n - 1) + 0.5) / n
 df_move$prop_time_adj <- y_adj
 range(df_move$prop_time_adj)
 
-model_beta <- glmmTMB(prop_time_adj ~ Antibiotic * Reinoculation + (1|Year/Arena),
+model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year/arena),
                       family = beta_family(link="logit"),
                       data=df_move) 
 
@@ -1507,7 +1517,7 @@ a1
 
 ### Visualisation
 ```{r}
-p_boxplot_beta <- ggplot(df_move, aes(x = Antibiotic, y = prop_time_adj, fill = Reinoculation)) +
+p_boxplot_beta <- ggplot(df_move, aes(x = antibiotic, y = prop_time_adj, fill = reinoculation)) +
   stat_boxplot(
     geom = "errorbar",
     width = 0.1,
@@ -1561,27 +1571,27 @@ ggsave(
 
 
 ```{r}
-emm <- emmeans(model_beta, ~ Antibiotic * Reinoculation, type = "response") 
+emm <- emmeans(model_beta, ~ antibiotic * reinoculation, type = "response") 
 emm_df <- as.data.frame(emm)
 
 p_pred_model_prop <- ggplot() +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = Reinoculation),
+    aes(x = antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = reinoculation),
     width = 0.1, 
     linewidth = 0.5,
     position = position_dodge(0.8)
   ) +
   geom_errorbar(
     data = emm_df,
-    aes(x = Antibiotic, ymin = response, ymax = response, group = Reinoculation),
+    aes(x = antibiotic, ymin = response, ymax = response, group = reinoculation),
     width = 0.5, 
     linewidth = 1.2,
     position = position_dodge(0.8)
   ) +
   geom_point(
     data = df_move, 
-    aes(x = Antibiotic, y = prop_time_adj, fill = Reinoculation), 
+    aes(x = antibiotic, y = prop_time_adj, fill = reinoculation), 
     shape = 21,            
     colour = "black",       
     stroke = 0.3,          
@@ -1622,7 +1632,7 @@ ggsave(
 ### Additive model (just to have it)
 
 ```{r}
-model_beta_add <- glmmTMB(prop_time_adj ~ Antibiotic + Reinoculation + (1|Year/Arena),
+model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year/arena),
                           family = beta_family(link="logit"),
                           data=df_move) 
 
@@ -1658,7 +1668,7 @@ y_adj <- (df_move_red$Prop_time_moving * (n - 1) + 0.5) / n
 df_move_red$prop_time_adj <- y_adj
 range(df_move_red$prop_time_adj)
 
-model_beta <- glmmTMB(prop_time_adj ~ Antibiotic * Reinoculation + (1|Year/Arena),
+model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year/arena),
                       family = beta_family(link="logit"),
                       data=df_move_red) 
 
@@ -1680,7 +1690,7 @@ a3
 ### additive model
 
 ```{r}
-model_beta_add <- glmmTMB(prop_time_adj ~ Antibiotic + Reinoculation + (1|Year/Arena),
+model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year/arena),
                           family = beta_family(link="logit"),
                           data=df_move_red)
 
@@ -1733,16 +1743,16 @@ sink()
 
 ##Combined plot 
 ```{r}
-model_lmm <- lmer(Average_Speed ~ Antibiotic * Reinoculation + (1 | Year:Arena), data = df_move)
-model_beta <- glmmTMB(prop_time_adj ~ Antibiotic * Reinoculation + (1 | Year/Arena), family = beta_family(link = "logit"), data = df_move)
+model_lmm <- lmer(Average_Speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move)
+model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1 | year/arena), family = beta_family(link = "logit"), data = df_move)
 
-emm_lmm_df <- as.data.frame(emmeans(model_lmm, ~ Antibiotic * Reinoculation))
-emm_beta_df <- as.data.frame(emmeans(model_beta, ~ Antibiotic * Reinoculation, type = "response"))
+emm_lmm_df <- as.data.frame(emmeans(model_lmm, ~ antibiotic * reinoculation))
+emm_beta_df <- as.data.frame(emmeans(model_beta, ~ antibiotic * reinoculation, type = "response"))
 
 p_model <- ggplot() +
-  geom_errorbar(data = emm_lmm_df, aes(x = Antibiotic, ymin = lower.CL, ymax = upper.CL, group = Reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
-  geom_errorbar(data = emm_lmm_df, aes(x = Antibiotic, ymin = emmean, ymax = emmean, group = Reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
-  geom_point(data = df_move, aes(x = Antibiotic, y = Average_Speed, fill = Reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
+  geom_errorbar(data = emm_lmm_df, aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
+  geom_errorbar(data = emm_lmm_df, aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
+  geom_point(data = df_move, aes(x = antibiotic, y = Average_Speed, fill = reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
   scale_fill_manual(values = c("no" = "#4F77B4", "yes" = "#FFBF00"), labels = c("No", "Yes")) +
   scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
   theme_classic() + 
@@ -1750,9 +1760,9 @@ p_model <- ggplot() +
   labs(x = "Antibiotic dose", y = "Average speed [cm/sec]", fill = "Re-inoculation")
 
 p_pred_model_prop <- ggplot() +
-  geom_errorbar(data = emm_beta_df, aes(x = Antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = Reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
-  geom_errorbar(data = emm_beta_df, aes(x = Antibiotic, ymin = response, ymax = response, group = Reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
-  geom_point(data = df_move, aes(x = Antibiotic, y = prop_time_adj, fill = Reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
+  geom_errorbar(data = emm_beta_df, aes(x = antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
+  geom_errorbar(data = emm_beta_df, aes(x = antibiotic, ymin = response, ymax = response, group = reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
+  geom_point(data = df_move, aes(x = antibiotic, y = prop_time_adj, fill = reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
   scale_fill_manual(values = c("no" = "#4F77B4", "yes" = "#FFBF00"), labels = c("No", "Yes")) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +

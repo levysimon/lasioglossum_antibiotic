@@ -1178,10 +1178,8 @@ sink()
 
 #==============================
 #Analysis for activity (avg speed + time spent moving) 
-
 ## Basic stats
 ```{r}
-#DESCRIPTIVES STATISTICS
 moyenne_speed <- tapply(df_move$average.speed, df_move$treatment, mean, na.rm = TRUE)
 ecarts_speed <- tapply(df_move$average.speed, df_move$treatment, sd, na.rm = TRUE)
 
@@ -1200,7 +1198,6 @@ resultats_prop <- data.frame(
 
 #save table
 dir.create(here::here("activity-and-behavior", "result", "activity"), recursive = TRUE, showWarnings = FALSE)
-
 write.csv(resultats_speed, here::here("activity-and-behavior", "result", "activity", "avg_speed_table.csv"), row.names = TRUE)
 write.csv(resultats_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
 ```
@@ -1213,16 +1210,26 @@ write.csv(resultats_prop, here::here("activity-and-behavior", "result", "activit
 hist(df_move$average.speed, breaks = 50)
 qqnorm(df_move$average.speed)
 
-model_lmm <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move)
-simulateResiduals(model_lmm) |> plot()
-testDispersion(model_lmm)
-testResiduals(model_lmm)
+#Full model
+model_avg.speed <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move)
+simulateResiduals(model_avg.speed) |> plot()
+testDispersion(model_avg.speed)
+testResiduals(model_avg.speed)
 
-s1 <- summary(model_lmm)
-s1
-a1 <- Anova(model_lmm, type=3)
+a1 <- Anova(model_avg.speed, type = "III")
 a1 
 
+#Additive Model
+model_avg.speed_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move)
+a2 <- Anova(model_avg.speed_add, type = "II")
+a2
+
+#to test if the interaction if significant
+anova(model_avg.speed_add, model_avg.speed)  #Here the interaction model is a better fit
+
+emm <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic")
+pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ## Visualisation
@@ -1268,8 +1275,7 @@ p_boxplot <- ggplot(df_move, aes(x = antibiotic, y = average.speed, fill = reino
     fill = "Re-inoculation"
   )
 
-print(p_boxplot)
-
+p_boxplot
 
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "avgspeed_boxplot.pdf"), 
@@ -1281,7 +1287,7 @@ ggsave(
 
 ### The model prediction
 ```{r}
-emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
+emm <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
 
 p_model <- ggplot() +
@@ -1326,7 +1332,7 @@ p_model <- ggplot() +
     fill = "Re-inoculation"   
   )
 
-print(p_model)
+p_model
 
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "avg_speed_model_pred.pdf"), 
@@ -1336,22 +1342,9 @@ ggsave(
 )
 ```
 
-### Additive model
-
-```{r}
-model_lmm_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move)
-simulateResiduals(model_lmm_add) |> plot()
-testDispersion(model_lmm_add)
-testResiduals(model_lmm_add)
-
-s2 <- summary(model_lmm_add)
-s2
-```
-
 ## Reduced model
-
 ```{r}
-#Same stats but joining LOW and ZERO
+#Same stats but joining low and zero
 df_move_red <- df_move
 df_move_red$antibiotic[df_move_red$antibiotic %in% c("low", "zero")] <- "zero"
 df_move_red<- df_move_red %>%
@@ -1359,7 +1352,7 @@ df_move_red<- df_move_red %>%
 
 df_move_red <- df_move_red %>%
   mutate(
-    treatment = factor(treatment),                   # d’abord en facteur
+    treatment = factor(treatment),                  
     treatment = relevel(treatment, ref = "zero_no"),
     antibiotic = factor(antibiotic),
     antibiotic = relevel(antibiotic, ref = "zero"),
@@ -1369,67 +1362,78 @@ df_move_red <- df_move_red %>%
     arena = factor(arena)
   )
 df_move_red$antibiotic <- factor(df_move_red$antibiotic, levels = c("zero", "high"))
-```
 
-## LLM reduced
-
-```{r}
 hist(df_move_red$average.speed, breaks = 50)
 qqnorm(df_move_red$average.speed)
 
-model_lmm_red <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move_red)
-simulateResiduals(model_lmm_red) |> plot()
-testDispersion(model_lmm_red)
-testResiduals(model_lmm_red)
+#Full model
+model_avg.speed_red <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move_red)
+simulateResiduals(model_avg.speed_red) |> plot()
+testDispersion(model_avg.speed_red)
+testResiduals(model_avg.speed_red)
 
-s3 <- summary(model_lmm_red)
-s3
-a3 <- Anova(model_lmm_red, type=3)
+a3 <- Anova(model_avg.speed_red, type = "III")
 a3 
-```
 
-### additive model
+#Additive Model
+model_avg.speed_red_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move_red)
+a4 <- Anova(model_avg.speed_red_add, type = "II")
+a4
 
-```{r}
+#to test if the interaction if significant
+anova(model_avg.speed_red_add, model_avg.speed_red)  #Here the interaction model is a better fit
 
-model_lmm_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move_red)
-simulateResiduals(model_lmm_add) |> plot()
-testDispersion(model_lmm_add)
-testResiduals(model_lmm_add)
+emm <- emmeans(model_avg.speed_red, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic")
+pairs(emm, by = "reinoculation", adjust = "tukey")
 
-s4 <- summary(model_lmm_add)
-s4
 ```
 
 ## Save the result in a .txt file
-
 ```{r}
 sink(here::here("activity-and-behavior", "result", "activity", "avg_speed_result.txt"), split = TRUE)
 
-cat("\n\n   Full model 3x2 for avg speed \n\n")
- 
-s1
-a1
-cat("\n\n additive \n\n")
-s2
-
-
-cat("\n\n Reduced model 2x2 for avg speed \n\n")
-cat("\n")
-s3
-a3
-cat("\n\n additive \n\n")
-s4
-
+cat("=========================================================================\n")
+cat("                AVERAGE SPEED ANALYSIS — LMM RESULTS\n")
+cat("=========================================================================\n\n")
+cat("=====================================\n")
+cat("--- 1. FULL MODEL (3 x 2) ---\n")
+cat("=====================================\n")
+cat("\n[1A. Full Model (Interaction Type III)]\n")
+print(Anova(model_avg.speed, type = "III"))
+cat("\n[1B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_avg.speed_add, type = "II"))
+cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_avg.speed_add, model_avg.speed))
+cat("\n[1D. Post-Hoc Simple Effects Breakdown]\n")
+emm_full <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+cat("\n* Reinoculation effect within each Antibiotic dose:\n")
+print(pairs(emm_full, by = "antibiotic"))
+cat("\n* Antibiotic effect within each Reinoculation status (Tukey HSD):\n")
+print(pairs(emm_full, by = "reinoculation", adjust = "tukey"))
+cat("\n=====================================\n")
+cat("--- 2. REDUCED MODEL (2 x 2) ---\n")
+cat("=====================================\n")
+cat("\n[2A. Full Model (Interaction Type III)]\n")
+print(Anova(model_avg.speed_red, type = "III"))
+cat("\n[2B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_avg.speed_red_add, type = "II"))
+cat("\n[2C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_avg.speed_red_add, model_avg.speed_red))
+cat("\n[2D. Post-Hoc Simple Effects Breakdown]\n")
+emm_red <- emmeans(model_avg.speed_red, ~ antibiotic * reinoculation)
+cat("\n* Reinoculation effect within each Antibiotic dose:\n")
+print(pairs(emm_red, by = "antibiotic"))
+cat("\n* Antibiotic effect within each Reinoculation status (Tukey HSD):\n")
+print(pairs(emm_red, by = "reinoculation", adjust = "tukey"))
+cat("\n=====================================\n")
+cat("END OF ANALYSIS\n")
+cat("=====================================\n")
 sink()
 ```
 
 # ------------------------------------------------------
-
 # Proportion of time spent moving 
-
-
-
 # LLM Full model
 
 ```{r}

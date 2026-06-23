@@ -219,7 +219,7 @@ Number of permutations: 10000
 
 Response: Distances
           Df  Sum Sq Mean Sq      F N.Perm Pr(>F)
-Groups     5  277.49  55.498 1.5102  10000 0.2102
+Groups     5  277.49  55.498 1.5102  10000 0.2098
 Residuals 36 1322.94  36.748                     
 
 [5B. Global PERMANOVA (Treatment)]
@@ -230,7 +230,7 @@ Number of permutations: 10000
 
 adonis2(formula = dist_matrix ~ antibiotic * reinoculation, data = df_behavior, permutations = 10000, method = "euclidean", strata = df_behavior$year)
          Df SumOfSqs     R2      F Pr(>F)
-Model     5    895.0 0.1551 1.3217 0.2277
+Model     5    895.0 0.1551 1.3217 0.2296
 Residual 36   4875.2 0.8449              
 Total    41   5770.1 1.0000              
 
@@ -242,7 +242,7 @@ Number of permutations: 10000
 
 adonis2(formula = dist_matrix ~ antibiotic, data = df_behavior, permutations = 10000, strata = df_behavior$year)
          Df SumOfSqs      R2      F Pr(>F)
-Model     2    269.2 0.04666 0.9544 0.3777
+Model     2    269.2 0.04666 0.9544 0.3763
 Residual 39   5500.9 0.95334              
 Total    41   5770.1 1.00000              
 
@@ -254,6 +254,6 @@ Number of permutations: 10000
 
 adonis2(formula = dist_matrix ~ reinoculation, data = df_behavior, permutations = 10000, strata = df_behavior$year)
          Df SumOfSqs      R2      F Pr(>F)
-Model     1     26.3 0.00456 0.1831 0.8215
+Model     1     26.3 0.00456 0.1831  0.811
 Residual 40   5743.8 0.99544              
 Total    41   5770.1 1.00000              

@@ -2,21 +2,6 @@
 
 R Markdown analysis pipeline for social behavior and locomotor activity under antibiotic treatment and gut reinoculation.
 
----
-
-## Experimental design
-
-42 arenas across two years (2024–2025), in a **3 × 2 factorial design**:
-
-| Factor | Levels |
-|---|---|
-| Antibiotic dose | zero, low, high |
-| Gut reinoculation | no, yes |
-
-A **reduced 2 × 2 model** is also fitted by collapsing `low` and `zero` antibiotic doses into a single `zero` category.
-
----
-
 ## Data
 
 | File | Description |

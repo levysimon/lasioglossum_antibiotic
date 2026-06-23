@@ -5,11 +5,7 @@
 
 ``` r
 library(here)         # Relative file path tracking
-
-library(tidyverse)    
-library(readr)        
-library(dplyr)        
-library(tidyr)        
+library(tidyverse) #include readr, dplyr, tidyr     
 
 library(lme4)         
 library(lmerTest)     
@@ -42,7 +38,7 @@ categories_all <- list(
   high_ant = c(3, 7, 10, 18, 28, 29, 30, 31),
   low_gut  = c(1, 6, 12, 20, 21, 22, 23, 34),
   high_gut = c(4, 11, 17, 19, 32, 33),
-  gut_ctrl = c(35, 36, 37, 38, 39) # 2025 dataset only
+  gut_ctrl = c(35, 36, 37, 38, 39)
 )
 
 category_conditions <- tibble(
@@ -432,24 +428,24 @@ check_my_model <- function(model, title = "Model Diagnostics") {
   cat("\n--- Diagnostics for:", title, "---\n")
   res <- simulateResiduals(fittedModel = model, plot = FALSE)
   plot(res)
-  testDispersion(res)     # Over/Under-dispersion
-  testZeroInflation(res)   # Zero-inflation
-  testOutliers(res)    # Outlier detection
+  print(testDispersion(res))      
+  print(testZeroInflation(res))   
+  print(testOutliers(res))
 }
 
-check_my_model(model_nb2_single_touch, "3x2 Single Antennal Touch")
+check_my_model(model_nb2_add_single_touch, "3x2 Single Antennal Touch")
 ```
 
 ``` r
-check_my_model(model_nb2_head, "3x2 Head to Head")
+check_my_model(model_nb2_head_add, "3x2 Head to Head")
 ```
 
 ``` r
-check_my_model(model_nb2_avoid, "3x2 Avoidance")
+check_my_model(model_nb2_add_avoid, "3x2 Avoidance")
 ```
 
 ``` r
-check_my_model(model_nb2_bump, "3x2 Bump")
+check_my_model(model_nb2_add_bump, "3x2 Bump")
 ```
 
 ## Visualisation behaviors
@@ -1026,15 +1022,12 @@ qqnorm(df_interind$mean.dist)
 model_gauss <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = df_interind)
 
 #residuals tests
-simulateResiduals(model_gauss) |> plot()
+res <- simulateResiduals(model_gauss) 
+testDispersion(res)
 ```
 
 ``` r
-testDispersion(model_gauss)
-```
-
-``` r
-testResiduals(model_gauss)
+testResiduals(res)
 ```
 
 ``` r
@@ -1254,10 +1247,10 @@ cat("\n[1B. Additive Model (Main Effects Type II)]\n")
 print(Anova(model_gauss_add, type = "II"))
 cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
 print(anova(model_gauss_add, model_gauss))
-cat("\n[1D. the interaction model is a better fit\n")
-emm <- emmeans(model_gauss, ~ antibiotic * reinoculation)
-pairs(emm, by = "antibiotic")
-pairs(emm, by = "reinoculation", adjust = "tukey")
+cat("\n[1D. the interaction model is a better fit]\n")
+print(emm <- emmeans(model_gauss, ~ antibiotic * reinoculation))
+print(pairs(emm, by = "antibiotic"))
+print(pairs(emm, by = "reinoculation", adjust = "tukey"))
 cat("\n=====================================\n")
 cat("--- 2. REDUCED MODEL (2 x 2) ---\n")
 cat("=====================================\n")
@@ -1770,7 +1763,7 @@ y_adj <- (df_move_red$prop.time.moving * (n - 1) + 0.5) / n
 df_move_red$prop_time_adj <- y_adj
 range(df_move_red$prop_time_adj)
 
-model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year/arena),
+model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year:arena),
                       family = beta_family(link="logit"),
                       data=df_move_red) 
 
@@ -1888,6 +1881,7 @@ viz_individuals(
 ``` r
 set.seed(67) 
 # Data Preparation for Vegan
+stats_matrix <- data2[, sapply(data2, is.numeric)]
 dist_matrix <- vegdist(stats_matrix, method = "euclidean")
 
 # B. Check for Homogeneity of Dispersion (Betadisper) "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
@@ -2096,3 +2090,67 @@ cat("\n[3D. All Pairwise Comparisons]\n")
 print(all_pairwise)
 sink()
 ```
+
+## Session info
+
+``` r
+sessionInfo()
+```
+
+    ## R version 4.4.3 (2025-02-28)
+    ## Platform: aarch64-apple-darwin20
+    ## Running under: macOS 26.5
+    ## 
+    ## Matrix products: default
+    ## BLAS:   /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRblas.0.dylib 
+    ## LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+    ## 
+    ## locale:
+    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+    ## 
+    ## time zone: Europe/Zurich
+    ## tzcode source: internal
+    ## 
+    ## attached base packages:
+    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## 
+    ## other attached packages:
+    ##  [1] scales_1.4.0     patchwork_1.3.2  ggbeeswarm_0.7.3 dimensio_0.14.1 
+    ##  [5] vegan_2.7-3      permute_0.9-10   emmeans_2.0.2    car_3.1-5       
+    ##  [9] carData_3.0-6    DHARMa_0.4.7     glmmTMB_1.1.14   lmerTest_3.2-1  
+    ## [13] lme4_2.0-1       Matrix_1.7-5     lubridate_1.9.5  forcats_1.0.1   
+    ## [17] stringr_1.6.0    dplyr_1.2.0      purrr_1.2.1      readr_2.2.0     
+    ## [21] tidyr_1.3.2      tibble_3.3.1     ggplot2_4.0.2    tidyverse_2.0.0 
+    ## [25] here_1.0.2      
+    ## 
+    ## loaded via a namespace (and not attached):
+    ##  [1] Rdpack_2.6.6        sandwich_3.1-1      rlang_1.1.7        
+    ##  [4] magrittr_2.0.4      multcomp_1.4-30     otel_0.2.0         
+    ##  [7] compiler_4.4.3      mgcv_1.9-4          systemfonts_1.3.2  
+    ## [10] vctrs_0.7.2         pkgconfig_2.0.3     crayon_1.5.3       
+    ## [13] fastmap_1.2.0       backports_1.5.0     labeling_0.4.3     
+    ## [16] utf8_1.2.6          promises_1.5.0      rmarkdown_2.30     
+    ## [19] tzdb_0.5.0          nloptr_2.2.1        ragg_1.5.1         
+    ## [22] bit_4.6.0           xfun_0.57           later_1.4.8        
+    ## [25] broom_1.0.12        parallel_4.4.3      cluster_2.1.8.2    
+    ## [28] R6_2.6.1            gap.datasets_0.0.6  stringi_1.8.7      
+    ## [31] qgam_2.0.0          RColorBrewer_1.1-3  boot_1.3-32        
+    ## [34] numDeriv_2016.8-1.1 estimability_1.5.1  Rcpp_1.1.1         
+    ## [37] iterators_1.0.14    knitr_1.51          zoo_1.8-15         
+    ## [40] httpuv_1.6.17       splines_4.4.3       timechange_0.4.0   
+    ## [43] tidyselect_1.2.1    rstudioapi_0.18.0   dichromat_2.0-0.1  
+    ## [46] abind_1.4-8         yaml_2.3.12         doParallel_1.0.17  
+    ## [49] TMB_1.9.20          codetools_0.2-20    lattice_0.22-9     
+    ## [52] plyr_1.8.9          shiny_1.13.0        withr_3.0.2        
+    ## [55] S7_0.2.1            evaluate_1.0.5      survival_3.8-6     
+    ## [58] pillar_1.11.1       gap_1.14            foreach_1.5.2      
+    ## [61] reformulas_0.4.4    generics_0.1.4      arkhe_1.11.0       
+    ## [64] vroom_1.7.0         rprojroot_2.1.1     hms_1.1.4          
+    ## [67] minqa_1.2.8         xtable_1.8-8        glue_1.8.0         
+    ## [70] tools_4.4.3         mvtnorm_1.3-6       grid_4.4.3         
+    ## [73] rbibutils_2.4.1     nlme_3.1-168        beeswarm_0.4.0     
+    ## [76] vipor_0.4.7         Formula_1.2-5       cli_3.6.5          
+    ## [79] textshaping_1.0.5   khroma_1.17.0       gtable_0.3.6       
+    ## [82] digest_0.6.39       pbkrtest_0.5.5      TH.data_1.1-5      
+    ## [85] farver_2.1.2        htmltools_0.5.9     lifecycle_1.0.5    
+    ## [88] mime_0.13           bit64_4.6.0-1       MASS_7.3-65

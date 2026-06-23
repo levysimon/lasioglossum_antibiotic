@@ -1,0 +1,211 @@
+=========================================================================
+            2 x 2 FACTORIAL MODEL — BEHAVIORAL GLMM RESULTS
+=========================================================================
+
+
+=====================================
+--- 1. Single Antennal Touch ---
+=====================================
+
+[1A. Full Model (Interaction Type III)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.touch
+                            Chisq Df Pr(>Chisq)    
+(Intercept)              438.7479  1    < 2e-16 ***
+antibiotic                 0.0134  1    0.90786    
+reinoculation              0.0440  1    0.83393    
+antibiotic:reinoculation   3.5848  1    0.05831 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+[1B. Additive Model (Main Effects Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.touch
+               Chisq Df Pr(>Chisq)
+antibiotic    0.0004  1     0.9850
+reinoculation 0.1656  1     0.6841
+
+[1C. Likelihood Ratio Test (LRT)]
+Data: df_behavior_reduce
+Models:
+model_nb2_add_single_touch_red: nb.of.touch ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_single_touch_red: nb.of.touch ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                               Df    AIC    BIC  logLik deviance  Chisq Chi Df
+model_nb2_add_single_touch_red  5 306.26 314.95 -148.13   296.26              
+model_nb2_single_touch_red      6 304.82 315.25 -146.41   292.82 3.4392      1
+                               Pr(>Chisq)  
+model_nb2_add_single_touch_red             
+model_nb2_single_touch_red        0.06367 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+=====================================
+--- 2. Head-to-Head Interaction ---
+=====================================
+
+[2A. Full Model (Interaction Type III)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.head.to.head
+                           Chisq Df Pr(>Chisq)    
+(Intercept)              15.4121  1  8.643e-05 ***
+antibiotic                4.4245  1    0.03543 *  
+reinoculation             1.7400  1    0.18714    
+antibiotic:reinoculation  2.0684  1    0.15038    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+[2B. Additive Model (Main Effects Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.head.to.head
+               Chisq Df Pr(>Chisq)  
+antibiotic    3.3549  1     0.0670 .
+reinoculation 2.4237  1     0.1195  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+[2C. Likelihood Ratio Test (LRT)]
+Data: df_behavior_reduce
+Models:
+model_nb2_add_head_red: nb.of.head.to.head ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_head_red: nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                       Df    AIC    BIC  logLik deviance  Chisq Chi Df
+model_nb2_add_head_red  5 166.93 175.62 -78.465   156.93              
+model_nb2_head_red      6 166.90 177.33 -77.452   154.90 2.0269      1
+                       Pr(>Chisq)
+model_nb2_add_head_red           
+model_nb2_head_red         0.1545
+
+=====================================
+--- 3. Avoidance ---
+=====================================
+
+[3A. Full Model (Interaction Type III)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.avoidance
+                          Chisq Df Pr(>Chisq)  
+(Intercept)              1.3789  1    0.24029  
+antibiotic               0.8079  1    0.36874  
+reinoculation            0.3656  1    0.54540  
+antibiotic:reinoculation 4.3191  1    0.03769 *
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+[3B. Additive Model (Main Effects Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.avoidance
+               Chisq Df Pr(>Chisq)
+antibiotic    0.7054  1     0.4010
+reinoculation 0.0033  1     0.9544
+
+[3C. Likelihood Ratio Test (LRT)]
+Data: df_behavior_reduce
+Models:
+model_nb2_add_avoid_red: nb.of.avoidance ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_avoid_red: nb.of.avoidance ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                        Df    AIC   BIC  logLik deviance  Chisq Chi Df
+model_nb2_add_avoid_red  5 142.61 151.3 -66.304   132.61              
+model_nb2_avoid_red      6 140.58 151.0 -64.289   128.58 4.0286      1
+                        Pr(>Chisq)  
+model_nb2_add_avoid_red             
+model_nb2_avoid_red        0.04473 *
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+=====================================
+--- 4. Bumps ---
+=====================================
+
+[4A. Full Model (Interaction Type III)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.bump
+                            Chisq Df Pr(>Chisq)    
+(Intercept)              160.3214  1    < 2e-16 ***
+antibiotic                 0.0173  1    0.89533    
+reinoculation              0.3014  1    0.58303    
+antibiotic:reinoculation   2.7889  1    0.09492 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+[4B. Additive Model (Main Effects Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.bump
+               Chisq Df Pr(>Chisq)
+antibiotic    0.0038  1     0.9508
+reinoculation 0.0001  1     0.9921
+
+[4C. Likelihood Ratio Test (LRT)]
+Data: df_behavior_reduce
+Models:
+model_nb2_add_bump_red: nb.of.bump ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_bump_red: nb.of.bump ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                       Df    AIC    BIC  logLik deviance  Chisq Chi Df
+model_nb2_add_bump_red  5 285.17 293.85 -137.58   275.17              
+model_nb2_bump_red      6 284.44 294.87 -136.22   272.44 2.7239      1
+                       Pr(>Chisq)  
+model_nb2_add_bump_red             
+model_nb2_bump_red        0.09885 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+=====================================
+--- 5. PERMANOVA & PCA 2x2 ---
+=====================================
+
+[5A. Homogeneity of Multivariate Dispersions]
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 10000
+
+Response: Distances
+          Df  Sum Sq Mean Sq      F N.Perm Pr(>F)
+Groups     3   97.69  32.563 0.8388  10000 0.4845
+Residuals 38 1475.25  38.822                     
+
+[5B. Global PERMANOVA (Treatment)]
+Permutation test for adonis under reduced model
+Blocks:  strata 
+Permutation: free
+Number of permutations: 10000
+
+adonis2(formula = dist_matrix ~ antibiotic * reinoculation, data = df_behavior_reduce, permutations = 10000, method = "euclidean", strata = df_behavior_reduce$year)
+         Df SumOfSqs     R2      F Pr(>F)
+Model     3    582.2 0.1009 1.4214   0.21
+Residual 38   5187.9 0.8991              
+Total    41   5770.1 1.0000              
+
+[5C. PERMANOVA (Antibiotic Main Effect)]
+Permutation test for adonis under reduced model
+Blocks:  strata 
+Permutation: free
+Number of permutations: 10000
+
+adonis2(formula = dist_matrix ~ antibiotic, data = df_behavior_reduce, permutations = 10000, method = "euclidean", strata = df_behavior_reduce$year)
+         Df SumOfSqs      R2     F Pr(>F)
+Model     1     19.5 0.00339 0.136 0.8676
+Residual 40   5750.6 0.99661             
+Total    41   5770.1 1.00000             
+
+[5D. PERMANOVA (Reinoculation Main Effect)]
+Permutation test for adonis under reduced model
+Blocks:  strata 
+Permutation: free
+Number of permutations: 10000
+
+adonis2(formula = dist_matrix ~ reinoculation, data = df_behavior_reduce, permutations = 10000, method = "euclidean", strata = df_behavior_reduce$year)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     1     26.3 0.00456 0.1831 0.8215
+Residual 40   5743.8 0.99544              
+Total    41   5770.1 1.00000              
+
+=====================================
+END OF ANALYSIS
+=====================================

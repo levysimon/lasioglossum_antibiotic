@@ -1278,7 +1278,7 @@ p_boxplot <- ggplot(df_move, aes(x = antibiotic, y = average.speed, fill = reino
 p_boxplot
 
 ggsave(
-  filename = here::here("activity-and-behavior", "result", "activity", "avgspeed_boxplot.pdf"), 
+  filename = here::here("activity-and-behavior", "result", "activity", "avg_speed_boxplot.pdf"), 
   plot = p_boxplot, 
   width = 9, 
   height = 5
@@ -1435,13 +1435,10 @@ sink()
 # ------------------------------------------------------
 # Proportion of time spent moving 
 # LLM Full model
-
 ```{r}
 hist(df_move$prop.time.moving, breaks = 35)
 qqnorm(df_move$prop.time.moving)
 range(df_move$prop.time.moving)
-
-#Beta-regression should be the best
 
 # transform y to (0,1) range
 n <- length(df_move$prop.time.moving)
@@ -1449,8 +1446,8 @@ y_adj <- (df_move$prop.time.moving * (n - 1) + 0.5) / n
 df_move$prop_time_adj <- y_adj
 range(df_move$prop_time_adj)
 
-model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year/arena),
-                      family = beta_family(link="logit"),
+model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year:arena),
+                      family = beta_family(link="logit"), #Beta-regression is best suited for this
                       data=df_move) 
 
 #Verifications check
@@ -1461,14 +1458,28 @@ testUniformity(res)
 testResiduals(res) 
 testZeroInflation(model_beta) 
 
-# Models summary
-s1 <- summary(model_beta)
-s1
-a1 <- Anova(model_beta, type=3)
+a1 <- Anova(model_beta, type = "III")
 a1 
+
+
+#Additive Model
+model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year:arena),
+                      family = beta_family(link="logit"), #Beta-regression is best suited for this
+                      data=df_move) 
+
+a2 <- Anova(model_beta_add, type = "II")
+a2
+
+#to test if the interaction if significant
+anova(model_beta_add, model_beta)  #Here the interaction model is a better fit
+
+emm <- emmeans(model_beta, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic")
+pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
-### Visualisation
+## Visualisation
+### Simple boxplot
 ```{r}
 p_boxplot_beta <- ggplot(df_move, aes(x = antibiotic, y = prop_time_adj, fill = reinoculation)) +
   stat_boxplot(
@@ -1511,7 +1522,7 @@ p_boxplot_beta <- ggplot(df_move, aes(x = antibiotic, y = prop_time_adj, fill = 
     fill = "Re-inoculation"
   )
 
-print(p_boxplot_beta)
+p_boxplot_beta
 
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "prop_box_plot.pdf"), 
@@ -1519,10 +1530,9 @@ ggsave(
   width = 9, 
   height = 5
 )
-
 ```
 
-
+### The model prediction
 ```{r}
 emm <- emmeans(model_beta, ~ antibiotic * reinoculation, type = "response") 
 emm_df <- as.data.frame(emm)
@@ -1570,7 +1580,7 @@ p_pred_model_prop <- ggplot() +
     fill = "Re-inoculation"   
   )
 
-print(p_pred_model_prop)
+p_pred_model_prop
 
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "prop_pred_model.pdf"), 
@@ -1578,88 +1588,51 @@ ggsave(
   width = 9, 
   height = 5
 )
-
-```
-
-
-### Additive model (just to have it)
-
-```{r}
-model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year/arena),
-                          family = beta_family(link="logit"),
-                          data=df_move) 
-
-#Verifications check
-res <- simulateResiduals(model_beta_add)
-plot(res); 
-testDispersion(res)
-testUniformity(res)
-testResiduals(res) 
-testZeroInflation(model_beta_add) 
-
-#Résumé modele
-s2 <- summary(model_beta_add)
-s2
-a2 <- Anova(model_beta_add, type=3)
-a2
 ```
 
 # Reduced model
-
 ## LLM reduced
-
 ```{r}
-
 hist(df_move_red$prop.time.moving, breaks = 35)
 qqnorm(df_move_red$prop.time.moving)
 range(df_move_red$prop.time.moving)
 
-#Beta-regression should be the best
 # transform y to (0,1) range
 n <- length(df_move_red$prop.time.moving)
 y_adj <- (df_move_red$prop.time.moving * (n - 1) + 0.5) / n
 df_move_red$prop_time_adj <- y_adj
 range(df_move_red$prop_time_adj)
 
-model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year/arena),
+model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year/arena),
                       family = beta_family(link="logit"),
                       data=df_move_red) 
 
 #Verifications check
-res <- simulateResiduals(model_beta)
+res <- simulateResiduals(model_beta_red)
 plot(res); 
 testDispersion(res)
 testUniformity(res)
 testResiduals(res) 
-testZeroInflation(model_beta) 
+testZeroInflation(model_beta_red) 
 
-
-#Résumé modele
-s3 <- summary(model_beta)
-s3
-a3 <- Anova(model_beta, type=3)
+a3 <- Anova(model_beta_red, type=3)
 a3
-```
-### additive model
 
-```{r}
-model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year/arena),
-                          family = beta_family(link="logit"),
-                          data=df_move_red)
+#Additive Model
+model_beta_red_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year:arena),
+                      family = beta_family(link="logit"), #Beta-regression is best suited for this
+                      data=df_move_red) 
 
-#Verifications check
-res <- simulateResiduals(model_beta_add)
-plot(res); 
-testDispersion(res)
-testUniformity(res)
-testResiduals(res) 
-testZeroInflation(model_beta) 
-
-#Résumé modele
-s4 <- summary(model_beta_add)
-s4
-a4 <- Anova(model_beta_add, type=3)
+a4 <- Anova(model_beta_red_add, type = "II")
 a4
+
+#to test if the interaction if significant
+anova(model_beta_red_add, model_beta_red)  #Here the interaction model is a better fit
+
+emm <- emmeans(model_beta_red, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic")
+pairs(emm, by = "reinoculation", adjust = "tukey")
+
 ```
 
 #Save the result in a .txt file
@@ -1667,75 +1640,47 @@ a4
 ```{r}
 sink(here::here("activity-and-behavior", "result", "activity", "prop_time_moving_result.txt"), split = TRUE)
 
-cat("\n\n  Full model 3x2 for prop of time moving \n\n")
-cat("\n")
-
-s1
-a1
-
-cat("\n\n additive \n\n")
-cat("\n")
-
-s2
-a2
-
-
-cat("\n\n Reduced model 2x2 for pro of time moving \n\n")
-cat("\n")
-
-s3
-a3
-cat("\n\n additive \n\n")
-cat("\n")
-
-s4
-a4
-
+cat("=========================================================================\n")
+cat("          PROPORTION OF TIME SPENT MOVING — GLMM BETA RESULTS\n")
+cat("=========================================================================\n\n")
+cat("=====================================\n")
+cat("--- 1. FULL MODEL (3 x 2) ---\n")
+cat("=====================================\n")
+cat("\n[1A. Full Model (Interaction Type III)]\n")
+print(Anova(model_beta, type = "III"))
+cat("\n[1B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_beta_add, type = "II"))
+cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_beta_add, model_beta))
+cat("\n[1D. Post-Hoc Simple Effects Breakdown (Back-transformed to Real Proportions)]\n")
+emm_full <- emmeans(model_beta, ~ antibiotic * reinoculation, type = "response")
+cat("\n* Reinoculation effect within each Antibiotic dose:\n")
+print(pairs(emm_full, by = "antibiotic"))
+cat("\n* Antibiotic effect within each Reinoculation status (Tukey HSD):\n")
+print(pairs(emm_full, by = "reinoculation", adjust = "tukey"))
+cat("\n=====================================\n")
+cat("--- 2. REDUCED MODEL (2 x 2) ---\n")
+cat("=====================================\n")
+cat("\n[2A. Reduced Model (Interaction Type III)]\n")
+print(Anova(model_beta_red, type = "III"))
+cat("\n[2B. Reduced Additive Model (Main Effects Type II)]\n")
+print(Anova(model_beta_red_add, type = "II"))
+cat("\n[2C. Likelihood Ratio Test (LRT) for Reduced Model]\n")
+print(anova(model_beta_red_add, model_beta_red))
+cat("\n[2D. Post-Hoc Simple Effects Breakdown (Back-transformed to Real Proportions)]\n")
+emm_red <- emmeans(model_beta_red, ~ antibiotic * reinoculation, type = "response")
+cat("\n* Reinoculation effect within each Antibiotic dose:\n")
+print(pairs(emm_red, by = "antibiotic"))
+cat("\n* Antibiotic effect within each Reinoculation status (Tukey HSD):\n")
+print(pairs(emm_red, by = "reinoculation", adjust = "tukey"))
+cat("\n=====================================\n")
+cat("END OF ANALYSIS\n")
+cat("=====================================\n")
 sink()
 ```
 
-##Combined plot 
-```{r}
-model_lmm <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move)
-model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1 | year/arena), family = beta_family(link = "logit"), data = df_move)
-
-emm_lmm_df <- as.data.frame(emmeans(model_lmm, ~ antibiotic * reinoculation))
-emm_beta_df <- as.data.frame(emmeans(model_beta, ~ antibiotic * reinoculation, type = "response"))
-
-p_model <- ggplot() +
-  geom_errorbar(data = emm_lmm_df, aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
-  geom_errorbar(data = emm_lmm_df, aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
-  geom_point(data = df_move, aes(x = antibiotic, y = average.speed, fill = reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
-  scale_fill_manual(values = c("no" = "#4F77B4", "yes" = "#FFBF00"), labels = c("No", "Yes")) +
-  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
-  theme_classic() + 
-  theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1), axis.text.x = element_text(margin = margin(t = 5))) +
-  labs(x = "Antibiotic dose", y = "Average speed [cm/sec]", fill = "Re-inoculation")
-
-p_pred_model_prop <- ggplot() +
-  geom_errorbar(data = emm_beta_df, aes(x = antibiotic, ymin = asymp.LCL, ymax = asymp.UCL, group = reinoculation), width = 0.1, linewidth = 0.5, position = position_dodge(0.8)) +
-  geom_errorbar(data = emm_beta_df, aes(x = antibiotic, ymin = response, ymax = response, group = reinoculation), width = 0.5, linewidth = 1.2, position = position_dodge(0.8)) +
-  geom_point(data = df_move, aes(x = antibiotic, y = prop_time_adj, fill = reinoculation), shape = 21, colour = "black", stroke = 0.3, size = 3.5, alpha = 0.9, position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)) +
-  scale_fill_manual(values = c("no" = "#4F77B4", "yes" = "#FFBF00"), labels = c("No", "Yes")) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
-  theme_classic() + 
-  theme(panel.border = element_rect(color = "black", fill = NA, linewidth = 1), axis.text.x = element_text(margin = margin(t = 5))) +
-  labs(x = "Antibiotic dose", y = "Proportion of time moving", fill = "Re-inoculation")
-
-combined_plot <- (p_model + p_pred_model_prop) + 
-  plot_layout(guides = "collect") + 
-  plot_annotation(tag_levels = 'A') & 
-  theme(legend.position = "bottom", plot.tag = element_text(face = "bold", size = 16))
-
-print(combined_plot)
-
-ggsave(filename = here::here("activity-and-behavior", "result", "activity", "combined_activity_metrics.pdf"), plot = combined_plot, width = 12, height = 5.5)
-
-```
 #===============================
 # PCA ON 7 METRICS
-
 
 ### PCA for Treatment (3 x 2 levels)
 
@@ -2010,7 +1955,6 @@ ggsave(
 ```
 
 # Save the result in a .txt file
-
 ```{r}
 sink(
   file = here::here("activity-and-behavior", "result", "PCA_on_7metrics", "pca_result.txt"), 

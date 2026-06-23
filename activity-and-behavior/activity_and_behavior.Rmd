@@ -6,9 +6,10 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE,          
-  message = FALSE,      
-  warning = FALSE 
+  echo = TRUE,
+  results = "hide",
+  message = FALSE,
+  warning = FALSE
 )
 ```
 
@@ -283,7 +284,7 @@ colnames(tableau_publication)[1] <- "Treatment"
 tableau_publication
 ```
 
-```{r, include=FALSE}
+```{r, results='hide'}
 #Save table 
 result_dir <- here::here("activity-and-behavior", "result", "behavior")
 

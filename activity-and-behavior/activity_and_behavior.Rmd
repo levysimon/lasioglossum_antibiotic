@@ -311,17 +311,13 @@ write.csv(tableau_publication, file = output_file_path, row.names = FALSE)
 ```{r}
 aggregate(nb.of.touch ~ antibiotic, df_behavior, sum) 
 
-
-# Negative Binomial GLMM 
+# Full model
 model_nb2_single_touch <- glmmTMB(
   nb.of.touch ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_single_touch)
 Anova(model_nb2_single_touch, type=3)
-
 
 #Additive model
 model_nb2_add_single_touch <- glmmTMB(
@@ -329,12 +325,19 @@ model_nb2_add_single_touch <- glmmTMB(
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_add_single_touch)
 Anova(model_nb2_add_single_touch, type = 2)
 
 #to test if the interaction if significant
 anova(model_nb2_single_touch,model_nb2_add_single_touch)
+
+#pairwise comparison
+emm_antibio <- emmeans(model_nb2_add_single_touch, ~ antibiotic)
+summary(emm_antibio, type = "response")
+pairs(emm_antibio, adjust = "tukey", type = "response") # HSD for the 3 doses
+
+emm_reino <- emmeans(model_nb2_add_single_touch, ~ reinoculation)
+summary(emm_reino, type = "response")
+pairs(emm_reino, type = "response")
 ```
 
 ### Head to head interaction
@@ -342,16 +345,13 @@ anova(model_nb2_single_touch,model_nb2_add_single_touch)
 ```{r}
 aggregate(nb.of.head.to.head ~ antibiotic, df_behavior, sum)
 
-#Negative Binomial GLMM (NB2)
+# Full model
 model_nb2_head <- glmmTMB(
   nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_head)
 Anova(model_nb2_head, type=3)
-
 
 #Additive model
 model_nb2_head_add <- glmmTMB(
@@ -359,12 +359,19 @@ model_nb2_head_add <- glmmTMB(
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_head_add)
 Anova(model_nb2_head_add, type=2)
 
 #to test if the interaction if significant
 anova(model_nb2_head,model_nb2_head_add)
+
+#pairwise comparison
+emm_antibio <- emmeans(model_nb2_head_add, ~ antibiotic)
+summary(emm_antibio, type = "response")
+pairs(emm_antibio, adjust = "tukey", type = "response") # HSD for the 3 doses
+
+emm_reino <- emmeans(model_nb2_head_add, ~ reinoculation)
+summary(emm_reino, type = "response")
+pairs(emm_reino, type = "response")
 ```
 
 ### Avoidance
@@ -372,14 +379,12 @@ anova(model_nb2_head,model_nb2_head_add)
 ```{r}
 aggregate(nb.of.avoidance ~ antibiotic, df_behavior, sum) 
 
-# Negative Binomial GLMM (NB2)
+#Full model
 model_nb2_avoid <- glmmTMB(
   nb.of.avoidance ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_avoid)
 Anova(model_nb2_avoid, type=3)
 
 
@@ -389,30 +394,32 @@ model_nb2_add_avoid <- glmmTMB(
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_add_avoid)
 Anova(model_nb2_add_avoid, type=2)
 
 #to test if the interaction if significant
 anova(model_nb2_avoid, model_nb2_add_avoid)
+
+#pairwise comparison
+emm_antibio <- emmeans(model_nb2_add_avoid, ~ antibiotic)
+summary(emm_antibio, type = "response")
+pairs(emm_antibio, adjust = "tukey", type = "response") # HSD for the 3 doses
+
+emm_reino <- emmeans(model_nb2_add_avoid, ~ reinoculation)
+summary(emm_reino, type = "response")
+pairs(emm_reino, type = "response")
 ```
 
 ### Bumps
-
 ```{r}
 aggregate(nb.of.bump ~ antibiotic, df_behavior, sum) 
 
-
-# Negative Binomial GLMM
+#Full model
 model_nb2_bump <- glmmTMB(
   nb.of.bump ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_bump)
 Anova(model_nb2_bump, type=3)
-
 
 #Additive model
 model_nb2_add_bump <- glmmTMB(
@@ -420,16 +427,21 @@ model_nb2_add_bump <- glmmTMB(
   family = nbinom2,
   data = df_behavior
 )
-
-summary(model_nb2_add_bump)
 Anova(model_nb2_add_bump, type = 2)
 
 #to test if the interaction if significant
 anova(model_nb2_bump, model_nb2_add_bump)
+
+#pairwise comparison
+emm_antibio <- emmeans(model_nb2_add_bump, ~ antibiotic)
+summary(emm_antibio, type = "response")
+pairs(emm_antibio, adjust = "tukey", type = "response") # HSD for the 3 doses
+
+emm_reino <- emmeans(model_nb2_add_bump, ~ reinoculation)
+summary(emm_reino, type = "response")
+pairs(emm_reino, type = "response")
 ```
-
 ## Test residuals 
-
 ```{r}
 ### Function to run DHARMa diagnostics
 
@@ -676,48 +688,97 @@ ado_gut <- adonis2(dist_matrix ~ reinoculation, strata = df_behavior$year, data 
 
 sink(here::here("activity-and-behavior", "result", "behavior", "behavior_3x2_summary.txt"), split = TRUE)
 
-cat("\n\n=====================================\n")
-cat("3 x 2 MODEL — GLMM RESULTS\n")
-cat("=====================================\n\n")
+cat("=========================================================================\n")
+cat("            3 x 2 FACTORIAL MODEL — BEHAVIORAL GLMM RESULTS\n")
+cat("=========================================================================\n\n")
 
-cat("\n--- Single Antennal Touch ---\n")
-summary(model_nb2_single_touch)
-Anova(model_nb2_single_touch, type = 3)
-summary(model_nb2_add_single_touch)
-Anova(model_nb2_add_single_touch, type = 2)
+cat("\n=====================================\n")
+cat("--- 1. Single Antennal Touch ---\n")
+cat("=====================================\n")
 
-anova(model_nb2_single_touch, model_nb2_add_single_touch)
+cat("\n[1A. Interaction & Model Comparison (LRT)]\n")
+print(Anova(model_nb2_single_touch, type = "III"))
+cat("\n--> Model Comparison (Full vs Additive):\n")
+print(anova(model_nb2_single_touch, model_nb2_add_single_touch))
 
-cat("\n--- Head-to-Head Interaction ---\n")
-summary(model_nb2_head)
-Anova(model_nb2_head, type = 3)
-summary(model_nb2_head_add)
-Anova(model_nb2_head_add, type = 2)
+cat("\n[1B. Main Effects Test (Additive Model Type II)]\n")
+print(Anova(model_nb2_add_single_touch, type = "II"))
 
-anova(model_nb2_head, model_nb2_head_add)
+cat("\n[1C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
+print(pairs(emmeans(model_nb2_add_single_touch, ~ antibiotic), adjust = "tukey", type = "response"))
 
-cat("\n--- Avoidance ---\n")
-summary(model_nb2_avoid)
-Anova(model_nb2_avoid, type = 3)
-summary(model_nb2_add_avoid)
-Anova(model_nb2_add_avoid, type = 2)
+cat("\n[1D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
+print(pairs(emmeans(model_nb2_add_single_touch, ~ reinoculation), type = "response"))
 
-anova(model_nb2_avoid, model_nb2_add_avoid)
+cat("\n=====================================\n")
+cat("--- 2. Head-to-Head Interaction ---\n")
+cat("=====================================\n")
 
-cat("\n--- Bump ---\n")
-summary(model_nb2_bump)
-Anova(model_nb2_bump, type = 3)
-summary(model_nb2_add_bump)
-Anova(model_nb2_add_bump, type = 2)
+cat("\n[2A. Interaction & Model Comparison (LRT)]\n")
+print(Anova(model_nb2_head, type = "III"))
+cat("\n--> Model Comparison (Full vs Additive):\n")
+print(anova(model_nb2_head, model_nb2_head_add))
 
-anova(model_nb2_bump, model_nb2_add_bump)
+cat("\n[2B. Main Effects Test (Additive Model Type II)]\n")
+print(Anova(model_nb2_head_add, type = "II"))
 
-cat("\n--- PCA 3x2 ---\n")
-permu_treat 
-ado_treat
+cat("\n[2C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
+print(pairs(emmeans(model_nb2_head_add, ~ antibiotic), adjust = "tukey", type = "response"))
 
-ado_ant
-ado_gut
+cat("\n[2D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
+print(pairs(emmeans(model_nb2_head_add, ~ reinoculation), type = "response"))
+
+cat("\n=====================================\n")
+cat("--- 3. Avoidance ---\n")
+cat("=====================================\n")
+
+cat("\n[3A. Interaction & Model Comparison (LRT)]\n")
+print(Anova(model_nb2_avoid, type = "III"))
+cat("\n--> Model Comparison (Full vs Additive):\n")
+print(anova(model_nb2_avoid, model_nb2_add_avoid))
+
+cat("\n[3B. Main Effects Test (Additive Model Type II)]\n")
+print(Anova(model_nb2_add_avoid, type = "II"))
+
+cat("\n[3C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
+print(pairs(emmeans(model_nb2_add_avoid, ~ antibiotic), adjust = "tukey", type = "response"))
+
+cat("\n[3D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
+print(pairs(emmeans(model_nb2_add_avoid, ~ reinoculation), type = "response"))
+
+cat("\n=====================================\n")
+cat("--- 4. Bumps ---\n")
+cat("=====================================\n")
+
+cat("\n[4A. Interaction & Model Comparison (LRT)]\n")
+print(Anova(model_nb2_bump, type = "III"))
+cat("\n--> Model Comparison (Full vs Additive):\n")
+print(anova(model_nb2_bump, model_nb2_add_bump))
+
+cat("\n[4B. Main Effects Test (Additive Model Type II)]\n")
+print(Anova(model_nb2_add_bump, type = "II"))
+
+cat("\n[4C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
+print(pairs(emmeans(model_nb2_add_bump, ~ antibiotic), adjust = "tukey", type = "response"))
+
+cat("\n[4D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
+print(pairs(emmeans(model_nb2_add_bump, ~ reinoculation), type = "response"))
+
+cat("\n=====================================\n")
+cat("--- 5. PERMANOVA & PCA 3x2 ---\n")
+cat("=====================================\n")
+
+cat("\n[5A. Homogeneity of Multivariate Dispersions]\n")
+print(permu_treat)
+
+cat("\n[5B. Global PERMANOVA (Treatment)]\n")
+print(ado_treat)
+
+cat("\n[5C. PERMANOVA (Antibiotic Main Effect)]\n")
+print(ado_ant)
+
+cat("\n[5D. PERMANOVA (Reinoculation Main Effect)]\n")
+print(ado_gut)
 
 sink()
 ```

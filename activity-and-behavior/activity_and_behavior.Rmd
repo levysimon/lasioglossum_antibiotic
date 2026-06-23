@@ -1639,7 +1639,6 @@ pairs(emm, by = "reinoculation", adjust = "tukey")
 
 ```{r}
 sink(here::here("activity-and-behavior", "result", "activity", "prop_time_moving_result.txt"), split = TRUE)
-
 cat("=========================================================================\n")
 cat("          PROPORTION OF TIME SPENT MOVING — GLMM BETA RESULTS\n")
 cat("=========================================================================\n\n")
@@ -1681,42 +1680,33 @@ sink()
 
 #===============================
 # PCA ON 7 METRICS
-
 ### PCA for Treatment (3 x 2 levels)
-
 ```{r}
-data2 <- df_pca_7[, !(names(df_pca_7) %in% c("antibiotic", "year", "reinoculate","category", "nb.of.antennal.interaction","arena"))]
+data2 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "year", "arena", "antibiotic", "reinoculation"))]
 head(data2)
 
-X <- dimensio::pca(data2, center = TRUE, scale = TRUE, sup_quali = "treatment")
+X <- dimensio::pca(data2, center = TRUE, scale = TRUE)
 eig <- get_eigenvalues(X)
 eig
 screeplot(X, cumulative = TRUE)
 
 viz_variables(X)
 
-
 viz_individuals(
   x = X,
-  extra_quali = data2$treatment,
-  color = c("#4477AA", "#EE6677", "#528833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
+  extra_quali = df_pca_7$treatment,
+  color = c("#4477AA", "#EE6677", "#528833", "#9477AA", "#AE6677", "#E28833"), 
   legend = list(x = "topright") ,
   ellipse = list(type = "tolerance", level = 0.95)
 )
 
 
-# === 3) MULTIVARIATE STATISTICS (PERMANOVA & BETADISPER) ===
 set.seed(67) 
-# A. Data Preparation for Vegan
-stats_matrix <- data2[, sapply(data2, is.numeric)]
-
-# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
+# Data Preparation for Vegan
 dist_matrix <- vegdist(stats_matrix, method = "euclidean")
 
-# B. Check for Homogeneity of Dispersion (Betadisper)
-# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-
-dispersion_mod <- betadisper(dist_matrix,data2$treatment)
+# B. Check for Homogeneity of Dispersion (Betadisper) "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
+dispersion_mod <- betadisper(dist_matrix,df_pca_7$treatment)
 
 # Visualize the dispersion
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
@@ -1727,125 +1717,24 @@ permu_treat <- permutest(dispersion_mod, permutations = 10000)
 permu_treat
 
 # C. PERMANOVA (Adonis2)
-# This tests: "Are the centers of the groups significantly different?"
-# Test 1: Simple effect of Treatment
-ado_treat <- adonis2(dist_matrix ~ treatment, strata = df_pca_7$year, data = data2, method = "euclidean")
+# This tests: "Are the centers of the groups significantly different?" Test 1: Simple effect of Treatment
+ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata = df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
 ado_treat
 
-```
-
-### PCA for Antibiotic
-
-```{r}
-data3 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "year", "reinoculate","category", "nb.of.antennal.interaction","arena"))]
-data3$antibiotic <- as.character(data3$antibiotic)
-head(data3)
-
-X <- dimensio::pca(data3, center = TRUE, scale = TRUE, sup_quali = "antibiotic")
-
-get_eigenvalues(X)
-screeplot(X, cumulative = TRUE)
-biplot(X, type = "form", labels = "variables")
-biplot(X, type = "covariance", labels = "variables")
-viz_variables(X)
-
-viz_individuals(
-  x = X,
-  extra_quali = data3$antibiotic,
-  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
-  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
-  legend = list(x = "topright") ,
-  ellipse = list(type = "tolerance", level = 0.95)
-)
-
-
-# === 3) MULTIVARIATE STATISTICS (PERMANOVA & BETADISPER) ===
-# A. Data Preparation for Vegan
-stats_matrix <- data3[, sapply(data3, is.numeric)]
-
-# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
-
-# B. Check for Homogeneity of Dispersion (Betadisper)
-# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix, data3$antibiotic)
-
-# Visualize the dispersion
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
-boxplot(dispersion_mod, main = "Distance to Centroid per Group")
-
-# BETADIASPER RESULT - Test significance of dispersion
-permu_ant <- permutest(dispersion_mod, permutations = 1000)
-permu_ant
-# C. PERMANOVA (Adonis2)
-# This tests: "Are the centers of the groups significantly different?"
-# Test 1: Simple effect of Antibiotic
-ado_ant <- adonis2(dist_matrix ~ antibiotic, strata=df_pca_7$year, data = data3, method = "euclidean")
+ado_ant <- adonis2(dist_matrix ~ antibiotic, strata=df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
 ado_ant
 
-```
-
-### PCA for réinoculation
-
-```{r}
-data4 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "antibiotic", "year","category", "nb.of.antennal.interaction","arena"))]
-
-head(data4)
-
-X <- dimensio::pca(data4, center = TRUE, scale = TRUE, sup_quali = "reinoculate")
-
-get_eigenvalues(X)
-screeplot(X, cumulative = TRUE)
-biplot(X, type = "form", labels = "variables")
-biplot(X, type = "covariance", labels = "variables")
-viz_variables(X)
-
-viz_individuals(
-  x = X,
-  extra_quali = data4$reinoculate,
-  color = c("#4477AA", "#EE6677", "#228833", "#9477AA", "#AE6677", "#E28833"), # Custom color scheme
-  #symbol = c(1, 2, 3, 4, 5, 6, 7), # Custom symbols
-  legend = list(x = "topright") ,
-  ellipse = list(type = "tolerance", level = 0.95)
-)
-
-
-# A. Data Preparation for Vegan
-stats_matrix <- data4[, sapply(data4, is.numeric)]
-# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
-
-
-# B. Check for Homogeneity of Dispersion (Betadisper)
-# This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix, data4$reinoculate)
-
-# Visualize the dispersion
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
-boxplot(dispersion_mod, main = "Distance to Centroid per Group")
-
-# BETADIASPER RESULT - Test significance of dispersion
-permu_reino <- permutest(dispersion_mod, permutations = 10000)
-permu_reino
-
-# C. PERMANOVA (Adonis2)
-# This tests: "Are the centers of the groups significantly different?"
-# Test 1: Simple effect of Antibiotic
-ado_reino <- adonis2(dist_matrix ~ reinoculate, strata=df_pca_7$year, data = data4, method = "euclidean")
+ado_reino <- adonis2(dist_matrix ~ reinoculation, strata=df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
 ado_reino
-
 ```
 
 ### PCA on the PC1
-
-#### extract the PC1
-
 ```{r}
-data5 <- df_pca_7[, !(names(df_pca_7) %in% c("antibiotic", "year", "reinoculate","category", "nb.of.antennal.interaction","arena"))]
-head(data5)
+#### extract the PC1
+data3 <- df_pca_7[, !(names(df_pca_7) %in% c("year", "arena", "antibiotic", "reinoculation"))]
+head(data3)
 
-X <- dimensio::pca(data5, center = TRUE, scale = TRUE, sup_quali = "treatment")
-
+X <- dimensio::pca(data3, center = TRUE, scale = TRUE, sup_quali = "treatment")
 get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 biplot(X, type = "form", labels = "variables")
@@ -1860,33 +1749,28 @@ df_pca_7$combined <- combined_interaction_data
 ```
 
 #### LMM on PC1
-
 ```{r}
 hist(df_pca_7$combined, breaks = 10)
 qqnorm(df_pca_7$combined)
 
-
-model_lmm <- lmer(combined ~ antibiotic * reinoculate + (1 | year), data = df_pca_7)
-
+model_lmm <- lmer(combined ~ antibiotic * reinoculation + (1 | year), data = df_pca_7)
 
 res <- simulateResiduals(model_lmm)
 plot(res)
 testDispersion(res)
 testUniformity(res) # This is the standard test for residual distribution
 
-
-s1 <- summary(model_lmm)
-s1
 a1 <- Anova(model_lmm, type=3)
 a1
 
+emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic")
+pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ### Visualisation
-
 ```{r}
-
-emm <- emmeans(model_lmm, ~ antibiotic * reinoculate)
+emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
 all_pairwise <- pairs(emm)
 emm_df <- as.data.frame(emm)
 
@@ -1894,7 +1778,7 @@ p1 <- ggplot() +
   # 1. Résultats du modèle LMM : Moustaches IC95 (En noir, fines)
   geom_errorbar(
     data = emm_df,
-    aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculate),
+    aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculation),
     width = 0.1, 
     linewidth = 0.5,
     position = position_dodge(0.8)
@@ -1902,7 +1786,7 @@ p1 <- ggplot() +
   # 2. Résultats du modèle LMM : Ligne horizontale pour la Moyenne prédite
   geom_errorbar(
     data = emm_df,
-    aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculate),
+    aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculation),
     width = 0.5, 
     linewidth = 1.2,
     position = position_dodge(0.8)
@@ -1910,7 +1794,7 @@ p1 <- ggplot() +
   # 3. Données brutes : Points individuels avec contour noir (style habituel)
   geom_point(
     data = df_pca_7, 
-    aes(x = antibiotic, y = combined, fill = reinoculate), 
+    aes(x = antibiotic, y = combined, fill = reinoculation), 
     shape = 21,            
     colour = "black",       
     stroke = 0.3,          
@@ -1937,7 +1821,7 @@ p1 <- ggplot() +
     fill = "Re-inoculation"   
   )
 
-print(p1)
+p1
 
 dir.create(
   path = here::here("activity-and-behavior", "result", "PCA_on_7metrics"), 
@@ -1961,33 +1845,35 @@ sink(
   split = TRUE
 )
 
-cat("===================================================\n")
-cat("               PCA ON THE 7 METRICS                \n")
-cat("===================================================\n\n")
-
-cat("--- Eigenvalues & Variance Explained ---\n")
+cat("=========================================================================\n")
+cat("          MULTIVARIATE PCA (7 METRICS) & LMM ON PC1 RESULTS\n")
+cat("=========================================================================\n\n")
+cat("=====================================\n")
+cat("--- 1. MULTIVARIATE DIMENSIONALITY ---\n")
+cat("=====================================\n")
+cat("\n[1A. Eigenvalues & Variance Explained]\n")
 print(eig)
-cat("\n\n")
-
-cat("--- PCA for Treatment ---\n")
+cat("\n=====================================\n")
+cat("--- 2. MULTIVARIATE DISPERSION & PERMANOVA ---\n")
+cat("=====================================\n")
+cat("\n[2A. Homogeneity of Multivariate Dispersions (Betadisper)]\n")
 print(permu_treat)
+cat("\n[2B. Global PERMANOVA (Interaction antibiotic * reinoculation)]\n")
 print(ado_treat)
-cat("\n\n")
-
-cat("--- PCA for Antibiotic ---\n")
-print(permu_ant)
+cat("\n[2C. PERMANOVA (Antibiotic Main Effect)]\n")
 print(ado_ant)
-cat("\n\n")
-
-cat("--- PCA for Reinoculation ---\n")
-print(permu_reino)
+cat("\n[2D. PERMANOVA (Reinoculation Main Effect)]\n")
 print(ado_reino)
-cat("\n\n")
-
-cat("--- Linear Mixed Model on PC1 ---\n")
-print(a1) 
-print(s1) 
-
+cat("\n=====================================\n")
+cat("--- 3. LINEAR MIXED MODEL (LMM) ON PC1 ---\n")
+cat("=====================================\n")
+cat("\n[3A. Type III Wald Chisquare Tests (Anova)]\n")
+print(Anova(model_lmm, type = 3))
+cat("\n[3B. Post-Hoc Breakdown: Reinoculation effect within each Antibiotic dose]\n")
+print(pairs(emm, by = "antibiotic"))
+cat("\n[3C. Post-Hoc Breakdown: Antibiotic effect within each Reinoculation status]\n")
+print(pairs(emm, by = "reinoculation", adjust = "tukey"))
+cat("\n[3D. All Pairwise Comparisons]\n")
+print(all_pairwise)
 sink()
-
 ```

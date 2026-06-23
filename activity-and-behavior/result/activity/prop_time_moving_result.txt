@@ -1,0 +1,134 @@
+=========================================================================
+          PROPORTION OF TIME SPENT MOVING — GLMM BETA RESULTS
+=========================================================================
+
+=====================================
+--- 1. FULL MODEL (3 x 2) ---
+=====================================
+
+[1A. Full Model (Interaction Type III)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: prop_time_adj
+                           Chisq Df Pr(>Chisq)    
+(Intercept)              58.5230  1  2.009e-14 ***
+antibiotic                1.3733  2     0.5033    
+reinoculation             0.6184  1     0.4317    
+antibiotic:reinoculation  8.8797  2     0.0118 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+[1B. Additive Model (Main Effects Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: prop_time_adj
+               Chisq Df Pr(>Chisq)
+antibiotic    0.4478  2     0.7994
+reinoculation 0.3232  1     0.5697
+
+[1C. Likelihood Ratio Test (LRT)]
+Data: df_move
+Models:
+model_beta_add: prop_time_adj ~ antibiotic + reinoculation + (1 | year:arena), zi=~0, disp=~1
+model_beta: prop_time_adj ~ antibiotic * reinoculation + (1 | year:arena), zi=~0, disp=~1
+               Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)  
+model_beta_add  6 -76.761 -62.176 44.381  -88.761                           
+model_beta      8 -80.932 -61.485 48.466  -96.932 8.1708      2    0.01682 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+[1D. Post-Hoc Simple Effects Breakdown (Back-transformed to Real Proportions)]
+
+* Reinoculation effect within each Antibiotic dose:
+antibiotic = zero:
+ contrast odds.ratio    SE  df null z.ratio p.value
+ no / yes      3.673 2.210 Inf    1   2.160  0.0308
+
+antibiotic = low:
+ contrast odds.ratio    SE  df null z.ratio p.value
+ no / yes      1.621 0.813 Inf    1   0.962  0.3358
+
+antibiotic = high:
+ contrast odds.ratio    SE  df null z.ratio p.value
+ no / yes      0.355 0.191 Inf    1  -1.922  0.0546
+
+Tests are performed on the log odds ratio scale 
+
+* Antibiotic effect within each Reinoculation status (Tukey HSD):
+reinoculation = no:
+ contrast    odds.ratio    SE  df null z.ratio p.value
+ zero / low       1.163 0.598 Inf    1   0.293  0.9537
+ zero / high      2.005 1.040 Inf    1   1.338  0.3738
+ low / high       1.724 0.868 Inf    1   1.082  0.5253
+
+reinoculation = yes:
+ contrast    odds.ratio    SE  df null z.ratio p.value
+ zero / low       0.513 0.303 Inf    1  -1.131  0.4951
+ zero / high      0.194 0.120 Inf    1  -2.650  0.0220
+ low / high       0.377 0.203 Inf    1  -1.812  0.1658
+
+P value adjustment: tukey method for comparing a family of 3 estimates 
+Tests are performed on the log odds ratio scale 
+
+=====================================
+--- 2. REDUCED MODEL (2 x 2) ---
+=====================================
+
+[2A. Reduced Model (Interaction Type III)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: prop_time_adj
+                           Chisq Df Pr(>Chisq)    
+(Intercept)              17.1265  1  3.497e-05 ***
+antibiotic                0.7718  1   0.379653    
+reinoculation             0.2538  1   0.614432    
+antibiotic:reinoculation  7.4575  1   0.006317 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+[2B. Reduced Additive Model (Main Effects Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: prop_time_adj
+               Chisq Df Pr(>Chisq)
+antibiotic    0.3312  1     0.5649
+reinoculation 0.2962  1     0.5862
+
+[2C. Likelihood Ratio Test (LRT) for Reduced Model]
+Data: df_move_red
+Models:
+model_beta_red_add: prop_time_adj ~ antibiotic + reinoculation + (1 | year:arena), zi=~0, disp=~1
+model_beta_red: prop_time_adj ~ antibiotic * reinoculation + (1 | year/arena), zi=~0, disp=~1
+                   Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(>Chisq)  
+model_beta_red_add  5 -78.645 -66.491 44.323  -88.645                           
+model_beta_red      7 -82.524 -65.509 48.262  -96.524 7.8793      2    0.01946 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+[2D. Post-Hoc Simple Effects Breakdown (Back-transformed to Real Proportions)]
+
+* Reinoculation effect within each Antibiotic dose:
+antibiotic = zero:
+ contrast odds.ratio    SE  df null z.ratio p.value
+ no / yes      2.068 0.792 Inf    1   1.899  0.0576
+
+antibiotic = high:
+ contrast odds.ratio    SE  df null z.ratio p.value
+ no / yes      0.348 0.184 Inf    1  -1.993  0.0463
+
+Tests are performed on the log odds ratio scale 
+
+* Antibiotic effect within each Reinoculation status (Tukey HSD):
+reinoculation = no:
+ contrast    odds.ratio    SE  df null z.ratio p.value
+ zero / high      1.833 0.797 Inf    1   1.394  0.1633
+
+reinoculation = yes:
+ contrast    odds.ratio    SE  df null z.ratio p.value
+ zero / high      0.308 0.150 Inf    1  -2.424  0.0154
+
+Tests are performed on the log odds ratio scale 
+
+=====================================
+END OF ANALYSIS
+=====================================

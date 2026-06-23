@@ -1,21 +1,7 @@
----
-output: github_document
-editor_options: 
-  chunk_output_type: console
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  echo = TRUE,
-  results = "hide",
-  fig.show = "hide",
-  message = FALSE,
-  warning = FALSE
-)
-```
 
 # Load packages
-```{r}
+
+``` r
 library(readr)
 library(here)
 library(lme4)
@@ -25,7 +11,8 @@ library(dplyr)
 ```
 
 # Read result and load a dataframe
-```{r}
+
+``` r
 path <- here::here("qpcr", "data", "rawdata")
 myFiles <- list.files(path= path, 
                       recursive = FALSE, pattern = "\\.csv$", full.names = TRUE)
@@ -75,12 +62,14 @@ names(empty)[1:4] <- c("Sample_ID","Target","Ct","SD")
 ```
 
 # Load data
-```{r}
+
+``` r
 cts <- empty
 ```
 
 # Preparation of the data
-```{r}
+
+``` r
 cts$X <- NULL
 colnames(cts) <- c("Bee_ID", "Target", "Ct", "SD") # rename columns for better work
 
@@ -116,7 +105,7 @@ $$
 \text{Copy number} = (\text{Efficiency}^\text{Intercept - C^t} ) \times \text{dilution factor}
 $$
 
-```{r}
+``` r
 #Values from calculation made in the lab earlier 
 dt$copynum <- ((2.0570179 ^ (36.6020484 - dt$Ct)) * 200)
 dt$copynum <- round(dt$copynum)
@@ -124,7 +113,7 @@ dt$copynum <- round(dt$copynum)
 
 ## Exploratory plot to discover the data
 
-```{r}
+``` r
 dt$Treatment <- factor(dt$Treatment, levels= c( "BeforeExperiment", "Ctr","AntLow","AntLow+hom","AntHigh","AntHigh+hom", "GutHomFeedingSolution(SecondStep)", "GutHomogenate", "GlycerolPBScontrol(FirstStep)", "ControlFeedingSolution(SecondStep)"))
 dt$Treatment <- relevel(dt$Treatment, ref = "Ctr")
 dt$Replicate <- factor(dt$Replicate)
@@ -142,9 +131,10 @@ p1 <- ggplot(dt, aes(x = Treatment, y = copynum))+
 theme_bw()
 print(p1)
 ```
-##Descriptive stats 
 
-```{r}
+\##Descriptive stats
+
+``` r
 dt_clean <- dt %>% 
   filter(!Treatment %in% c("BeforeExperiment", 
                            "GutHomFeedingSolution(SecondStep)", 
@@ -165,8 +155,10 @@ overall_stats <- dt_clean %>%
 ```
 
 ## Statistics (linear mixed model)
+
 ### Using Unique Replicate as random effect
-```{r}
+
+``` r
 dt <- dt %>% filter(!is.na(Antibiotic))
 dt$UniqueReplicate <- paste(dt$Antibiotic, dt$Reinoculation, dt$Replicate, sep="_")
 length(unique(dt$UniqueReplicate)) #verification
@@ -185,11 +177,11 @@ m3 <- lmer(log10(copynum) ~ Antibiotic + (1|UniqueReplicate), data = dt)
 
 #Antibiotic treatment (2 levels)
 m4 <- lmer(log10(copynum) ~ Reinoculation + (1|UniqueReplicate), data = dt)
-
 ```
 
 # Visualisation of qPCR
-```{r}
+
+``` r
 p2 <- ggplot(dt, aes(x = Antibiotic, y = log10(copynum), fill = Reinoculation)) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
   geom_jitter(width = 0.2, alpha = 0.5) +
@@ -204,8 +196,7 @@ print(p2)
 
 ## Save the plots
 
-```{r}
-
+``` r
 results_dir <- here::here("qpcr", "result")
 
 if (!dir.exists(results_dir)) {
@@ -229,12 +220,10 @@ print(summary(m4))
 print(anova(m4))
 
 sink()
-
 ```
-
 
 ## Session info
 
-```{r}
+``` r
 sessionInfo()
 ```

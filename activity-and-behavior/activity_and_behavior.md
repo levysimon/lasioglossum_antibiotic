@@ -1851,6 +1851,133 @@ cat("=====================================\n")
 sink()
 ```
 
+# Global visualisation
+
+``` r
+library(cowplot) 
+
+# 1. Generic plotting function adapted to existing data and models
+plot_fun <- function(df, model, x, y, group, label, is_lmm=FALSE, is_perc=FALSE, row=1) {
+  
+  # Create the formula dynamically for emmeans
+  f <- as.formula(paste("~", x, "*", group))
+  emm <- as.data.frame(emmeans(model, f, type = if(is_lmm) "link" else "response"))
+  
+  # Standardize column names for plotting
+  names(emm)[names(emm) %in% c("emmean", "response")] <- "Mean"
+  names(emm)[names(emm) %in% c("lower.CL", "asymp.LCL")] <- "L"
+  names(emm)[names(emm) %in% c("upper.CL", "asymp.UCL")] <- "U"
+  
+  ggplot() +
+    # Raw Data Points
+    geom_point(
+      data = df,
+      aes(x = .data[[x]], y = .data[[y]], fill = .data[[group]]),
+      shape = 21,
+      size = 3.5,
+      colour = "black",
+      stroke = 0.3,
+      alpha = 0.9,
+      position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
+    ) +
+    # Model Predictions: 95% CI Whiskers
+    geom_errorbar(
+      data = emm,
+      aes(x=.data[[x]], ymin=L, ymax=U, group=.data[[group]]),
+      width=0.1, linewidth=0.5,
+      position=position_dodge(0.8)
+    ) +
+    # Model Predictions: Mean Bar
+    geom_errorbar(
+      data = emm,
+      aes(x=.data[[x]], ymin=Mean, ymax=Mean, group=.data[[group]]),
+      width=0.5, linewidth=1.2,
+      position=position_dodge(0.8)
+    ) +
+    scale_fill_manual(values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
+                      labels=c("No", "Yes")) +
+    scale_y_continuous(labels = if(is_perc) percent_format(accuracy=1) else waiver()) +
+    scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+    theme_classic() +
+    theme(
+      panel.border = element_rect(color="black", fill=NA, linewidth=1),
+      legend.position = "bottom",
+      axis.title.x = if(row == 1) element_blank() else element_text(), 
+      axis.text.x = element_text(margin = margin(t = 5))
+    ) +
+    labs(
+      y = label,
+      x = "Antibiotic dose",
+      fill = "Re-inoculation"
+    )
+}
+
+# 2. Generate the 6 individual plots using the models already in your environment
+p1 <- plot_fun(df_behavior, model_nb2_add_single_touch, "antibiotic", "nb.of.touch", "reinoculation", "Single Antennal Touch", row=1)
+p2 <- plot_fun(df_behavior, model_nb2_add_bump, "antibiotic", "nb.of.bump", "reinoculation", "Random Bump", row=1)
+p3 <- plot_fun(df_behavior, model_nb2_head_add, "antibiotic", "nb.of.head.to.head", "reinoculation", "Head to Head", row=2)
+p4 <- plot_fun(df_behavior, model_nb2_add_avoid, "antibiotic", "nb.of.avoidance", "reinoculation", "Avoidance", row=2)
+p5 <- plot_fun(df_move, model_beta, "antibiotic", "prop_time_adj", "reinoculation", "Prop. Time Moving", is_perc=TRUE, row=1)
+p6 <- plot_fun(df_interind, model_gauss, "antibiotic", "mean.dist", "reinoculation", "Mean inter-individual distance [cm]", row=2)
+
+# 3. Layout the panels using patchwork
+design <- "
+ABE
+CDF
+"
+
+plots_panel <- (p1 + p2 + p3 + p4 + p5 + p6) +
+  plot_layout(
+    design = design,
+    guides = "collect"
+  ) +
+  plot_annotation(
+    tag_levels = "A"
+  ) &
+  theme(
+    legend.position = "bottom",
+    plot.tag = element_text(face = "bold", size = 16),
+    plot.tag.position = c(0.155, 1.055)
+  )
+
+# 4. Add the overarching group titles using cowplot
+title_row <- ggdraw() +
+  draw_label(
+    "Behavioral metrics",
+    x = 0.36, y = 0.45,
+    fontface = "bold",
+    size = 14
+  ) +
+  draw_label(
+    "Activity metrics",
+    x = 0.845, y = 0.45,
+    fontface = "bold",
+    size = 14
+  )
+
+# 5. Assemble and save the final figure
+final_fig <- plot_grid(
+  title_row,
+  plots_panel,
+  ncol = 1,
+  rel_heights = c(0.09, 1)
+)
+
+print(final_fig)
+```
+
+``` r
+# Save to your results folder
+dir.create(here::here("activity-and-behavior", "result", "combined_figures"), recursive = TRUE, showWarnings = FALSE)
+
+ggsave(
+  filename = here::here("activity-and-behavior", "result", "combined_figures", "behavior_activity_combined.pdf"),
+  plot = final_fig,
+  width = 11,
+  height = 7
+)
+```
+
 \#=============================== \# PCA ON 7 METRICS \### PCA for
 Treatment (3 x 2 levels)
 
@@ -2115,13 +2242,13 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ##  [1] scales_1.4.0     patchwork_1.3.2  ggbeeswarm_0.7.3 dimensio_0.14.1 
-    ##  [5] vegan_2.7-3      permute_0.9-10   emmeans_2.0.2    car_3.1-5       
-    ##  [9] carData_3.0-6    DHARMa_0.4.7     glmmTMB_1.1.14   lmerTest_3.2-1  
-    ## [13] lme4_2.0-1       Matrix_1.7-5     lubridate_1.9.5  forcats_1.0.1   
-    ## [17] stringr_1.6.0    dplyr_1.2.0      purrr_1.2.1      readr_2.2.0     
-    ## [21] tidyr_1.3.2      tibble_3.3.1     ggplot2_4.0.2    tidyverse_2.0.0 
-    ## [25] here_1.0.2      
+    ##  [1] cowplot_1.2.0    scales_1.4.0     patchwork_1.3.2  ggbeeswarm_0.7.3
+    ##  [5] dimensio_0.14.1  vegan_2.7-3      permute_0.9-10   emmeans_2.0.2   
+    ##  [9] car_3.1-5        carData_3.0-6    DHARMa_0.4.7     glmmTMB_1.1.14  
+    ## [13] lmerTest_3.2-1   lme4_2.0-1       Matrix_1.7-5     lubridate_1.9.5 
+    ## [17] forcats_1.0.1    stringr_1.6.0    dplyr_1.2.0      purrr_1.2.1     
+    ## [21] readr_2.2.0      tidyr_1.3.2      tibble_3.3.1     ggplot2_4.0.2   
+    ## [25] tidyverse_2.0.0  here_1.0.2      
     ## 
     ## loaded via a namespace (and not attached):
     ##  [1] Rdpack_2.6.6        sandwich_3.1-1      rlang_1.1.7        

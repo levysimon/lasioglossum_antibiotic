@@ -1076,19 +1076,21 @@ simulateResiduals(model_gauss) |> plot()
 testDispersion(model_gauss)
 testResiduals(model_gauss)
 
-a1 <- Anova(model_gauss, type = "III") 
+a1 <- Anova(model_gauss, type = "III")
 a1
 
-s1 <- summary(model_gauss)
-s1
+#Additive Model
+model_gauss_add <- lmer(mean.dist ~ antibiotic + reinoculation + (1 | year), data = df_interind)
 
-# On compare "yes" vs "no" au sein de chaque dose (Seulement 3 comparaisons !)
-pairs(emm, by = "antibiotic", adjust = "tukey")
-pairs(emm, by = "reinoculation", adjust = "tukey")
+a2 <- Anova(model_gauss_add, type = "II")
+a2
+
+anova(model_gauss_add, model_gauss) 
+#Here the interaction model is a better fit
 
 emm <- emmeans(model_gauss, ~ antibiotic * reinoculation)
-emm_df <- as.data.frame(emm)
-pairs(emm)
+pairs(emm, by = "antibiotic")
+pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ### Visualisation
@@ -1150,23 +1152,6 @@ ggsave(
   dpi = 300
 )
 ```
-
-
-### additive model (Just to have it - The interaction is significant)
-```{r}
-model_gauss_add <- lmer(mean.dist ~ antibiotic + reinoculation + (1 | year),data = df_interind)
-simulateResiduals(model_gauss_add) |> plot()
-testDispersion(model_gauss_add) 
-testResiduals(model_gauss_add) 
-
-summary(model_gauss_add)
-Anova(model_gauss, type = "III") 
-
-
-anova(model_gauss, model_gauss_add)
-```
-
-
 # Reduced model 
 ```{r}
 # joining LOW and ZERO
@@ -1188,31 +1173,34 @@ df_interind_reduced <- df_interind_reduced %>%
     year = factor(year)   
   )
 
-
 levels(df_interind_reduced$treatment)
 
 
 hist(df_interind_reduced$mean.dist, breaks = 15)
 qqnorm(df_interind_reduced$mean.dist)
 
-model_gauss_low <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = df_interind_reduced)
-simulateResiduals(model_gauss_low) |> plot()
-testDispersion(model_gauss_low)
-testResiduals(model_gauss_low)
+#fit the model
+model_gauss_red <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = df_interind_reduced)
 
-s2 <- summary(model_gauss_low)
-s2
-a2 <- Anova(model_gauss_low, type = "III") 
-a2
+#residuals tests
+simulateResiduals(model_gauss_red) |> plot()
+testDispersion(model_gauss_red)
+testResiduals(model_gauss_red)
 
-emm <- emmeans(model_gauss_low, ~ antibiotic * reinoculation)
-emm_df <- as.data.frame(emm)
-pairs(emm)
+a3 <- Anova(model_gauss_red, type = "III")
+a3
+
+#additive Model
+model_gauss_red_add <- lmer(mean.dist ~ antibiotic + reinoculation + (1 | year), data = df_interind_reduced)
+
+a4 <- Anova(model_gauss_red_add, type = "II")
+a4
+
+anova(model_gauss_red, model_gauss_red_add) 
 ```
-
 ### Visualisation
 ```{r}
-emm <- emmeans(model_gauss_low, ~ antibiotic * reinoculation)
+emm <- emmeans(model_gauss_red, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
 pairs(emm)
 
@@ -1270,39 +1258,53 @@ ggsave(
 )
 ```
 
-### additive model
-```{r}
-model_gauss_low_add <- lmer(mean.dist ~ antibiotic + reinoculation + (1 | year),data = df_interind_reduced)
-simulateResiduals(model_gauss_low_add) |> plot()
-testDispersion(model_gauss_low_add); 
-testResiduals(model_gauss_low_add) # tests supplémentaires
-
-summary(model_gauss_low_add)
-anova(model_gauss_low_add)
-```
-
-
 # Save the result in a .txt file
 
 ```{r}
 sink(here::here("activity-and-behavior", "result", "inter_individual_dist", "interind_dist_result.txt"), split = TRUE)
 
-cat("Interind dist for full 3x2 model\n\n")
-s1 <- summary(model_gauss)
-s1
-a1 <- Anova(model_gauss, type = "III") 
-a1
+cat("=========================================================================\n")
+cat("            MEAN INTERINDIVIDUAL DISTANCE — LMM RESULTS\n")
+cat("=========================================================================\n\n")
 
-cat("Interind dist for reduced 2x2 model\n\n")
-s2 <- summary(model_gauss_low)
-s2
-a2 <- Anova(model_gauss_low, type = "III") 
-a2
+cat("=====================================\n")
+cat("--- 1. FULL MODEL (3 x 2) ---\n")
+cat("=====================================\n")
+cat("\n[1A. Full Model (Interaction Type III)]\n")
+print(Anova(model_gauss, type = "III"))
+
+cat("\n[1B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_gauss_add, type = "II"))
+
+cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_gauss_add, model_gauss))
+
+cat("\n[1D. the interaction model is a better fit\n")
+
+emm <- emmeans(model_gauss, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic")
+pairs(emm, by = "reinoculation", adjust = "tukey")
+
+
+cat("\n=====================================\n")
+cat("--- 2. REDUCED MODEL (2 x 2) ---\n")
+cat("=====================================\n")
+cat("\n[2A. Full Model (Interaction Type III)]\n")
+print(Anova(model_gauss_red, type = "III"))
+
+cat("\n[2B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_gauss_red_add, type = "II"))
+
+cat("\n[2C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_gauss_red_add, model_gauss_red))
+
+cat("\n=====================================\n")
+cat("END OF ANALYSIS\n")
+cat("=====================================\n")
 
 sink()
+
 ```
-
-
 
 #==============================
 #Analysis for activity (avg speed + time spent moving) 

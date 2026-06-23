@@ -635,6 +635,8 @@ ggsave(
 ### PCA for Treatment (3X2)
 
 ```{r}
+set.seed(67) 
+
 data2 <- df_behavior[, !(names(df_behavior) %in% c("antibiotic", "reinoculation", "year", "arena"))]
 head(data2)
 X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "treatment")
@@ -653,7 +655,6 @@ p1 <- viz_individuals(
   ellipse = list(type = "tolerance", level = 0.95)
 )
 
-set.seed(123) 
 # A. Data Preparation for Vegan
 stats_matrix <- data2[, sapply(data2, is.numeric)]
 # Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
@@ -672,7 +673,7 @@ permu_treat <- permutest(dispersion_mod, permutations = 10000)
 permu_treat
 # C. PERMANOVA (Adonis2)
 # This tests: "Are the centers of the groups significantly different?"
-set.seed(67) # Ensures results are reproducible
+
 ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior$year, data = df_behavior, method = "euclidean", permutations = 10000)
 ado_treat
 
@@ -782,6 +783,7 @@ print(ado_gut)
 
 sink()
 ```
+
 #-----------------------------------------------------
 ## Linear mixed models (2 x 2 model)
 ```{r}
@@ -798,9 +800,6 @@ df_behavior_reduce$treatment <- paste(df_behavior_reduce$antibiotic, df_behavior
 df_behavior_reduce$antibiotic <- relevel(df_behavior_reduce$antibiotic, ref = "zero")
 df_behavior_reduce$reinoculation <- relevel(df_behavior_reduce$reinoculation, ref = "no")
 df_behavior_reduce$year <- factor(df_behavior_reduce$year)
-
-
-
 ```
 
 
@@ -811,16 +810,13 @@ df_behavior_reduce$year <- factor(df_behavior_reduce$year)
 ```{r}
 aggregate(nb.of.touch ~ antibiotic, df_behavior_reduce, sum) 
 
-
-# Negative Binomial GLMM 
+# Full model
 model_nb2_single_touch_red <- glmmTMB(
   nb.of.touch ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior_reduce
 )
-
 summary(model_nb2_single_touch_red)
-
 
 #Additive model
 model_nb2_add_single_touch_red <- glmmTMB(
@@ -828,7 +824,6 @@ model_nb2_add_single_touch_red <- glmmTMB(
   family = nbinom2,
   data = df_behavior_reduce
 )
-
 summary(model_nb2_add_single_touch_red)
 
 anova(model_nb2_add_single_touch_red, model_nb2_single_touch_red)
@@ -837,18 +832,17 @@ anova(model_nb2_add_single_touch_red, model_nb2_single_touch_red)
 ### Head to head interaction
 
 ```{r}
-aggregate(nb.of.head.to.head ~ antibiotic, df_behavior, sum)
+aggregate(nb.of.head.to.head ~ antibiotic, df_behavior_reduce, sum)
 
-#Negative Binomial GLMM (NB2)
+#Full model
 model_nb2_head_red <- glmmTMB(
   nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior_reduce
 )
-
 summary(model_nb2_head_red)
 
-
+#Additive model
 model_nb2_add_head_red <- glmmTMB(
   nb.of.head.to.head ~ antibiotic + reinoculation + (1 | year),
   family = nbinom2,
@@ -856,24 +850,20 @@ model_nb2_add_head_red <- glmmTMB(
 )
 summary(model_nb2_add_head_red)
 
-
 anova(model_nb2_head_red, model_nb2_add_head_red)
 ```
 
 ### Avoidance
-
 ```{r}
 aggregate(nb.of.avoidance ~ antibiotic, df_behavior_reduce, sum) 
 
-# Negative Binomial GLMM (NB2)
+# Full model
 model_nb2_avoid_red <- glmmTMB(
   nb.of.avoidance ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior_reduce
 )
-
 summary(model_nb2_avoid_red)
-
 
 #Additive model 
 model_nb2_add_avoid_red <- glmmTMB(
@@ -881,24 +871,21 @@ model_nb2_add_avoid_red <- glmmTMB(
   family = nbinom2,
   data = df_behavior_reduce
 )
-
 summary(model_nb2_add_avoid_red)
 
 anova(model_nb2_avoid_red, model_nb2_add_avoid_red)
 ```
 
 ### Bumps
-
 ```{r}
 aggregate(nb.of.bump ~ antibiotic, df_behavior_reduce, sum) 
 
-# Negative Binomial GLMM
+# Full model
 model_nb2_bump_red <- glmmTMB(
   nb.of.bump ~ antibiotic * reinoculation + (1 | year),
   family = nbinom2,
   data = df_behavior_reduce
 )
-
 summary(model_nb2_bump_red)
 
 #Additive model
@@ -907,7 +894,6 @@ model_nb2_add_bump_red <- glmmTMB(
   family = nbinom2,
   data = df_behavior_reduce
 )
-
 summary(model_nb2_add_bump_red)
 
 anova(model_nb2_bump_red, model_nb2_add_bump_red)
@@ -918,6 +904,8 @@ anova(model_nb2_bump_red, model_nb2_add_bump_red)
 ### PCA for Treatment (2X2)
 
 ```{r}
+set.seed(67) 
+
 data2 <- df_behavior_reduce[, !(names(df_behavior_reduce) %in% c("antibiotic", "reinoculation", "year", "arena"))]
 head(data2)
 
@@ -938,9 +926,6 @@ viz_individuals(
   ellipse = list(type = "tolerance", level = 0.95)
 )
 
-
-
-set.seed(123) 
 # A. Data Preparation for Vegan
 stats_matrix <- data2[, sapply(data2, is.numeric)]
 # Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
@@ -959,7 +944,7 @@ permu_treat2x2 <- permutest(dispersion_mod, permutations = 999)
 permu_treat2x2
 # C. PERMANOVA (Adonis2)
 # This tests: "Are the centers of the groups significantly different?"
-set.seed(123) # Ensures results are reproducible
+
 # Test 1: Simple effect of Antibiotic
 ado_treat2x2 <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior_reduce$year, data = df_behavior_reduce, method = "euclidean", permutations = 10000)
 ado_treat2x2
@@ -975,43 +960,77 @@ ado_gut2x2
 ```{r}
 sink(here::here("activity-and-behavior", "result", "behavior", "behavior_2x2_summary.txt"), split = TRUE)
 
-cat("\n\n=====================================\n")
-cat("2 x 2 MODEL — GLMM RESULTS\n")
-cat("=====================================\n\n")
+cat("=========================================================================\n")
+cat("            2 x 2 FACTORIAL MODEL — BEHAVIORAL GLMM RESULTS\n")
+cat("=========================================================================\n\n")
 
-cat("\n--- Single Antennal Touch ---\n")
-summary(model_nb2_single_touch_red)
-Anova(model_nb2_single_touch_red, type = 3)
-summary(model_nb2_add_single_touch_red)
-Anova(model_nb2_add_single_touch_red, type = 2)
-anova(model_nb2_add_single_touch_red, model_nb2_single_touch_red)
+cat("\n=====================================\n")
+cat("--- 1. Single Antennal Touch ---\n")
+cat("=====================================\n")
 
-cat("\n--- Head-to-Head Interaction ---\n")
-summary(model_nb2_head_red)
-Anova(model_nb2_head_red, type = 3)
-summary(model_nb2_add_head_red)
-Anova(model_nb2_add_head_red, type = 2)
-anova(model_nb2_add_head_red, model_nb2_head_red)
+cat("\n[1A. Full Model (Interaction Type III)]\n")
+print(Anova(model_nb2_single_touch_red, type = "III"))
 
-cat("\n--- Avoidance ---\n")
-summary(model_nb2_avoid_red)
-Anova(model_nb2_avoid_red, type = 3)
-summary(model_nb2_add_avoid_red)
-Anova(model_nb2_add_avoid_red, type = 2)
-anova(model_nb2_add_avoid_red, model_nb2_avoid_red)
+cat("\n[1B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_nb2_add_single_touch_red, type = "II"))
 
-cat("\n--- Bump ---\n")
-summary(model_nb2_bump_red)
-Anova(model_nb2_bump_red, type = 3)
-summary(model_nb2_add_bump_red)
-Anova(model_nb2_add_bump_red, type = 2)
-anova(model_nb2_add_bump_red, model_nb2_bump_red)
+cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_nb2_add_single_touch_red, model_nb2_single_touch_red))
 
-cat("\n--- PCA 2x2 ---\n")
-permu_treat2x2
-ado_treat2x2
-ado_ant2x2
-ado_gut2x2
+cat("\n=====================================\n")
+cat("--- 2. Head-to-Head Interaction ---\n")
+cat("=====================================\n")
+
+cat("\n[2A. Full Model (Interaction Type III)]\n")
+print(Anova(model_nb2_head_red, type = "III"))
+
+cat("\n[2B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_nb2_add_head_red, type = "II"))
+
+cat("\n[2C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_nb2_add_head_red, model_nb2_head_red))
+
+cat("\n=====================================\n")
+cat("--- 3. Avoidance ---\n")
+cat("=====================================\n")
+
+cat("\n[3A. Full Model (Interaction Type III)]\n")
+print(Anova(model_nb2_avoid_red, type = "III"))
+
+cat("\n[3B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_nb2_add_avoid_red, type = "II"))
+
+cat("\n[3C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_nb2_add_avoid_red, model_nb2_avoid_red))
+
+cat("\n=====================================\n")
+cat("--- 4. Bumps ---\n")
+cat("=====================================\n")
+
+cat("\n[4A. Full Model (Interaction Type III)]\n")
+print(Anova(model_nb2_bump_red, type = "III"))
+
+cat("\n[4B. Additive Model (Main Effects Type II)]\n")
+print(Anova(model_nb2_add_bump_red, type = "II"))
+
+cat("\n[4C. Likelihood Ratio Test (LRT)]\n")
+print(anova(model_nb2_add_bump_red, model_nb2_bump_red))
+
+cat("\n=====================================\n")
+cat("--- 5. PERMANOVA & PCA 2x2 ---\n")
+cat("=====================================\n")
+
+cat("\n[5A. Homogeneity of Multivariate Dispersions]\n")
+print(permu_treat2x2)
+
+cat("\n[5B. Global PERMANOVA (Treatment)]\n")
+print(ado_treat2x2)
+
+cat("\n[5C. PERMANOVA (Antibiotic Main Effect)]\n")
+print(ado_ant2x2)
+
+cat("\n[5D. PERMANOVA (Reinoculation Main Effect)]\n")
+print(ado_gut2x2)
 
 cat("\n=====================================\n")
 cat("END OF ANALYSIS\n")
@@ -1869,7 +1888,7 @@ viz_individuals(
 
 
 # === 3) MULTIVARIATE STATISTICS (PERMANOVA & BETADISPER) ===
-set.seed(123) 
+set.seed(67) 
 # A. Data Preparation for Vegan
 stats_matrix <- data2[, sapply(data2, is.numeric)]
 
@@ -1891,7 +1910,6 @@ permu_treat
 
 # C. PERMANOVA (Adonis2)
 # This tests: "Are the centers of the groups significantly different?"
-set.seed(123) # Ensures results are reproducible
 # Test 1: Simple effect of Treatment
 ado_treat <- adonis2(dist_matrix ~ treatment, strata = df_pca_7$year, data = data2, method = "euclidean")
 ado_treat
@@ -1924,7 +1942,6 @@ viz_individuals(
 
 
 # === 3) MULTIVARIATE STATISTICS (PERMANOVA & BETADISPER) ===
-set.seed(123) 
 # A. Data Preparation for Vegan
 stats_matrix <- data3[, sapply(data3, is.numeric)]
 
@@ -1944,7 +1961,6 @@ permu_ant <- permutest(dispersion_mod, permutations = 999)
 permu_ant
 # C. PERMANOVA (Adonis2)
 # This tests: "Are the centers of the groups significantly different?"
-set.seed(123) # Ensures results are reproducible
 # Test 1: Simple effect of Antibiotic
 ado_ant <- adonis2(dist_matrix ~ antibiotic, strata=df_pca_7$year, data = data3, method = "euclidean")
 ado_ant
@@ -1976,7 +1992,6 @@ viz_individuals(
 )
 
 
-set.seed(123) 
 # A. Data Preparation for Vegan
 stats_matrix <- data4[, sapply(data4, is.numeric)]
 # Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
@@ -1997,7 +2012,6 @@ permu_reino
 
 # C. PERMANOVA (Adonis2)
 # This tests: "Are the centers of the groups significantly different?"
-set.seed(123) # Ensures results are reproducible
 # Test 1: Simple effect of Antibiotic
 ado_reino <- adonis2(dist_matrix ~ reinoculate, strata=df_pca_7$year, data = data4, method = "euclidean")
 ado_reino

@@ -1,0 +1,259 @@
+=========================================================================
+            3 x 2 FACTORIAL MODEL — BEHAVIORAL GLMM RESULTS
+=========================================================================
+
+
+=====================================
+--- 1. Single Antennal Touch ---
+=====================================
+
+[1A. Interaction & Model Comparison (LRT)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.touch
+                            Chisq Df Pr(>Chisq)    
+(Intercept)              493.9995  1    < 2e-16 ***
+antibiotic                 3.3609  2    0.18629    
+reinoculation              0.5244  1    0.46896    
+antibiotic:reinoculation   4.6528  2    0.09765 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+--> Model Comparison (Full vs Additive):
+Data: df_behavior
+Models:
+model_nb2_add_single_touch: nb.of.touch ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_single_touch: nb.of.touch ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                           Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+model_nb2_add_single_touch  6 306.07 316.50 -147.03   294.07                         
+model_nb2_single_touch      8 305.68 319.58 -144.84   289.68 4.3912      2     0.1113
+
+[1B. Main Effects Test (Additive Model Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.touch
+               Chisq Df Pr(>Chisq)
+antibiotic    2.3044  2     0.3159
+reinoculation 0.3201  1     0.5716
+
+[1C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]
+ contrast    ratio    SE  df null z.ratio p.value
+ zero / low  0.645 0.187 Inf    1  -1.516  0.2834
+ zero / high 0.753 0.228 Inf    1  -0.935  0.6178
+ low / high  1.168 0.320 Inf    1   0.566  0.8383
+
+Results are averaged over the levels of: reinoculation 
+P value adjustment: tukey method for comparing a family of 3 estimates 
+Tests are performed on the log scale 
+
+[1D. Pairwise Comparisons: Reinoculation (Yes vs No)]
+ contrast ratio    SE  df null z.ratio p.value
+ no / yes  1.14 0.271 Inf    1   0.566  0.5716
+
+Results are averaged over the levels of: antibiotic 
+Tests are performed on the log scale 
+
+=====================================
+--- 2. Head-to-Head Interaction ---
+=====================================
+
+[2A. Interaction & Model Comparison (LRT)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.head.to.head
+                          Chisq Df Pr(>Chisq)   
+(Intercept)              9.3001  1   0.002291 **
+antibiotic               5.4292  2   0.066231 . 
+reinoculation            2.7511  1   0.097190 . 
+antibiotic:reinoculation 5.4737  2   0.064774 . 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+--> Model Comparison (Full vs Additive):
+Data: df_behavior
+Models:
+model_nb2_head_add: nb.of.head.to.head ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_head: nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                   Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)  
+model_nb2_head_add  6 168.82 179.25 -78.411   156.82                           
+model_nb2_head      8 167.24 181.15 -75.622   151.24 5.5768      2    0.06152 .
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+[2B. Main Effects Test (Additive Model Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.head.to.head
+               Chisq Df Pr(>Chisq)
+antibiotic    3.4899  2     0.1747
+reinoculation 2.3287  1     0.1270
+
+[2C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]
+ contrast    ratio    SE  df null z.ratio p.value
+ zero / low  0.860 0.391 Inf    1  -0.332  0.9412
+ zero / high 0.472 0.212 Inf    1  -1.676  0.2146
+ low / high  0.549 0.223 Inf    1  -1.475  0.3029
+
+Results are averaged over the levels of: reinoculation 
+P value adjustment: tukey method for comparing a family of 3 estimates 
+Tests are performed on the log scale 
+
+[2D. Pairwise Comparisons: Reinoculation (Yes vs No)]
+ contrast ratio    SE  df null z.ratio p.value
+ no / yes  1.73 0.622 Inf    1   1.526  0.1270
+
+Results are averaged over the levels of: antibiotic 
+Tests are performed on the log scale 
+
+=====================================
+--- 3. Avoidance ---
+=====================================
+
+[3A. Interaction & Model Comparison (LRT)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.avoidance
+                          Chisq Df Pr(>Chisq)  
+(Intercept)              0.2673  1    0.60517  
+antibiotic               1.3498  2    0.50920  
+reinoculation            0.1076  1    0.74291  
+antibiotic:reinoculation 6.0418  2    0.04876 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+--> Model Comparison (Full vs Additive):
+Data: df_behavior
+Models:
+model_nb2_add_avoid: nb.of.avoidance ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_avoid: nb.of.avoidance ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                    Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)  
+model_nb2_add_avoid  6 144.31 154.74 -66.157   132.31                           
+model_nb2_avoid      8 142.49 156.39 -63.243   126.49 5.8287      2    0.05424 .
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+[3B. Main Effects Test (Additive Model Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.avoidance
+               Chisq Df Pr(>Chisq)
+antibiotic    1.0157  2     0.6018
+reinoculation 0.0312  1     0.8599
+
+[3C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]
+ contrast    ratio    SE  df null z.ratio p.value
+ zero / low  1.363 0.780 Inf    1   0.541  0.8509
+ zero / high 0.803 0.464 Inf    1  -0.379  0.9238
+ low / high  0.589 0.311 Inf    1  -1.003  0.5752
+
+Results are averaged over the levels of: reinoculation 
+P value adjustment: tukey method for comparing a family of 3 estimates 
+Tests are performed on the log scale 
+
+[3D. Pairwise Comparisons: Reinoculation (Yes vs No)]
+ contrast ratio   SE  df null z.ratio p.value
+ no / yes 0.921 0.43 Inf    1  -0.177  0.8599
+
+Results are averaged over the levels of: antibiotic 
+Tests are performed on the log scale 
+
+=====================================
+--- 4. Bumps ---
+=====================================
+
+[4A. Interaction & Model Comparison (LRT)]
+Analysis of Deviance Table (Type III Wald chisquare tests)
+
+Response: nb.of.bump
+                            Chisq Df Pr(>Chisq)    
+(Intercept)              208.1089  1     <2e-16 ***
+antibiotic                 1.2096  2     0.5462    
+reinoculation              0.0465  1     0.8293    
+antibiotic:reinoculation   3.2862  2     0.1934    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+--> Model Comparison (Full vs Additive):
+Data: df_behavior
+Models:
+model_nb2_add_bump: nb.of.bump ~ antibiotic + reinoculation + (1 | year), zi=~0, disp=~1
+model_nb2_bump: nb.of.bump ~ antibiotic * reinoculation + (1 | year), zi=~0, disp=~1
+                   Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+model_nb2_add_bump  6 286.48 296.91 -137.24   274.48                         
+model_nb2_bump      8 287.24 301.14 -135.62   271.24 3.2442      2     0.1975
+
+[4B. Main Effects Test (Additive Model Type II)]
+Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: nb.of.bump
+               Chisq Df Pr(>Chisq)
+antibiotic    0.6976  2     0.7055
+reinoculation 0.0062  1     0.9370
+
+[4C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]
+ contrast    ratio    SE  df null z.ratio p.value
+ zero / low  0.763 0.248 Inf    1  -0.831  0.6836
+ zero / high 0.834 0.278 Inf    1  -0.545  0.8493
+ low / high  1.093 0.331 Inf    1   0.293  0.9538
+
+Results are averaged over the levels of: reinoculation 
+P value adjustment: tukey method for comparing a family of 3 estimates 
+Tests are performed on the log scale 
+
+[4D. Pairwise Comparisons: Reinoculation (Yes vs No)]
+ contrast ratio    SE  df null z.ratio p.value
+ no / yes  1.02 0.266 Inf    1   0.079  0.9370
+
+Results are averaged over the levels of: antibiotic 
+Tests are performed on the log scale 
+
+=====================================
+--- 5. PERMANOVA & PCA 3x2 ---
+=====================================
+
+[5A. Homogeneity of Multivariate Dispersions]
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 10000
+
+Response: Distances
+          Df  Sum Sq Mean Sq      F N.Perm Pr(>F)
+Groups     5  277.49  55.498 1.5102  10000 0.2102
+Residuals 36 1322.94  36.748                     
+
+[5B. Global PERMANOVA (Treatment)]
+Permutation test for adonis under reduced model
+Blocks:  strata 
+Permutation: free
+Number of permutations: 10000
+
+adonis2(formula = dist_matrix ~ antibiotic * reinoculation, data = df_behavior, permutations = 10000, method = "euclidean", strata = df_behavior$year)
+         Df SumOfSqs     R2      F Pr(>F)
+Model     5    895.0 0.1551 1.3217 0.2277
+Residual 36   4875.2 0.8449              
+Total    41   5770.1 1.0000              
+
+[5C. PERMANOVA (Antibiotic Main Effect)]
+Permutation test for adonis under reduced model
+Blocks:  strata 
+Permutation: free
+Number of permutations: 10000
+
+adonis2(formula = dist_matrix ~ antibiotic, data = df_behavior, permutations = 10000, strata = df_behavior$year)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     2    269.2 0.04666 0.9544 0.3777
+Residual 39   5500.9 0.95334              
+Total    41   5770.1 1.00000              
+
+[5D. PERMANOVA (Reinoculation Main Effect)]
+Permutation test for adonis under reduced model
+Blocks:  strata 
+Permutation: free
+Number of permutations: 10000
+
+adonis2(formula = dist_matrix ~ reinoculation, data = df_behavior, permutations = 10000, strata = df_behavior$year)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     1     26.3 0.00456 0.1831 0.8215
+Residual 40   5743.8 0.99544              
+Total    41   5770.1 1.00000              

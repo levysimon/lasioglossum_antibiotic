@@ -440,25 +440,17 @@ check_my_model <- function(model, title = "Model Diagnostics") {
 check_my_model(model_nb2_single_touch, "3x2 Single Antennal Touch")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-2.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-3.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-4.png)<!-- -->
-
 ``` r
 check_my_model(model_nb2_head, "3x2 Head to Head")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-5.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-6.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-7.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-8.png)<!-- -->
 
 ``` r
 check_my_model(model_nb2_avoid, "3x2 Avoidance")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-9.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-10.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-11.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-12.png)<!-- -->
-
 ``` r
 check_my_model(model_nb2_bump, "3x2 Bump")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-13.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-14.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-15.png)<!-- -->![](activity_and_behavior_files/figure-gfm/unnamed-chunk-12-16.png)<!-- -->
 
 ## Visualisation behaviors
 
@@ -549,8 +541,6 @@ p_combined_boxplot <- ggplot(df_behavior_long, aes(x = antibiotic, y = Count, fi
 p_combined_boxplot
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
-
 ``` r
 ggsave(
   filename = here::here("activity-and-behavior","result", "behavior","behavior_combined_3x2_boxplot.png"), 
@@ -610,8 +600,6 @@ p_model_pred <- ggplot() +
 p_model_pred
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
-
 ``` r
 ggsave(
   filename = here::here("activity-and-behavior","result", "behavior","behavior_combined_3x2_model_prediction.png"), 
@@ -636,25 +624,17 @@ get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
-
 ``` r
 biplot(X, type = "form", labels = "variables")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-2.png)<!-- -->
 
 ``` r
 biplot(X, type = "covariance", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-3.png)<!-- -->
-
 ``` r
 viz_variables(X)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-4.png)<!-- -->
 
 ``` r
 p1 <- viz_individuals(
@@ -665,8 +645,6 @@ p1 <- viz_individuals(
   ellipse = list(type = "tolerance", level = 0.95)
 )
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-5.png)<!-- -->
 
 ``` r
 # Data Preparation for Vegan
@@ -679,13 +657,9 @@ dispersion_mod <- betadisper(dist_matrix, df_behavior$treatment)
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-6.png)<!-- -->
-
 ``` r
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-17-7.png)<!-- -->
 
 ``` r
 # BETADIASPER RESULT - Test significance of dispersion
@@ -907,25 +881,17 @@ get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
-
 ``` r
 biplot(X, type = "form", labels = "variables")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-2.png)<!-- -->
 
 ``` r
 biplot(X, type = "covariance", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-3.png)<!-- -->
-
 ``` r
 viz_variables(X)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-4.png)<!-- -->
 
 ``` r
 viz_individuals(
@@ -936,8 +902,6 @@ viz_individuals(
   ellipse = list(type = "tolerance", level = 0.95)
 )
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-5.png)<!-- -->
 
 ``` r
 # Data Preparation for Vegan
@@ -950,13 +914,9 @@ dispersion_mod <- betadisper(dist_matrix, df_behavior_reduce$treatment)
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-6.png)<!-- -->
-
 ``` r
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-24-7.png)<!-- -->
 
 ``` r
 # BETADIASPER RESULT - Test significance of dispersion
@@ -1057,13 +1017,9 @@ write.csv(resultats_mean_dist, here::here("activity-and-behavior", "result", "in
 hist(df_interind$mean.dist, breaks = 15)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
-
 ``` r
 qqnorm(df_interind$mean.dist)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-2.png)<!-- -->
 
 ``` r
 #fit the model
@@ -1073,19 +1029,13 @@ model_gauss <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = d
 simulateResiduals(model_gauss) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-3.png)<!-- -->
-
 ``` r
 testDispersion(model_gauss)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-4.png)<!-- -->
-
 ``` r
 testResiduals(model_gauss)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-27-5.png)<!-- -->
 
 ``` r
 a1 <- Anova(model_gauss, type = "III")
@@ -1157,8 +1107,6 @@ p1 <- ggplot() +
 p1
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
-
 ``` r
 ggsave(
   filename = here::here("activity-and-behavior", "result", "inter_individual_dist", "mean_interind_3x2_plot.png"), 
@@ -1194,13 +1142,9 @@ levels(df_interind_reduced$treatment)
 hist(df_interind_reduced$mean.dist, breaks = 15)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
-
 ``` r
 qqnorm(df_interind_reduced$mean.dist)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-2.png)<!-- -->
 
 ``` r
 #fit the model
@@ -1210,19 +1154,13 @@ model_gauss_red <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data
 simulateResiduals(model_gauss_red) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-3.png)<!-- -->
-
 ``` r
 testDispersion(model_gauss_red)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-4.png)<!-- -->
-
 ``` r
 testResiduals(model_gauss_red)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-29-5.png)<!-- -->
 
 ``` r
 a3 <- Anova(model_gauss_red, type = "III")
@@ -1289,8 +1227,6 @@ p2 <- ggplot() +
 
 p2
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -1369,13 +1305,9 @@ write.csv(resultats_prop, here::here("activity-and-behavior", "result", "activit
 hist(df_move$average.speed, breaks = 50)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
-
 ``` r
 qqnorm(df_move$average.speed)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-2.png)<!-- -->
 
 ``` r
 #Full model
@@ -1383,19 +1315,13 @@ model_avg.speed <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:a
 simulateResiduals(model_avg.speed) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-3.png)<!-- -->
-
 ``` r
 testDispersion(model_avg.speed)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-4.png)<!-- -->
-
 ``` r
 testResiduals(model_avg.speed)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-33-5.png)<!-- -->
 
 ``` r
 a1 <- Anova(model_avg.speed, type = "III")
@@ -1462,8 +1388,6 @@ p_boxplot <- ggplot(df_move, aes(x = antibiotic, y = average.speed, fill = reino
 p_boxplot
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
-
 ``` r
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "avg_speed_boxplot.pdf"), 
@@ -1524,8 +1448,6 @@ p_model <- ggplot() +
 p_model
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
-
 ``` r
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "avg_speed_model_pred.pdf"), 
@@ -1560,13 +1482,9 @@ df_move_red$antibiotic <- factor(df_move_red$antibiotic, levels = c("zero", "hig
 hist(df_move_red$average.speed, breaks = 50)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
-
 ``` r
 qqnorm(df_move_red$average.speed)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-2.png)<!-- -->
 
 ``` r
 #Full model
@@ -1574,19 +1492,13 @@ model_avg.speed_red <- lmer(average.speed ~ antibiotic * reinoculation + (1 | ye
 simulateResiduals(model_avg.speed_red) |> plot()
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-3.png)<!-- -->
-
 ``` r
 testDispersion(model_avg.speed_red)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-4.png)<!-- -->
-
 ``` r
 testResiduals(model_avg.speed_red)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-36-5.png)<!-- -->
 
 ``` r
 a3 <- Anova(model_avg.speed_red, type = "III")
@@ -1659,13 +1571,9 @@ sink()
 hist(df_move$prop.time.moving, breaks = 35)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
-
 ``` r
 qqnorm(df_move$prop.time.moving)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-2.png)<!-- -->
 
 ``` r
 range(df_move$prop.time.moving)
@@ -1685,31 +1593,21 @@ res <- simulateResiduals(model_beta)
 plot(res); 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-3.png)<!-- -->
-
 ``` r
 testDispersion(res)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-4.png)<!-- -->
 
 ``` r
 testUniformity(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-5.png)<!-- -->
-
 ``` r
 testResiduals(res) 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-6.png)<!-- -->
-
 ``` r
 testZeroInflation(model_beta) 
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-38-7.png)<!-- -->
 
 ``` r
 a1 <- Anova(model_beta, type = "III")
@@ -1781,8 +1679,6 @@ p_boxplot_beta <- ggplot(df_move, aes(x = antibiotic, y = prop_time_adj, fill = 
 p_boxplot_beta
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
-
 ``` r
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "prop_box_plot.pdf"), 
@@ -1844,8 +1740,6 @@ p_pred_model_prop <- ggplot() +
 p_pred_model_prop
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
-
 ``` r
 ggsave(
   filename = here::here("activity-and-behavior", "result", "activity", "prop_pred_model.pdf"), 
@@ -1863,13 +1757,9 @@ ggsave(
 hist(df_move_red$prop.time.moving, breaks = 35)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
-
 ``` r
 qqnorm(df_move_red$prop.time.moving)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-2.png)<!-- -->
 
 ``` r
 range(df_move_red$prop.time.moving)
@@ -1889,31 +1779,21 @@ res <- simulateResiduals(model_beta_red)
 plot(res); 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-3.png)<!-- -->
-
 ``` r
 testDispersion(res)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-4.png)<!-- -->
 
 ``` r
 testUniformity(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-5.png)<!-- -->
-
 ``` r
 testResiduals(res) 
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-6.png)<!-- -->
-
 ``` r
 testZeroInflation(model_beta_red) 
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-41-7.png)<!-- -->
 
 ``` r
 a3 <- Anova(model_beta_red, type=3)
@@ -1991,13 +1871,9 @@ eig
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-1.png)<!-- -->
-
 ``` r
 viz_variables(X)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-2.png)<!-- -->
 
 ``` r
 viz_individuals(
@@ -2008,8 +1884,6 @@ viz_individuals(
   ellipse = list(type = "tolerance", level = 0.95)
 )
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-3.png)<!-- -->
 
 ``` r
 set.seed(67) 
@@ -2023,13 +1897,9 @@ dispersion_mod <- betadisper(dist_matrix,df_pca_7$treatment)
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-4.png)<!-- -->
-
 ``` r
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-43-5.png)<!-- -->
 
 ``` r
 # BETADIASPER RESULT - Test significance of dispersion
@@ -2060,25 +1930,17 @@ get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
-
 ``` r
 biplot(X, type = "form", labels = "variables")
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-2.png)<!-- -->
 
 ``` r
 biplot(X, type = "covariance", labels = "variables")
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-3.png)<!-- -->
-
 ``` r
 viz_variables(X)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-44-4.png)<!-- -->
 
 ``` r
 pca_scores <- get_coordinates(X)
@@ -2094,13 +1956,9 @@ df_pca_7$combined <- combined_interaction_data
 hist(df_pca_7$combined, breaks = 10)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
-
 ``` r
 qqnorm(df_pca_7$combined)
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-2.png)<!-- -->
 
 ``` r
 model_lmm <- lmer(combined ~ antibiotic * reinoculation + (1 | year), data = df_pca_7)
@@ -2109,19 +1967,13 @@ res <- simulateResiduals(model_lmm)
 plot(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-3.png)<!-- -->
-
 ``` r
 testDispersion(res)
 ```
 
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-4.png)<!-- -->
-
 ``` r
 testUniformity(res) # This is the standard test for residual distribution
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-45-5.png)<!-- -->
 
 ``` r
 a1 <- Anova(model_lmm, type=3)
@@ -2188,8 +2040,6 @@ p1 <- ggplot() +
 
 p1
 ```
-
-![](activity_and_behavior_files/figure-gfm/unnamed-chunk-46-1.png)<!-- -->
 
 ``` r
 dir.create(

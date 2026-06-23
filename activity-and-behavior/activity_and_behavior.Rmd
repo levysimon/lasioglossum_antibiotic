@@ -8,6 +8,7 @@ editor_options:
 knitr::opts_chunk$set(
   echo = TRUE,
   results = "hide",
+  fig.show = "hide",
   message = FALSE,
   warning = FALSE
 )

@@ -1,0 +1,50 @@
+﻿SampleID;Treatment;Antibiotic;Reinoculation;Replicate;Notes
+L1;AntHigh+hom;High;Yes;1;
+L2;AntLow;Low;No;1;
+L3;Ctr;Zero;No;2;
+L4;AntLow;Low;No;1;Prob not whole gut
+L5;Ctr;Zero;No;2;
+L6;AntHigh+hom;High;Yes;2;
+L7;Ctr;Zero;No;3;
+L8; AntHigh;High;No;2;
+L9;Ctr;Zero;No;3;
+L10;AntLow;Low;No;3;
+L11;AntHigh+hom;High;Yes;3;
+L12;Ctr;Zero;No;4;
+L13;AntHigh;High;No;2;
+L14;AntLow+hom;Low;Yes;1;
+L15;AntLow;Low;No;2;
+L16;AntHigh+hom;High;Yes;2;got broken, prob got all and no ovaries but not 100% sure
+L17;AntHigh;High;No;3;
+L18;AntLow+hom;Low;Yes;3;
+L19;Ctr;Zero;No;1;
+L20;AntLow;Low;No;2;got broken, prob got all  but not 100% sure
+L21;AntLow;Low;No;3;
+L22;AntHigh;High;No;2;
+L23;Ctr;Zero;No;4;
+L24;AntLow+hom;Low;Yes;1;
+L25;AntLow;Low;No;3;
+L26;AntHigh;High;No;3;
+L27;AntHigh;High;No;1;
+L28;AntLow;Low;No;2;
+L29;AntLow+hom;Low;Yes;2;
+L30;AntLow;Low;No;1;
+L31;AntHigh;High;No;1;
+L32;Ctr;Zero;No;1;
+L33;AntHigh+hom;High;Yes;2;
+L34;Ctr;Zero;No;2;
+L35;Ctr;Zero;No;4;
+L36;AntLow+hom;Low;Yes;2;
+L37;AntHigh;High;No;1;
+L38;AntLow+hom;Low;Yes;3;
+L39;AntLow+hom;Low;Yes;3;
+L40;Ctr;Zero;No;3;
+L41;AntHigh+hom;High;Yes;1;
+L42;Ctr;Zero;No;1;
+L43;BeforeExperiment;;;;
+L44;BeforeExperiment;;;;
+L45;BeforeExperiment;;;;
+L46;GlycerolPBScontrol(FirstStep);;;;
+L47;GutHomFeedingSolution(SecondStep);;;; 
+L48;ControlFeedingSolution(SecondStep);;;;
+L49;GutHomogenate;;;;

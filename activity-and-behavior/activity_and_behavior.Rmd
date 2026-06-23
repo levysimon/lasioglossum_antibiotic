@@ -1879,3 +1879,9 @@ cat("\n[3D. All Pairwise Comparisons]\n")
 print(all_pairwise)
 sink()
 ```
+
+## Session info
+
+```{r, echo=TRUE, results='markup', message=TRUE, warning=TRUE}
+sessionInfo()
+```

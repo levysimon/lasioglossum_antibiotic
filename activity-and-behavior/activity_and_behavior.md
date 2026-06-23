@@ -5,135 +5,28 @@
 
 ``` r
 library(here)         # Relative file path tracking
-```
 
-    ## here() starts at /Users/SEL/Desktop/simon_lasio/lasioglossum_github
-
-``` r
 library(tidyverse)    
-```
-
-    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.2.0     ✔ readr     2.2.0
-    ## ✔ forcats   1.0.1     ✔ stringr   1.6.0
-    ## ✔ ggplot2   4.0.2     ✔ tibble    3.3.1
-    ## ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
-    ## ✔ purrr     1.2.1
-
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-    ## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-
-``` r
 library(readr)        
 library(dplyr)        
 library(tidyr)        
 
 library(lme4)         
-```
-
-    ## Loading required package: Matrix
-    ## 
-    ## Attaching package: 'Matrix'
-    ## 
-    ## The following objects are masked from 'package:tidyr':
-    ## 
-    ##     expand, pack, unpack
-
-``` r
 library(lmerTest)     
-```
-
-    ## 
-    ## Attaching package: 'lmerTest'
-    ## 
-    ## The following object is masked from 'package:lme4':
-    ## 
-    ##     lmer
-    ## 
-    ## The following object is masked from 'package:stats':
-    ## 
-    ##     step
-
-``` r
 library(glmmTMB)      
-```
 
-    ## Warning in check_dep_version(dep_pkg = "TMB"): package version mismatch: 
-    ## glmmTMB was built with TMB package version 1.9.19
-    ## Current TMB package version is 1.9.20
-    ## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
-
-``` r
 library(DHARMa)      
-```
-
-    ## This is DHARMa 0.4.7. For overview type '?DHARMa'. For recent changes, type news(package = 'DHARMa')
-
-``` r
 library(car)         
-```
-
-    ## Loading required package: carData
-    ## Registered S3 method overwritten by 'car':
-    ##   method           from
-    ##   na.action.merMod lme4
-    ## 
-    ## Attaching package: 'car'
-    ## 
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     recode
-    ## 
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     some
-
-``` r
 library(emmeans)     
-```
 
-    ## Welcome to emmeans.
-    ## Caution: You lose important information if you filter this package's results.
-    ## See '? untidy'
-
-``` r
 library(vegan)        
-```
-
-    ## Loading required package: permute
-
-``` r
 library(dimensio)    
-```
 
-    ## 
-    ## Attaching package: 'dimensio'
-    ## 
-    ## The following objects are masked from 'package:vegan':
-    ## 
-    ##     ca, pca
-
-``` r
 library(ggplot2)      
 library(ggbeeswarm)
 library(patchwork)
 library(scales)
-```
 
-    ## 
-    ## Attaching package: 'scales'
-    ## 
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     discard
-    ## 
-    ## The following object is masked from 'package:readr':
-    ## 
-    ##     col_factor
-
-``` r
 set.seed(67)
 options(contrasts = c("contr.sum", "contr.poly"))
 ```
@@ -255,18 +148,7 @@ df_interind <- read_delim(file_path,
                        col_names = TRUE,
                        progress = FALSE,
                        guess_max = 2000)
-```
 
-    ## Rows: 42 Columns: 6
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ";"
-    ## chr (3): Treatment, Antibiotic, Reinoculation
-    ## dbl (3): Year, Arena, Mean_dist
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-
-``` r
 colnames(df_interind)<- c("treatment", "antibiotic", "reinoculation",
                    "year", "arena", "mean.dist")
 
@@ -309,18 +191,7 @@ df_move <- read_delim(file = file_path,
                        col_names = TRUE,
                        progress = FALSE,
                        guess_max = 2000)
-```
 
-    ## Rows: 84 Columns: 7
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ";"
-    ## chr (3): Treatment, Antibiotic, Reinoculation
-    ## dbl (4): Year, Arena, Prop_time_moving, Average_Speed
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-
-``` r
 colnames(df_move)<- c("treatment", "antibiotic", "reinoculation",
                    "year", "arena", "prop.time.moving", "average.speed")
 
@@ -3163,11 +3034,7 @@ a1
 ``` r
 #Additive Model
 model_gauss_add <- lmer(mean.dist ~ antibiotic + reinoculation + (1 | year), data = df_interind)
-```
 
-    ## boundary (singular) fit: see help('isSingular')
-
-``` r
 a2 <- Anova(model_gauss_add, type = "II")
 a2
 ```
@@ -3183,8 +3050,6 @@ a2
 #to test if the interaction if significant
 anova(model_gauss_add, model_gauss)  #Here the interaction model is a better fit
 ```
-
-    ## refitting model(s) with ML (instead of REML)
 
     ## Data: df_interind
     ## Models:
@@ -3360,11 +3225,7 @@ qqnorm(df_interind_reduced$mean.dist)
 ``` r
 #fit the model
 model_gauss_red <- lmer(mean.dist ~ antibiotic * reinoculation + (1 | year),data = df_interind_reduced)
-```
 
-    ## boundary (singular) fit: see help('isSingular')
-
-``` r
 #residuals tests
 simulateResiduals(model_gauss_red) |> plot()
 ```
@@ -3459,8 +3320,6 @@ a4
 #to test if the interaction if significant
 anova(model_gauss_red, model_gauss_red_add) 
 ```
-
-    ## refitting model(s) with ML (instead of REML)
 
     ## Data: df_interind_reduced
     ## Models:
@@ -3639,8 +3498,6 @@ cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
 print(anova(model_gauss_add, model_gauss))
 ```
 
-    ## refitting model(s) with ML (instead of REML)
-
     ## Data: df_interind
     ## Models:
     ## model_gauss_add: mean.dist ~ antibiotic + reinoculation + (1 | year)
@@ -3765,8 +3622,6 @@ cat("\n[2C. Likelihood Ratio Test (LRT)]\n")
 ``` r
 print(anova(model_gauss_red_add, model_gauss_red))
 ```
-
-    ## refitting model(s) with ML (instead of REML)
 
     ## Data: df_interind_reduced
     ## Models:
@@ -3936,8 +3791,6 @@ a2
 #to test if the interaction if significant
 anova(model_avg.speed_add, model_avg.speed)  #Here the interaction model is a better fit
 ```
-
-    ## refitting model(s) with ML (instead of REML)
 
     ## Data: df_move
     ## Models:
@@ -4237,8 +4090,6 @@ a4
 anova(model_avg.speed_red_add, model_avg.speed_red)  #Here the interaction model is a better fit
 ```
 
-    ## refitting model(s) with ML (instead of REML)
-
     ## Data: df_move_red
     ## Models:
     ## model_avg.speed_red_add: average.speed ~ antibiotic + reinoculation + (1 | year:arena)
@@ -4371,8 +4222,6 @@ cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
 ``` r
 print(anova(model_avg.speed_add, model_avg.speed))
 ```
-
-    ## refitting model(s) with ML (instead of REML)
 
     ## Data: df_move
     ## Models:
@@ -4512,8 +4361,6 @@ cat("\n[2C. Likelihood Ratio Test (LRT)]\n")
 ``` r
 print(anova(model_avg.speed_red_add, model_avg.speed_red))
 ```
-
-    ## refitting model(s) with ML (instead of REML)
 
     ## Data: df_move_red
     ## Models:

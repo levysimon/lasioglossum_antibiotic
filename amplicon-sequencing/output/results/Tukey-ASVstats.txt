@@ -1,0 +1,1467 @@
+--- ASV STATISTICAL SUMMARY ---
+
+=========================================
+ASV: ASV1 
+ANOVA Permutation P-value: 0.4789 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV10 
+ANOVA Permutation P-value: 0.1387 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV100 
+ANOVA Permutation P-value: 0.6217 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV101 
+ANOVA Permutation P-value: 0.1414 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV102 
+ANOVA Permutation P-value: 0.2749 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV103 
+ANOVA Permutation P-value: 0.4508 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV106 
+ANOVA Permutation P-value: 0.7278 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV109 
+ANOVA Permutation P-value: 0.3607 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV11 
+ANOVA Permutation P-value: 0.164 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV110 
+ANOVA Permutation P-value: 0.5908 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV111 
+ANOVA Permutation P-value: 0.7095 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV112 
+ANOVA Permutation P-value: 0.5233 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV113 
+ANOVA Permutation P-value: 0.0211 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)  
+AntHigh+hom - AntHigh == 0     6.908e-01  2.724e-01   2.536   0.0389 *
+AntLow - AntHigh == 0         -1.821e-01  2.451e-01  -0.743   0.6122  
+AntLow+hom - AntHigh == 0     -1.821e-01  2.610e-01  -0.698   0.6122  
+Ctr - AntHigh == 0             2.441e-02  2.302e-01   0.106   1.0000  
+AntLow - AntHigh+hom == 0     -8.729e-01  2.658e-01  -3.284   0.0179 *
+AntLow+hom - AntHigh+hom == 0 -8.729e-01  2.806e-01  -3.111   0.0179 *
+Ctr - AntHigh+hom == 0        -6.664e-01  2.522e-01  -2.642   0.0389 *
+AntLow+hom - AntLow == 0       1.110e-16  2.542e-01   0.000   1.0000  
+Ctr - AntLow == 0              2.065e-01  2.224e-01   0.929   0.6122  
+Ctr - AntLow+hom == 0          2.065e-01  2.399e-01   0.861   0.6122  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV114 
+ANOVA Permutation P-value: 0.3896 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV117 
+ANOVA Permutation P-value: 0.5266 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV118 
+ANOVA Permutation P-value: 0.6852 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV119 
+ANOVA Permutation P-value: 0.545 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV12 
+ANOVA Permutation P-value: 0.5276 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV120 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV121 
+ANOVA Permutation P-value: 0.1414 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV123 
+ANOVA Permutation P-value: 0.0361 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)  
+AntHigh+hom - AntHigh == 0     6.431e-01  2.517e-01   2.555   0.0593 .
+AntLow - AntHigh == 0          2.061e-01  2.264e-01   0.910   0.5512  
+AntLow+hom - AntHigh == 0      0.000e+00  2.412e-01   0.000   1.0000  
+Ctr - AntHigh == 0             5.274e-16  2.127e-01   0.000   1.0000  
+AntLow - AntHigh+hom == 0     -4.370e-01  2.456e-01  -1.779   0.2086  
+AntLow+hom - AntHigh+hom == 0 -6.431e-01  2.593e-01  -2.480   0.0593 .
+Ctr - AntHigh+hom == 0        -6.431e-01  2.330e-01  -2.760   0.0593 .
+AntLow+hom - AntLow == 0      -2.061e-01  2.349e-01  -0.878   0.5512  
+Ctr - AntLow == 0             -2.061e-01  2.055e-01  -1.003   0.5512  
+Ctr - AntLow+hom == 0          5.551e-16  2.216e-01   0.000   1.0000  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV125 
+ANOVA Permutation P-value: 0.9516 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV126 
+ANOVA Permutation P-value: 0.1644 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV127 
+ANOVA Permutation P-value: 0.7682 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV128 
+ANOVA Permutation P-value: 0.5389 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV13 
+ANOVA Permutation P-value: 0.3838 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV131 
+ANOVA Permutation P-value: 0.4767 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV132 
+ANOVA Permutation P-value: 0.3353 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV134 
+ANOVA Permutation P-value: 0.7105 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV135 
+ANOVA Permutation P-value: 0.3352 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV136 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV137 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV138 
+ANOVA Permutation P-value: 0.6428 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV139 
+ANOVA Permutation P-value: 0.4897 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV14 
+ANOVA Permutation P-value: 1e-04 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                              Estimate Std. Error t value Pr(>|t|)    
+AntHigh+hom - AntHigh == 0      3.2859     0.6426   5.113 3.31e-05 ***
+AntLow - AntHigh == 0           0.2310     0.5782   0.399    0.737    
+AntLow+hom - AntHigh == 0       3.0589     0.6158   4.967 3.90e-05 ***
+Ctr - AntHigh == 0             -0.1834     0.5431  -0.338    0.737    
+AntLow - AntHigh+hom == 0      -3.0549     0.6271  -4.871 4.19e-05 ***
+AntLow+hom - AntHigh+hom == 0  -0.2270     0.6620  -0.343    0.737    
+Ctr - AntHigh+hom == 0         -3.4693     0.5949  -5.832 7.30e-06 ***
+AntLow+hom - AntLow == 0        2.8279     0.5996   4.716 5.63e-05 ***
+Ctr - AntLow == 0              -0.4144     0.5247  -0.790    0.621    
+Ctr - AntLow+hom == 0          -3.2424     0.5659  -5.730 7.30e-06 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV140 
+ANOVA Permutation P-value: 0.3315 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV142 
+ANOVA Permutation P-value: 0.3299 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV143 
+ANOVA Permutation P-value: 0.7138 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV144 
+ANOVA Permutation P-value: 0.5934 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV145 
+ANOVA Permutation P-value: 0.1569 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV147 
+ANOVA Permutation P-value: 0.9352 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV148 
+ANOVA Permutation P-value: 0.0235 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)
+AntHigh+hom - AntHigh == 0     3.433e-01  1.670e-01   2.056    0.133
+AntLow - AntHigh == 0          0.000e+00  1.502e-01   0.000    1.000
+AntLow+hom - AntHigh == 0     -1.110e-16  1.600e-01   0.000    1.000
+Ctr - AntHigh == 0            -5.551e-17  1.411e-01   0.000    1.000
+AntLow - AntHigh+hom == 0     -3.433e-01  1.629e-01  -2.107    0.133
+AntLow+hom - AntHigh+hom == 0 -3.433e-01  1.720e-01  -1.996    0.133
+Ctr - AntHigh+hom == 0        -3.433e-01  1.546e-01  -2.221    0.133
+AntLow+hom - AntLow == 0      -1.110e-16  1.558e-01   0.000    1.000
+Ctr - AntLow == 0             -5.551e-17  1.363e-01   0.000    1.000
+Ctr - AntLow+hom == 0          5.551e-17  1.470e-01   0.000    1.000
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV149 
+ANOVA Permutation P-value: 0.1897 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV15 
+ANOVA Permutation P-value: 0.3271 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV151 
+ANOVA Permutation P-value: 0.7175 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV152 
+ANOVA Permutation P-value: 0.5233 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV153 
+ANOVA Permutation P-value: 0.1215 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV154 
+ANOVA Permutation P-value: 0.116 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV155 
+ANOVA Permutation P-value: 0.7337 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV156 
+ANOVA Permutation P-value: 0.4125 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV157 
+ANOVA Permutation P-value: 0.3313 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV158 
+ANOVA Permutation P-value: 0.5056 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV159 
+ANOVA Permutation P-value: 0.562 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV16 
+ANOVA Permutation P-value: 0.7427 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV160 
+ANOVA Permutation P-value: 0.7379 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV161 
+ANOVA Permutation P-value: 0.0955 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV162 
+ANOVA Permutation P-value: 0.1278 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV163 
+ANOVA Permutation P-value: 0.3021 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV164 
+ANOVA Permutation P-value: 0.2385 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV165 
+ANOVA Permutation P-value: 0.9751 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV166 
+ANOVA Permutation P-value: 0.3028 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV167 
+ANOVA Permutation P-value: 0.3107 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV168 
+ANOVA Permutation P-value: 0.4529 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV17 
+ANOVA Permutation P-value: 0.146 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV170 
+ANOVA Permutation P-value: 0.905 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV172 
+ANOVA Permutation P-value: 0.0167 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)   
+AntHigh+hom - AntHigh == 0     6.072e-01  1.902e-01   3.193  0.00922 **
+AntLow - AntHigh == 0         -3.331e-16  1.711e-01   0.000  1.00000   
+AntLow+hom - AntHigh == 0     -4.857e-16  1.822e-01   0.000  1.00000   
+Ctr - AntHigh == 0            -7.910e-16  1.607e-01   0.000  1.00000   
+AntLow - AntHigh+hom == 0     -6.072e-01  1.856e-01  -3.272  0.00922 **
+AntLow+hom - AntHigh+hom == 0 -6.072e-01  1.959e-01  -3.100  0.00922 **
+Ctr - AntHigh+hom == 0        -6.072e-01  1.760e-01  -3.449  0.00922 **
+AntLow+hom - AntLow == 0      -1.527e-16  1.774e-01   0.000  1.00000   
+Ctr - AntLow == 0             -4.718e-16  1.553e-01   0.000  1.00000   
+Ctr - AntLow+hom == 0         -3.331e-16  1.675e-01   0.000  1.00000   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV173 
+ANOVA Permutation P-value: 0.3281 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV174 
+ANOVA Permutation P-value: 0.1426 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV175 
+ANOVA Permutation P-value: 0.4817 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV176 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV18 
+ANOVA Permutation P-value: 0.8743 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV180 
+ANOVA Permutation P-value: 0.0275 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)
+AntHigh+hom - AntHigh == 0     4.638e-01  2.256e-01   2.056    0.133
+AntLow - AntHigh == 0         -1.943e-16  2.029e-01   0.000    1.000
+AntLow+hom - AntHigh == 0     -1.527e-16  2.162e-01   0.000    1.000
+Ctr - AntHigh == 0            -4.302e-16  1.906e-01   0.000    1.000
+AntLow - AntHigh+hom == 0     -4.638e-01  2.201e-01  -2.107    0.133
+AntLow+hom - AntHigh+hom == 0 -4.638e-01  2.324e-01  -1.996    0.133
+Ctr - AntHigh+hom == 0        -4.638e-01  2.088e-01  -2.221    0.133
+AntLow+hom - AntLow == 0       4.163e-17  2.105e-01   0.000    1.000
+Ctr - AntLow == 0             -2.082e-16  1.842e-01   0.000    1.000
+Ctr - AntLow+hom == 0         -2.498e-16  1.986e-01   0.000    1.000
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV181 
+ANOVA Permutation P-value: 0.0242 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)
+AntHigh+hom - AntHigh == 0     4.638e-01  2.256e-01   2.056    0.133
+AntLow - AntHigh == 0         -4.163e-17  2.029e-01   0.000    1.000
+AntLow+hom - AntHigh == 0      1.943e-16  2.162e-01   0.000    1.000
+Ctr - AntHigh == 0            -9.714e-17  1.906e-01   0.000    1.000
+AntLow - AntHigh+hom == 0     -4.638e-01  2.201e-01  -2.107    0.133
+AntLow+hom - AntHigh+hom == 0 -4.638e-01  2.324e-01  -1.996    0.133
+Ctr - AntHigh+hom == 0        -4.638e-01  2.088e-01  -2.221    0.133
+AntLow+hom - AntLow == 0       2.359e-16  2.105e-01   0.000    1.000
+Ctr - AntLow == 0             -5.551e-17  1.842e-01   0.000    1.000
+Ctr - AntLow+hom == 0         -2.776e-16  1.986e-01   0.000    1.000
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV182 
+ANOVA Permutation P-value: 0.715 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV183 
+ANOVA Permutation P-value: 0.6513 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV184 
+ANOVA Permutation P-value: 0.6893 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV185 
+ANOVA Permutation P-value: 0.1692 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV186 
+ANOVA Permutation P-value: 0.5112 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV187 
+ANOVA Permutation P-value: 0.9774 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV188 
+ANOVA Permutation P-value: 0.3115 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV189 
+ANOVA Permutation P-value: 0.1615 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV190 
+ANOVA Permutation P-value: 0.711 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV198 
+ANOVA Permutation P-value: 0.1185 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV199 
+ANOVA Permutation P-value: 0.0219 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)
+AntHigh+hom - AntHigh == 0     4.430e-01  2.154e-01   2.056    0.133
+AntLow - AntHigh == 0          1.665e-16  1.938e-01   0.000    1.000
+AntLow+hom - AntHigh == 0     -4.163e-17  2.064e-01   0.000    1.000
+Ctr - AntHigh == 0            -1.388e-17  1.821e-01   0.000    1.000
+AntLow - AntHigh+hom == 0     -4.430e-01  2.102e-01  -2.107    0.133
+AntLow+hom - AntHigh+hom == 0 -4.430e-01  2.219e-01  -1.996    0.133
+Ctr - AntHigh+hom == 0        -4.430e-01  1.994e-01  -2.221    0.133
+AntLow+hom - AntLow == 0      -2.082e-16  2.010e-01   0.000    1.000
+Ctr - AntLow == 0             -2.082e-16  1.759e-01   0.000    1.000
+Ctr - AntLow+hom == 0          0.000e+00  1.897e-01   0.000    1.000
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV2 
+ANOVA Permutation P-value: 0.1857 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV20 
+ANOVA Permutation P-value: 0.7149 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV200 
+ANOVA Permutation P-value: 0.3513 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV201 
+ANOVA Permutation P-value: 0.5685 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV202 
+ANOVA Permutation P-value: 0.5458 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV203 
+ANOVA Permutation P-value: 0.519 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV204 
+ANOVA Permutation P-value: 0.5372 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV205 
+ANOVA Permutation P-value: 0.4561 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV206 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV207 
+ANOVA Permutation P-value: 0.7326 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV208 
+ANOVA Permutation P-value: 0.3106 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV209 
+ANOVA Permutation P-value: 0.42 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV21 
+ANOVA Permutation P-value: 0.4609 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV210 
+ANOVA Permutation P-value: 0.4977 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV211 
+ANOVA Permutation P-value: 0.4932 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV212 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV215 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV216 
+ANOVA Permutation P-value: 0.1459 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV217 
+ANOVA Permutation P-value: 0.3324 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV218 
+ANOVA Permutation P-value: 0.5137 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV219 
+ANOVA Permutation P-value: 0.7141 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV22 
+ANOVA Permutation P-value: 0.3681 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV220 
+ANOVA Permutation P-value: 0.5746 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV221 
+ANOVA Permutation P-value: 0.7219 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV222 
+ANOVA Permutation P-value: 0.3861 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV223 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV224 
+ANOVA Permutation P-value: 0.2589 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV225 
+ANOVA Permutation P-value: 0.6129 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV226 
+ANOVA Permutation P-value: 0.7482 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV227 
+ANOVA Permutation P-value: 0.1443 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV228 
+ANOVA Permutation P-value: 0.5019 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV229 
+ANOVA Permutation P-value: 0.5234 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV23 
+ANOVA Permutation P-value: 0.4305 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV230 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV231 
+ANOVA Permutation P-value: 0.1428 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV24 
+ANOVA Permutation P-value: 0.2496 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV25 
+ANOVA Permutation P-value: 0.0238 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)
+AntHigh+hom - AntHigh == 0     3.623e-01  1.762e-01   2.056    0.133
+AntLow - AntHigh == 0         -5.551e-17  1.585e-01   0.000    1.000
+AntLow+hom - AntHigh == 0     -1.665e-16  1.688e-01   0.000    1.000
+Ctr - AntHigh == 0            -2.776e-16  1.489e-01   0.000    1.000
+AntLow - AntHigh+hom == 0     -3.623e-01  1.719e-01  -2.107    0.133
+AntLow+hom - AntHigh+hom == 0 -3.623e-01  1.815e-01  -1.996    0.133
+Ctr - AntHigh+hom == 0        -3.623e-01  1.631e-01  -2.221    0.133
+AntLow+hom - AntLow == 0      -1.110e-16  1.644e-01   0.000    1.000
+Ctr - AntLow == 0             -2.082e-16  1.439e-01   0.000    1.000
+Ctr - AntLow+hom == 0         -8.327e-17  1.552e-01   0.000    1.000
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV26 
+ANOVA Permutation P-value: 0.7221 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV27 
+ANOVA Permutation P-value: 0.1254 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV28 
+ANOVA Permutation P-value: 0.1382 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV29 
+ANOVA Permutation P-value: 0.4848 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV3 
+ANOVA Permutation P-value: 0.0197 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                              Estimate Std. Error t value Pr(>|t|)  
+AntHigh+hom - AntHigh == 0      2.0902     1.2938   1.616   0.2674  
+AntLow - AntHigh == 0           4.0262     1.1641   3.459   0.0138 *
+AntLow+hom - AntHigh == 0       3.3441     1.2399   2.697   0.0482 *
+Ctr - AntHigh == 0              2.8063     1.0935   2.566   0.0482 *
+AntLow - AntHigh+hom == 0       1.9360     1.2626   1.533   0.2674  
+AntLow+hom - AntHigh+hom == 0   1.2538     1.3328   0.941   0.5042  
+Ctr - AntHigh+hom == 0          0.7160     1.1978   0.598   0.6394  
+AntLow+hom - AntLow == 0       -0.6822     1.2073  -0.565   0.6394  
+Ctr - AntLow == 0              -1.2200     1.0564  -1.155   0.4259  
+Ctr - AntLow+hom == 0          -0.5378     1.1394  -0.472   0.6397  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV30 
+ANOVA Permutation P-value: 0.7406 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV31 
+ANOVA Permutation P-value: 0.0708 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV32 
+ANOVA Permutation P-value: 2e-04 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)    
+AntHigh+hom - AntHigh == 0     2.159e+00  5.903e-01   3.657 0.001316 ** 
+AntLow - AntHigh == 0         -1.554e-15  5.312e-01   0.000 1.000000    
+AntLow+hom - AntHigh == 0      2.296e+00  5.657e-01   4.059 0.000817 ***
+Ctr - AntHigh == 0            -2.887e-15  4.989e-01   0.000 1.000000    
+AntLow - AntHigh+hom == 0     -2.159e+00  5.761e-01  -3.747 0.001219 ** 
+AntLow+hom - AntHigh+hom == 0  1.375e-01  6.082e-01   0.226 1.000000    
+Ctr - AntHigh+hom == 0        -2.159e+00  5.466e-01  -3.950 0.000845 ***
+AntLow+hom - AntLow == 0       2.296e+00  5.509e-01   4.168 0.000817 ***
+Ctr - AntLow == 0             -1.110e-15  4.820e-01   0.000 1.000000    
+Ctr - AntLow+hom == 0         -2.296e+00  5.199e-01  -4.417 0.000817 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV35 
+ANOVA Permutation P-value: 0.2848 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV37 
+ANOVA Permutation P-value: 0.6645 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV38 
+ANOVA Permutation P-value: 0.8789 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV39 
+ANOVA Permutation P-value: 0.376 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV4 
+ANOVA Permutation P-value: 0.5009 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV40 
+ANOVA Permutation P-value: 0.4228 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV41 
+ANOVA Permutation P-value: 0.1969 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV42 
+ANOVA Permutation P-value: 0.4907 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV44 
+ANOVA Permutation P-value: 0.267 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV45 
+ANOVA Permutation P-value: 0.3095 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV46 
+ANOVA Permutation P-value: 0.3367 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV47 
+ANOVA Permutation P-value: 0.7354 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV48 
+ANOVA Permutation P-value: 0.4124 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV49 
+ANOVA Permutation P-value: 0.2483 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV5 
+ANOVA Permutation P-value: 0.2531 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV51 
+ANOVA Permutation P-value: 0.7611 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV52 
+ANOVA Permutation P-value: 0.7081 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV53 
+ANOVA Permutation P-value: 0.837 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV54 
+ANOVA Permutation P-value: 0.3606 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV55 
+ANOVA Permutation P-value: 1 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV57 
+ANOVA Permutation P-value: 0.0196 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                                Estimate Std. Error t value Pr(>|t|)  
+AntHigh+hom - AntHigh == 0     1.339e+00  4.922e-01   2.721   0.0329 *
+AntLow - AntHigh == 0         -1.055e-15  4.429e-01   0.000   1.0000  
+AntLow+hom - AntHigh == 0      6.552e-01  4.717e-01   1.389   0.2651  
+Ctr - AntHigh == 0            -1.499e-15  4.160e-01   0.000   1.0000  
+AntLow - AntHigh+hom == 0     -1.339e+00  4.803e-01  -2.788   0.0329 *
+AntLow+hom - AntHigh+hom == 0 -6.839e-01  5.071e-01  -1.349   0.2651  
+Ctr - AntHigh+hom == 0        -1.339e+00  4.557e-01  -2.939   0.0329 *
+AntLow+hom - AntLow == 0       6.552e-01  4.593e-01   1.427   0.2651  
+Ctr - AntLow == 0             -3.886e-16  4.019e-01   0.000   1.0000  
+Ctr - AntLow+hom == 0         -6.552e-01  4.335e-01  -1.512   0.2651  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV59 
+ANOVA Permutation P-value: 0.7391 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV6 
+ANOVA Permutation P-value: 0.0189 
+--> SIGNIFICANT! Running Tukey Post-Hoc...
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Multiple Comparisons of Means: Tukey Contrasts
+
+
+Fit: lm(formula = log_cop ~ Treatment, data = dsub)
+
+Linear Hypotheses:
+                              Estimate Std. Error t value Pr(>|t|)  
+AntHigh+hom - AntHigh == 0     -0.3434     1.0534  -0.326    0.746  
+AntLow - AntHigh == 0           2.8754     0.9478   3.034    0.022 *
+AntLow+hom - AntHigh == 0       1.6065     1.0095   1.591    0.200  
+Ctr - AntHigh == 0              1.2246     0.8903   1.376    0.253  
+AntLow - AntHigh+hom == 0       3.2188     1.0280   3.131    0.022 *
+AntLow+hom - AntHigh+hom == 0   1.9499     1.0852   1.797    0.200  
+Ctr - AntHigh+hom == 0          1.5681     0.9753   1.608    0.200  
+AntLow+hom - AntLow == 0       -1.2689     0.9830  -1.291    0.256  
+Ctr - AntLow == 0              -1.6508     0.8601  -1.919    0.200  
+Ctr - AntLow+hom == 0          -0.3818     0.9277  -0.412    0.746  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+(Adjusted p values reported -- BH method)
+
+
+=========================================
+ASV: ASV60 
+ANOVA Permutation P-value: 0.6651 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV61 
+ANOVA Permutation P-value: 0.5862 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV63 
+ANOVA Permutation P-value: 0.7364 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV65 
+ANOVA Permutation P-value: 0.7145 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV66 
+ANOVA Permutation P-value: 0.396 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV67 
+ANOVA Permutation P-value: 0.8675 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV69 
+ANOVA Permutation P-value: 0.0619 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV7 
+ANOVA Permutation P-value: 0.1303 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV72 
+ANOVA Permutation P-value: 0.3778 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV75 
+ANOVA Permutation P-value: 0.1423 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV77 
+ANOVA Permutation P-value: 0.9533 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV79 
+ANOVA Permutation P-value: 0.9742 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV8 
+ANOVA Permutation P-value: 0.979 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV85 
+ANOVA Permutation P-value: 0.4766 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV86 
+ANOVA Permutation P-value: 0.82 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV87 
+ANOVA Permutation P-value: 0.3008 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV88 
+ANOVA Permutation P-value: 0.7029 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV9 
+ANOVA Permutation P-value: 0.8531 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV93 
+ANOVA Permutation P-value: 0.8102 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV96 
+ANOVA Permutation P-value: 0.1458 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV97 
+ANOVA Permutation P-value: 0.3581 
+--> Not significant. Skipping Tukey.
+
+=========================================
+ASV: ASV99 
+ANOVA Permutation P-value: 0.506 
+--> Not significant. Skipping Tukey.
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       === SUMMARY ===
+Total ASVs tested:                         174 
+ASVs with ANOVA (FDR < 0.05):               2 
+  -> ASV14, ASV32 
+
+ASVs with >=1 FDR-significant pairwise:    2 
+  -> ASV14, ASV32 
+Analysis of Variance Table
+
+Response: Chao1
+               Df Sum Sq Mean Sq F value Pr(>F)
+AntibioticHigh  1   0.76  0.7619  0.0597 0.8082
+Homogenate      1  29.76 29.7619  2.3326 0.1348
+Residuals      39 497.60 12.7589               
+Analysis of Variance Table
+
+Response: Shannon
+               Df Sum Sq Mean Sq F value  Pr(>F)  
+AntibioticHigh  1 0.6071 0.60714  2.8419 0.09982 .
+Homogenate      1 0.4866 0.48656  2.2775 0.13933  
+Residuals      39 8.3320 0.21364                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: Chao1
+               Df Sum Sq Mean Sq F value Pr(>F)
+AntibioticHigh  1   0.43  0.4286  0.0353 0.8519
+Homogenate      1  31.37 31.3704  2.5847 0.1160
+Residuals      39 473.34 12.1370               
+Analysis of Variance Table
+
+Response: Shannon
+               Df Sum Sq Mean Sq F value  Pr(>F)  
+AntibioticHigh  1 0.3259 0.32587  1.8801 0.17816  
+Homogenate      1 0.6515 0.65150  3.7589 0.05979 .
+Residuals      39 6.7595 0.17332                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Analysis of Variance Table
+
+Response: Simpson
+               Df  Sum Sq  Mean Sq F value  Pr(>F)  
+AntibioticHigh  1 0.06863 0.068634  2.2358 0.14290  
+Homogenate      1 0.19213 0.192126  6.2585 0.01666 *
+Residuals      39 1.19723 0.030698                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+R version 4.4.3 (2025-02-28)
+Platform: aarch64-apple-darwin20
+Running under: macOS 26.5
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Europe/Zurich
+tzcode source: internal
+
+attached base packages:
+[1] grid      stats4    stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] ggbeeswarm_0.7.3            dimensio_0.14.1             car_3.1-5                  
+ [4] carData_3.0-6               DHARMa_0.4.7                emmeans_2.0.2              
+ [7] glmmTMB_1.1.14              lmerTest_3.2-1              lme4_2.0-1                 
+[10] Matrix_1.7-5                decontam_1.26.0             genefilter_1.88.0          
+[13] here_1.0.2                  patchwork_1.3.2             cowplot_1.2.0              
+[16] ggrepel_0.9.8               ggh4x_0.3.1                 scales_1.4.0               
+[19] RColorBrewer_1.1-3          reshape2_1.4.5              lubridate_1.9.5            
+[22] forcats_1.0.1               stringr_1.6.0               dplyr_1.2.0                
+[25] purrr_1.2.1                 readr_2.2.0                 tidyr_1.3.2                
+[28] tibble_3.3.1                ggplot2_4.0.2               tidyverse_2.0.0            
+[31] multcomp_1.4-30             TH.data_1.1-5               MASS_7.3-65                
+[34] survival_3.8-6              mvtnorm_1.3-6               DESeq2_1.46.0              
+[37] SummarizedExperiment_1.36.0 Biobase_2.66.0              MatrixGenerics_1.18.1      
+[40] matrixStats_1.5.0           GenomicRanges_1.58.0        GenomeInfoDb_1.42.3        
+[43] IRanges_2.40.1              S4Vectors_0.44.0            BiocGenerics_0.52.0        
+[46] vegan_2.7-3                 permute_0.9-10              phyloseq_1.50.0            
+
+loaded via a namespace (and not attached):
+  [1] rstudioapi_0.18.0       jsonlite_2.0.0          magrittr_2.0.4          estimability_1.5.1     
+  [5] nloptr_2.2.1            farver_2.1.2            rmarkdown_2.30          zlibbioc_1.52.0        
+  [9] ragg_1.5.1              vctrs_0.7.2             multtest_2.62.0         memoise_2.0.1          
+ [13] minqa_1.2.8             htmltools_0.5.9         S4Arrays_1.6.0          broom_1.0.12           
+ [17] Rhdf5lib_1.28.0         Formula_1.2-5           SparseArray_1.6.2       rhdf5_2.50.2           
+ [21] pbkrtest_0.5.5          plyr_1.8.9              sandwich_3.1-1          zoo_1.8-15             
+ [25] cachem_1.1.0            TMB_1.9.20              igraph_2.2.2            mime_0.13              
+ [29] lifecycle_1.0.5         iterators_1.0.14        pkgconfig_2.0.3         gap_1.14               
+ [33] R6_2.6.1                fastmap_1.2.0           shiny_1.13.0            GenomeInfoDbData_1.2.13
+ [37] rbibutils_2.4.1         numDeriv_2016.8-1.1     digest_0.6.39           colorspace_2.1-2       
+ [41] AnnotationDbi_1.68.0    rprojroot_2.1.1         qgam_2.0.0              textshaping_1.0.5      
+ [45] RSQLite_2.4.6           labeling_0.4.3          timechange_0.4.0        httr_1.4.8             
+ [49] abind_1.4-8             mgcv_1.9-4              compiler_4.4.3          doParallel_1.0.17      
+ [53] bit64_4.6.0-1           withr_3.0.2             backports_1.5.0         S7_0.2.1               
+ [57] BiocParallel_1.40.2     DBI_1.3.0               DelayedArray_0.32.0     biomformat_1.34.0      
+ [61] tools_4.4.3             vipor_0.4.7             otel_0.2.0              beeswarm_0.4.0         
+ [65] ape_5.8-1               httpuv_1.6.17           glue_1.8.0              promises_1.5.0         
+ [69] arkhe_1.11.0            nlme_3.1-168            rhdf5filters_1.18.1     cluster_2.1.8.2        
+ [73] ade4_1.7-24             generics_0.1.4          gtable_0.3.6            tzdb_0.5.0             
+ [77] data.table_1.18.2.1     hms_1.1.4               utf8_1.2.6              XVector_0.46.0         
+ [81] foreach_1.5.2           pillar_1.11.1           vroom_1.7.0             later_1.4.8            
+ [85] splines_4.4.3           lattice_0.22-9          bit_4.6.0               annotate_1.84.0        
+ [89] tidyselect_1.2.1        locfit_1.5-9.12         Biostrings_2.74.1       knitr_1.51             
+ [93] reformulas_0.4.4        xfun_0.57               stringi_1.8.7           UCSC.utils_1.2.0       
+ [97] yaml_2.3.12             boot_1.3-32             evaluate_1.0.5          codetools_0.2-20       
+[101] cli_3.6.5               xtable_1.8-8            systemfonts_1.3.2       Rdpack_2.6.6           
+[105] dichromat_2.0-0.1       Rcpp_1.1.1              png_0.1-9               XML_3.99-0.23          
+[109] parallel_4.4.3          blob_1.3.0              gap.datasets_0.0.6      crayon_1.5.3           
+[113] khroma_1.17.0           rlang_1.1.7             KEGGREST_1.46.0        
+R version 4.4.3 (2025-02-28)
+Platform: aarch64-apple-darwin20
+Running under: macOS 26.5
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Europe/Zurich
+tzcode source: internal
+
+attached base packages:
+[1] grid      stats4    stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] ggbeeswarm_0.7.3            dimensio_0.14.1             car_3.1-5                  
+ [4] carData_3.0-6               DHARMa_0.4.7                emmeans_2.0.2              
+ [7] glmmTMB_1.1.14              lmerTest_3.2-1              lme4_2.0-1                 
+[10] Matrix_1.7-5                decontam_1.26.0             genefilter_1.88.0          
+[13] here_1.0.2                  patchwork_1.3.2             cowplot_1.2.0              
+[16] ggrepel_0.9.8               ggh4x_0.3.1                 scales_1.4.0               
+[19] RColorBrewer_1.1-3          reshape2_1.4.5              lubridate_1.9.5            
+[22] forcats_1.0.1               stringr_1.6.0               dplyr_1.2.0                
+[25] purrr_1.2.1                 readr_2.2.0                 tidyr_1.3.2                
+[28] tibble_3.3.1                ggplot2_4.0.2               tidyverse_2.0.0            
+[31] multcomp_1.4-30             TH.data_1.1-5               MASS_7.3-65                
+[34] survival_3.8-6              mvtnorm_1.3-6               DESeq2_1.46.0              
+[37] SummarizedExperiment_1.36.0 Biobase_2.66.0              MatrixGenerics_1.18.1      
+[40] matrixStats_1.5.0           GenomicRanges_1.58.0        GenomeInfoDb_1.42.3        
+[43] IRanges_2.40.1              S4Vectors_0.44.0            BiocGenerics_0.52.0        
+[46] vegan_2.7-3                 permute_0.9-10              phyloseq_1.50.0            
+
+loaded via a namespace (and not attached):
+  [1] rstudioapi_0.18.0       jsonlite_2.0.0          magrittr_2.0.4          estimability_1.5.1     
+  [5] nloptr_2.2.1            farver_2.1.2            rmarkdown_2.30          zlibbioc_1.52.0        
+  [9] ragg_1.5.1              vctrs_0.7.2             multtest_2.62.0         memoise_2.0.1          
+ [13] minqa_1.2.8             htmltools_0.5.9         S4Arrays_1.6.0          broom_1.0.12           
+ [17] Rhdf5lib_1.28.0         Formula_1.2-5           SparseArray_1.6.2       rhdf5_2.50.2           
+ [21] pbkrtest_0.5.5          plyr_1.8.9              sandwich_3.1-1          zoo_1.8-15             
+ [25] cachem_1.1.0            TMB_1.9.20              igraph_2.2.2            mime_0.13              
+ [29] lifecycle_1.0.5         iterators_1.0.14        pkgconfig_2.0.3         gap_1.14               
+ [33] R6_2.6.1                fastmap_1.2.0           shiny_1.13.0            GenomeInfoDbData_1.2.13
+ [37] rbibutils_2.4.1         numDeriv_2016.8-1.1     digest_0.6.39           colorspace_2.1-2       
+ [41] AnnotationDbi_1.68.0    rprojroot_2.1.1         qgam_2.0.0              textshaping_1.0.5      
+ [45] RSQLite_2.4.6           labeling_0.4.3          timechange_0.4.0        httr_1.4.8             
+ [49] abind_1.4-8             mgcv_1.9-4              compiler_4.4.3          doParallel_1.0.17      
+ [53] bit64_4.6.0-1           withr_3.0.2             backports_1.5.0         S7_0.2.1               
+ [57] BiocParallel_1.40.2     DBI_1.3.0               DelayedArray_0.32.0     biomformat_1.34.0      
+ [61] tools_4.4.3             vipor_0.4.7             otel_0.2.0              beeswarm_0.4.0         
+ [65] ape_5.8-1               httpuv_1.6.17           glue_1.8.0              promises_1.5.0         
+ [69] arkhe_1.11.0            nlme_3.1-168            rhdf5filters_1.18.1     cluster_2.1.8.2        
+ [73] ade4_1.7-24             generics_0.1.4          gtable_0.3.6            tzdb_0.5.0             
+ [77] data.table_1.18.2.1     hms_1.1.4               utf8_1.2.6              XVector_0.46.0         
+ [81] foreach_1.5.2           pillar_1.11.1           vroom_1.7.0             later_1.4.8            
+ [85] splines_4.4.3           lattice_0.22-9          bit_4.6.0               annotate_1.84.0        
+ [89] tidyselect_1.2.1        locfit_1.5-9.12         Biostrings_2.74.1       knitr_1.51             
+ [93] reformulas_0.4.4        xfun_0.57               stringi_1.8.7           UCSC.utils_1.2.0       
+ [97] yaml_2.3.12             boot_1.3-32             evaluate_1.0.5          codetools_0.2-20       
+[101] cli_3.6.5               xtable_1.8-8            systemfonts_1.3.2       Rdpack_2.6.6           
+[105] dichromat_2.0-0.1       Rcpp_1.1.1              png_0.1-9               XML_3.99-0.23          
+[109] parallel_4.4.3          blob_1.3.0              gap.datasets_0.0.6      crayon_1.5.3           
+[113] khroma_1.17.0           rlang_1.1.7             KEGGREST_1.46.0        
+R version 4.4.3 (2025-02-28)
+Platform: aarch64-apple-darwin20
+Running under: macOS 26.5
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Europe/Zurich
+tzcode source: internal
+
+attached base packages:
+[1] grid      stats4    stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] ggbeeswarm_0.7.3            dimensio_0.14.1             car_3.1-5                   carData_3.0-6               DHARMa_0.4.7               
+ [6] emmeans_2.0.2               glmmTMB_1.1.14              lmerTest_3.2-1              lme4_2.0-1                  Matrix_1.7-5               
+[11] decontam_1.26.0             genefilter_1.88.0           here_1.0.2                  patchwork_1.3.2             cowplot_1.2.0              
+[16] ggrepel_0.9.8               ggh4x_0.3.1                 scales_1.4.0                RColorBrewer_1.1-3          reshape2_1.4.5             
+[21] lubridate_1.9.5             forcats_1.0.1               stringr_1.6.0               dplyr_1.2.0                 purrr_1.2.1                
+[26] readr_2.2.0                 tidyr_1.3.2                 tibble_3.3.1                ggplot2_4.0.2               tidyverse_2.0.0            
+[31] multcomp_1.4-30             TH.data_1.1-5               MASS_7.3-65                 survival_3.8-6              mvtnorm_1.3-6              
+[36] DESeq2_1.46.0               SummarizedExperiment_1.36.0 Biobase_2.66.0              MatrixGenerics_1.18.1       matrixStats_1.5.0          
+[41] GenomicRanges_1.58.0        GenomeInfoDb_1.42.3         IRanges_2.40.1              S4Vectors_0.44.0            BiocGenerics_0.52.0        
+[46] vegan_2.7-3                 permute_0.9-10              phyloseq_1.50.0            
+
+loaded via a namespace (and not attached):
+  [1] rstudioapi_0.18.0       jsonlite_2.0.0          magrittr_2.0.4          estimability_1.5.1      nloptr_2.2.1            farver_2.1.2           
+  [7] rmarkdown_2.30          zlibbioc_1.52.0         ragg_1.5.1              vctrs_0.7.2             multtest_2.62.0         memoise_2.0.1          
+ [13] minqa_1.2.8             htmltools_0.5.9         S4Arrays_1.6.0          broom_1.0.12            Rhdf5lib_1.28.0         Formula_1.2-5          
+ [19] SparseArray_1.6.2       rhdf5_2.50.2            pbkrtest_0.5.5          plyr_1.8.9              sandwich_3.1-1          zoo_1.8-15             
+ [25] cachem_1.1.0            TMB_1.9.20              igraph_2.2.2            mime_0.13               lifecycle_1.0.5         iterators_1.0.14       
+ [31] pkgconfig_2.0.3         gap_1.14                R6_2.6.1                fastmap_1.2.0           shiny_1.13.0            GenomeInfoDbData_1.2.13
+ [37] rbibutils_2.4.1         numDeriv_2016.8-1.1     digest_0.6.39           colorspace_2.1-2        AnnotationDbi_1.68.0    rprojroot_2.1.1        
+ [43] qgam_2.0.0              textshaping_1.0.5       RSQLite_2.4.6           labeling_0.4.3          timechange_0.4.0        httr_1.4.8             
+ [49] abind_1.4-8             mgcv_1.9-4              compiler_4.4.3          doParallel_1.0.17       bit64_4.6.0-1           withr_3.0.2            
+ [55] backports_1.5.0         S7_0.2.1                BiocParallel_1.40.2     DBI_1.3.0               DelayedArray_0.32.0     biomformat_1.34.0      
+ [61] tools_4.4.3             vipor_0.4.7             otel_0.2.0              beeswarm_0.4.0          ape_5.8-1               httpuv_1.6.17          
+ [67] glue_1.8.0              promises_1.5.0          arkhe_1.11.0            nlme_3.1-168            rhdf5filters_1.18.1     cluster_2.1.8.2        
+ [73] ade4_1.7-24             generics_0.1.4          gtable_0.3.6            tzdb_0.5.0              data.table_1.18.2.1     hms_1.1.4              
+ [79] utf8_1.2.6              XVector_0.46.0          foreach_1.5.2           pillar_1.11.1           vroom_1.7.0             later_1.4.8            
+ [85] splines_4.4.3           lattice_0.22-9          bit_4.6.0               annotate_1.84.0         tidyselect_1.2.1        locfit_1.5-9.12        
+ [91] Biostrings_2.74.1       knitr_1.51              reformulas_0.4.4        xfun_0.57               stringi_1.8.7           UCSC.utils_1.2.0       
+ [97] yaml_2.3.12             boot_1.3-32             evaluate_1.0.5          codetools_0.2-20        cli_3.6.5               xtable_1.8-8           
+[103] systemfonts_1.3.2       Rdpack_2.6.6            dichromat_2.0-0.1       Rcpp_1.1.1              png_0.1-9               XML_3.99-0.23          
+[109] parallel_4.4.3          blob_1.3.0              gap.datasets_0.0.6      crayon_1.5.3            khroma_1.17.0           rlang_1.1.7            
+[115] KEGGREST_1.46.0        
+R version 4.4.3 (2025-02-28)
+Platform: aarch64-apple-darwin20
+Running under: macOS 26.5
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: Europe/Zurich
+tzcode source: internal
+
+attached base packages:
+[1] grid      stats4    stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] ggbeeswarm_0.7.3            dimensio_0.14.1             car_3.1-5                  
+ [4] carData_3.0-6               DHARMa_0.4.7                emmeans_2.0.2              
+ [7] glmmTMB_1.1.14              lmerTest_3.2-1              lme4_2.0-1                 
+[10] Matrix_1.7-5                decontam_1.26.0             genefilter_1.88.0          
+[13] here_1.0.2                  patchwork_1.3.2             cowplot_1.2.0              
+[16] ggrepel_0.9.8               ggh4x_0.3.1                 scales_1.4.0               
+[19] RColorBrewer_1.1-3          reshape2_1.4.5              lubridate_1.9.5            
+[22] forcats_1.0.1               stringr_1.6.0               dplyr_1.2.0                
+[25] purrr_1.2.1                 readr_2.2.0                 tidyr_1.3.2                
+[28] tibble_3.3.1                ggplot2_4.0.2               tidyverse_2.0.0            
+[31] multcomp_1.4-30             TH.data_1.1-5               MASS_7.3-65                
+[34] survival_3.8-6              mvtnorm_1.3-6               DESeq2_1.46.0              
+[37] SummarizedExperiment_1.36.0 Biobase_2.66.0              MatrixGenerics_1.18.1      
+[40] matrixStats_1.5.0           GenomicRanges_1.58.0        GenomeInfoDb_1.42.3        
+[43] IRanges_2.40.1              S4Vectors_0.44.0            BiocGenerics_0.52.0        
+[46] vegan_2.7-3                 permute_0.9-10              phyloseq_1.50.0            
+
+loaded via a namespace (and not attached):
+  [1] rstudioapi_0.18.0       jsonlite_2.0.0          magrittr_2.0.4          estimability_1.5.1     
+  [5] nloptr_2.2.1            farver_2.1.2            rmarkdown_2.30          zlibbioc_1.52.0        
+  [9] ragg_1.5.1              vctrs_0.7.2             multtest_2.62.0         memoise_2.0.1          
+ [13] minqa_1.2.8             htmltools_0.5.9         S4Arrays_1.6.0          broom_1.0.12           
+ [17] Rhdf5lib_1.28.0         Formula_1.2-5           SparseArray_1.6.2       rhdf5_2.50.2           
+ [21] pbkrtest_0.5.5          plyr_1.8.9              sandwich_3.1-1          zoo_1.8-15             
+ [25] cachem_1.1.0            TMB_1.9.20              igraph_2.2.2            mime_0.13              
+ [29] lifecycle_1.0.5         iterators_1.0.14        pkgconfig_2.0.3         gap_1.14               
+ [33] R6_2.6.1                fastmap_1.2.0           shiny_1.13.0            GenomeInfoDbData_1.2.13
+ [37] rbibutils_2.4.1         numDeriv_2016.8-1.1     digest_0.6.39           colorspace_2.1-2       
+ [41] AnnotationDbi_1.68.0    rprojroot_2.1.1         qgam_2.0.0              textshaping_1.0.5      
+ [45] RSQLite_2.4.6           labeling_0.4.3          timechange_0.4.0        httr_1.4.8             
+ [49] abind_1.4-8             mgcv_1.9-4              compiler_4.4.3          doParallel_1.0.17      
+ [53] bit64_4.6.0-1           withr_3.0.2             backports_1.5.0         S7_0.2.1               
+ [57] BiocParallel_1.40.2     DBI_1.3.0               DelayedArray_0.32.0     biomformat_1.34.0      
+ [61] tools_4.4.3             vipor_0.4.7             otel_0.2.0              beeswarm_0.4.0         
+ [65] ape_5.8-1               httpuv_1.6.17           glue_1.8.0              promises_1.5.0         
+ [69] arkhe_1.11.0            nlme_3.1-168            rhdf5filters_1.18.1     cluster_2.1.8.2        
+ [73] ade4_1.7-24             generics_0.1.4          gtable_0.3.6            tzdb_0.5.0             
+ [77] data.table_1.18.2.1     hms_1.1.4               utf8_1.2.6              XVector_0.46.0         
+ [81] foreach_1.5.2           pillar_1.11.1           vroom_1.7.0             later_1.4.8            
+ [85] splines_4.4.3           lattice_0.22-9          bit_4.6.0               annotate_1.84.0        
+ [89] tidyselect_1.2.1        locfit_1.5-9.12         Biostrings_2.74.1       knitr_1.51             
+ [93] reformulas_0.4.4        xfun_0.57               stringi_1.8.7           UCSC.utils_1.2.0       
+ [97] yaml_2.3.12             boot_1.3-32             evaluate_1.0.5          codetools_0.2-20       
+[101] cli_3.6.5               xtable_1.8-8            systemfonts_1.3.2       Rdpack_2.6.6           
+[105] dichromat_2.0-0.1       Rcpp_1.1.1              png_0.1-9               XML_3.99-0.23          
+[109] parallel_4.4.3          blob_1.3.0              gap.datasets_0.0.6      crayon_1.5.3           
+[113] khroma_1.17.0           rlang_1.1.7             KEGGREST_1.46.0        

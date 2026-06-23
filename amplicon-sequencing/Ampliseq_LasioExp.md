@@ -8,17 +8,10 @@ The code is adapted from
 
 If you have the ps object (“ps_dada2taxa_Lasio.rds”), you can start
 later with it directly (but please run the first chunk {r setup-paths}
-before, than you can click [here](#analysis-start).).
+before, than you can click [there](#analysis-start).).
 
 Otherwise you should download the Raw sequencing data (deposited at the
 SRA Database under accession no. SRP666708)
-
-## Project setup and paths
-
-This project uses [`here`](https://here.r-lib.org/) so that the code
-runs identically on any machine, as long as this .Rmd file stays at the
-root of the RStudio project / git repository (i.e. there is a `.Rproj`
-file, or a `.here`/`.git` folder, next to it).
 
 ``` r
 library(here)
@@ -569,6 +562,9 @@ ps <- readRDS(ps_rds)
 
 #Data frame containing sample information
 samdf = read.table(meta_file, header = T, fill=TRUE,  sep="\t") # fill=TRUE allows to read a table with missing entries
+
+# setting the seed to one value in order to create reproducible results
+set.seed(67) 
 ```
 
 ## Plot distribution of reads per sample
@@ -594,9 +590,6 @@ smax <- max(sample_sums(ps))
 cat("The minimum sample read count is:",smin)
 cat("The average sample read count is:",smean)
 cat("The maximum sample read count is:",smax)
-
-# setting the seed to one value in order to create reproducible results
-set.seed(1)  
 ```
 
 ## Rarefaction curves
@@ -681,8 +674,8 @@ hom_summary <- psmelt(ps_hom_rel) %>%
 print("Top 10 Genera in the Gut Homogenate:")
 print(head(hom_summary, 10))
 
-# Plot the top 15 Genera
-ggplot(hom_summary[1:15, ], aes(x = reorder(Genus, Mean_Abundance), y = Mean_Abundance, fill = Genus)) +
+
+ggplot(hom_summary[1:10, ], aes(x = reorder(Genus, Mean_Abundance), y = Mean_Abundance, fill = Genus)) +
   geom_bar(stat = "identity", color = "black") +
   coord_flip() +
   theme_minimal() +
@@ -923,16 +916,23 @@ mdf$Replicate_num <- gsub("[^0-9]", "", mdf$Replicate)
 library(RColorBrewer)
 
 custom_14_colors <- c(
-  "#4D4F4D" , #Yersina
-  "#ffea00", #saccaribacter
-  brewer.pal(7, "Paired"),
-  "#ff9100",#wolbachia
-  "#c77dff", #lactobacillus
-  "#00296b", # commensalisus
-  "#f72585", # konskania
-  "#018571" ) #spiroplasma 
+  "#6c757d", # Yersinia 
+  "#ffd166", # Saccharibacter 
+  "#4cc9f0", # Bombella
+  "#06d6a0", # Sodalis 
+  "#4361ee", # Raoultella 
+  "#ff60b6", # Lactococcus
+  "#4a154b", # Enterococcus
+  "#e0e0e0", # Acinetobacter
+  "#8b5a2b", # Serratia 
+  "#ffb07c", # Wolbachia 
+  "#c792ea", # Apilolactobacillus 
+  "#03045e", # Commensalibacter 
+  "#ff4d4d", # Kosakonia 
+  "#008080"  # Spiroplasma 
+)
 
-set.seed(4) # Change the number within parentheses to change the order of colors in the plot. Here we use set.seed to make the colors reproducible, because in scale_fill_manual we use "sample" to shuffle the color order.
+set.seed(4) 
 p2 = ggplot(mdf, aes_string(x = "SampleID", y = "Abundance", fill = "Genus")) +
         theme_minimal()+
         geom_bar(stat = "identity", position = "stack", color = "black") +
@@ -952,10 +952,6 @@ p2 = ggplot(mdf, aes_string(x = "SampleID", y = "Abundance", fill = "Genus")) +
         scale_fill_manual(values = sample(custom_14_colors))
 
 print(p2, width = 1000, height = 200)
-
-
-
-
 
 # Get the ggplot grob
 gt <- ggplotGrob(p2)
@@ -1113,7 +1109,7 @@ write.table(
 ## Ordinations using qPCR-normalized counts for the whole dataset
 
 ``` r
-set.seed(91193)
+set.seed(67)
 
 bee_pcoa <- ordinate(
   physeq = ps_copies, 
@@ -1221,7 +1217,7 @@ ggsave(
 ## Run a Permanova test with Adonis.
 
 ``` r
-set.seed(8650)
+set.seed(67)
 
 sink(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
 print("###############################################################")
@@ -1353,9 +1349,6 @@ file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_interaction.t
 # Testing after controlling pseudoreplication
 
 ``` r
-# Testing after controlling pseudoreplication
-
-
 # 1. Setup output file
 sink(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt"))
 cat("###############################################################\n")
@@ -1458,7 +1451,6 @@ tax_ant <- cbind(tax[rownames(sig_ant), ], sig_ant)
 
 # Preview
 tax_ant
-
 
 # Convert phyloseq to DESeq2 object
 dds <- phyloseq_to_deseq2(ps.exp, ~ AntibioticHigh)
@@ -1726,9 +1718,12 @@ write.csv(sig_pairs_sig,   file.path(results_dir, "ASV_sig_pairs.csv"),     row.
 sig_summary <- read.csv(file.path(results_dir, "ASV_stats_summary.csv"))
 
 # Explicitly use FDR column
-target_asvs <- sig_summary$ASV[sig_summary$anova_pval_fdr < 0.05]
+target_asvs <- sig_summary$ASV[which(sig_summary$anova_pval_fdr < 0.05)]
 
-tax_info <- as.data.frame(tax_table(ps_copies)[target_asvs, ])
+tax_matrix <- as(tax_table(ps_copies), "matrix")
+# tax_info <- as.data.frame(tax_table(ps_copies)[target_asvs, ])
+tax_info <- as.data.frame(tax_matrix[target_asvs, , drop = FALSE])
+
 print(tax_info)
 
 # 2. Export output directly into the results directory
@@ -1895,14 +1890,21 @@ mdf2$Treatment <- factor(mdf2$Treatment, levels = c("Ctr", "AntLow", "AntHigh", 
 mdf2$Replicate_num <- gsub("[^0-9]", "", mdf2$Replicate)
 
 custom_14_colors <- c(
-  "#4D4F4D" , #Yersina
-  "#ffea00", #saccaribacter
-  brewer.pal(7, "Paired"),
-  "#ff9100",#wolbachia
-  "#c77dff", #lactobacillus
-  "#00296b", # commensalisus
-  "#f72585", # konskania
-  "#018571" ) #spiroplasma 
+  "#6c757d", # Yersinia 
+  "#ffd166", # Saccharibacter 
+  "#4cc9f0", # Bombella
+  "#06d6a0", # Sodalis 
+  "#4361ee", # Raoultella 
+  "#ff60b6", # Lactococcus
+  "#4a154b", # Enterococcus
+  "#e0e0e0", # Acinetobacter
+  "#8b5a2b", # Serratia 
+  "#ffb07c", # Wolbachia 
+  "#c792ea", # Apilolactobacillus 
+  "#03045e", # Commensalibacter 
+  "#ff4d4d", # Kosakonia 
+  "#008080"  # Spiroplasma 
+)
 
 set.seed(4)
 
@@ -2109,7 +2111,7 @@ ps_copies = proportions
 ## Ordinations using qPCR-normalized counts for the whole dataset
 
 ``` r
-set.seed(91193)
+set.seed(67)
 
 bee_pcoa <- ordinate(
   physeq = ps_copies, 
@@ -2217,7 +2219,7 @@ ggsave(
 ## Run a Permanova test with Adonis.
 
 ``` r
-set.seed(8650)
+set.seed(67)
 
 sink(file.path(results_dir, "Adonis-Betadisper_FourGroups_NoWolbachia.txt"))
 print("###############################################################")
@@ -2304,151 +2306,6 @@ sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_Homogenate_NoWolbachia.txt"))
 ```
 
-## Some stats - checking which bacteria differ between treatments
-
-We don’t expect this to change as we already test on the data wi
-
-``` r
-library(DESeq2)
-# subset your phyloseq object
-ps.exp <- subset_samples(ps_no_wolbachia, Sample_Type == "Experimental")
-
-# (optional but recommended)
-ps.exp <- prune_samples(sample_sums(ps.exp) > 0, ps.exp)
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ Treatment)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_all <- results(dds)
-res_all <- res_all[order(res_all$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_all <- res_all[res_all$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_all <- cbind(tax[rownames(sig_all), ], sig_all)
-
-# Preview
-tax_all
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ Antibiotic)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_ant <- results(dds, contrast = c("Antibiotic", "Yes", "No"))
-res_ant <- res_ant[order(res_ant$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_ant <- res_ant[res_ant$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_ant <- cbind(tax[rownames(sig_ant), ], sig_ant)
-
-# Preview
-tax_ant
-
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ AntibioticHigh)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_anthigh <- results(dds, contrast = c("AntibioticHigh", "Yes", "No"))
-res_anthigh <- res_anthigh[order(res_anthigh$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_anthigh <- res_anthigh[res_anthigh$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_anthigh <- cbind(tax[rownames(sig_anthigh), ], sig_anthigh)
-
-# Preview
-tax_anthigh
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ Homogenate)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_hom <- results(dds, contrast = c("Homogenate", "Yes", "No"))
-res_hom <- res_hom[order(res_hom$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_hom <- res_hom[res_hom$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_hom <- cbind(tax[rownames(sig_hom), ], sig_hom)
-
-# Preview
-tax_hom
-
-
-############################################################
-# Volcano plot 
-############################################################
-
-
-volcano_df <- as.data.frame(res_ant)
-volcano_df$Taxon <- rownames(volcano_df)
-volcano_df$Significant <- ifelse(volcano_df$padj < 0.05, "Yes", "No")
-
-ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant)) +
-  geom_point(alpha = 0.7) +
-  geom_text_repel(aes(label = Taxon), size = 3, max.overlaps = 10) +
-  scale_color_manual(values = c("grey70", "red")) +
-  theme_minimal() +
-  labs(
-    title = "Any antibiotic dose Yes vs No — Differential Abundance",
-    x = "Log2 Fold Change (Yes / No)",
-    y = "-log10 adjusted p-value"
-  )
-
-volcano_df <- as.data.frame(res_anthigh)
-volcano_df$Taxon <- rownames(volcano_df)
-volcano_df$Significant <- ifelse(volcano_df$padj < 0.05, "Yes", "No")
-
-ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant)) +
-  geom_point(alpha = 0.7) +
-  geom_text_repel(aes(label = Taxon), size = 3, max.overlaps = 10) +
-  scale_color_manual(values = c("grey70", "red")) +
-  theme_minimal() +
-  labs(
-    title = "Antibiotic high dose Yes vs No — Differential Abundance",
-    x = "Log2 Fold Change (Yes / No)",
-    y = "-log10 adjusted p-value"
-  )
-
-volcano_df <- as.data.frame(res_hom)
-volcano_df$Taxon <- rownames(volcano_df)
-volcano_df$Significant <- ifelse(volcano_df$padj < 0.05, "Yes", "No")
-
-ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant)) +
-  geom_point(alpha = 0.7) +
-  geom_text_repel(aes(label = Taxon), size = 3, max.overlaps = 10) +
-  scale_color_manual(values = c("grey70", "red")) +
-  theme_minimal() +
-  labs(
-    title = "Homogenate reinoculation Yes vs No — Differential Abundance",
-    x = "Log2 Fold Change (Yes / No)",
-    y = "-log10 adjusted p-value"
-  )
-```
-
 # Alpha diversity
 
 ``` r
@@ -2504,23 +2361,3 @@ anova(model_simpson)
 ``` r
 sessionInfo()
 ```
-
-    ## R version 4.1.0 (2021-05-18)
-    ## Platform: x86_64-apple-darwin17.0 (64-bit)
-    ## Running under: macOS Mojave 10.14.6
-    ## 
-    ## Matrix products: default
-    ## BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.dylib
-    ## LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
-    ## 
-    ## locale:
-    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-    ## 
-    ## attached base packages:
-    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
-    ## 
-    ## loaded via a namespace (and not attached):
-    ##  [1] compiler_4.1.0  magrittr_2.0.1  fastmap_1.1.0   tools_4.1.0    
-    ##  [5] htmltools_0.5.2 yaml_2.2.1      stringi_1.7.6   rmarkdown_2.11 
-    ##  [9] knitr_1.36      stringr_1.4.0   xfun_0.28       digest_0.6.29  
-    ## [13] rlang_0.4.12    evaluate_0.14

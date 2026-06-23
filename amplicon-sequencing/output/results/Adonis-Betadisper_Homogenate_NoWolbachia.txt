@@ -1,0 +1,22 @@
+[1] "###############################################################"
+[1] "Differences between homogenate recolonization Yes vs no - Bray-Curtis dissimilarities"
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = bray ~ Homogenate, data = sampledf)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     1   0.4999 0.03544 1.4695  0.127
+Residual 40  13.6073 0.96456              
+Total    41  14.1072 1.00000              
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)   
+Groups     1 0.12123 0.121226 9.2641    999  0.006 **
+Residuals 40 0.52342 0.013086                        
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1

@@ -1,0 +1,20 @@
+[1] "###############################################################"
+[1] "Differences between four groups - Bray-Curtis dissimilarities"
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = bray ~ Treatment, data = sampledf)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     4    1.273 0.10832 1.1237  0.319
+Residual 37   10.479 0.89168              
+Total    41   11.752 1.00000              
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df  Sum Sq  Mean Sq      F N.Perm Pr(>F)
+Groups     4 0.09326 0.023316 1.1897    999  0.338
+Residuals 37 0.72510 0.019597                     

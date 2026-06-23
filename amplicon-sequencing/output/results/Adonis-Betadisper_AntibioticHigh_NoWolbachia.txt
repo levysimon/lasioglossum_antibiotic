@@ -1,0 +1,22 @@
+[1] "###############################################################"
+[1] "Differences between antibiotic high and other treatments - Bray-Curtis dissimilarities"
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = bray ~ AntibioticHigh, data = sampledf)
+         Df SumOfSqs      R2      F Pr(>F)  
+Model     1   0.5532 0.03922 1.6326  0.087 .
+Residual 40  13.5540 0.96078                
+Total    41  14.1072 1.00000                
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 999
+
+Response: Distances
+          Df  Sum Sq  Mean Sq     F N.Perm Pr(>F)
+Groups     1 0.02043 0.020425 1.108    999  0.305
+Residuals 40 0.73738 0.018434                    

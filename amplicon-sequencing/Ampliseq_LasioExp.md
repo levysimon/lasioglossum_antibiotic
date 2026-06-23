@@ -1,35 +1,26 @@
----
-output: github_document
-editor_options: 
-  chunk_output_type: inline
----
 
 # *Lasioglossum malachurum* antiobiotic exposure microbiome experiment
 
 Joanito Liberti and Simon Lévy, University of Geneva
 
-The code is adapted from <https://github.com/JoanitoLiberti/The-gut-microbiota-affects-the-social-network-of-honeybees/blob/master/Gut_microbiota/Amplicon-sequencing/02-Ampliseq-RNAseqExp.md>
+The code is adapted from
+<https://github.com/JoanitoLiberti/The-gut-microbiota-affects-the-social-network-of-honeybees/blob/master/Gut_microbiota/Amplicon-sequencing/02-Ampliseq-RNAseqExp.md>
 
-If you have the ps object ("ps_dada2taxa_Lasio.rds"), you can start later with it directly (but please run the first chunk {r setup-paths} before, than you can click [here](#analysis-start).).
+If you have the ps object (“ps_dada2taxa_Lasio.rds”), you can start
+later with it directly (but please run the first chunk {r setup-paths}
+before, than you can click [here](#analysis-start).).
 
-Otherwise you should download the Raw sequencing data (deposited at the SRA Database under accession no. SRP666708)
+Otherwise you should download the Raw sequencing data (deposited at the
+SRA Database under accession no. SRP666708)
 
 ## Project setup and paths
 
-This project uses [`here`](https://here.r-lib.org/) so that the code runs identically on any machine, as long as this .Rmd file stays at the root of the RStudio project / git repository (i.e. there is a `.Rproj` file, or a `.here`/`.git` folder, next to it).
+This project uses [`here`](https://here.r-lib.org/) so that the code
+runs identically on any machine, as long as this .Rmd file stays at the
+root of the RStudio project / git repository (i.e. there is a `.Rproj`
+file, or a `.here`/`.git` folder, next to it).
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  eval = FALSE,
-  echo = TRUE,
-  message = FALSE,
-  warning = FALSE
-)
-```
-
-```{r setup-paths}
-
+``` r
 library(here)
 
 # --- input data (provided on GitHub / downloaded) ---
@@ -72,7 +63,7 @@ knitr::opts_knit$set(root.dir = dada2_dir)
 
 ## Number of reads per sample
 
-```{bash}
+``` bash
 cd "$RAW_DIR"
 for f in *fastq.gz; do
 echo $f
@@ -82,7 +73,7 @@ done
 
 ## total number of reads
 
-```{bash}
+``` bash
 cd "$RAW_DIR"
 
 # sum reads for all fastq.gz files
@@ -101,7 +92,7 @@ echo "Total reads across all files: $total_reads"
 
 ## Check data quality with FastQC
 
-```{bash}
+``` bash
 cd "$RAW_DIR"
 
 for f in *.fastq.gz; do 
@@ -111,7 +102,7 @@ done
 
 ## Clean up sample names
 
-```{bash}
+``` bash
 cd "$RAW_DIR"
 for f in *fastq.gz; do mv $f ${f/_001_*/.fastq.gz}; done
 for f in *fastq.gz; do mv $f ${f/_L1/}; done
@@ -119,21 +110,21 @@ for f in *fastq.gz; do mv $f ${f/_L1/}; done
 
 ## Remove primers and anything before and after with Cutadapt
 
-```{bash}
+``` bash
 cd "$RAW_DIR"
   for f in *R1.fastq.gz; do cutadapt -G GGACTACHVGGGTWTCTAAT -g GTGCCAGCMGCCGCGGTAA -o ${f/.fastq/.cut.fastq} -p  ${f/R1.fastq/R2.cut.fastq} $f ${f/R1.fastq/R2.fastq} --pair-filter=any; done
 ```
 
 ## Move trimmed reads into a separate folder
 
-```{bash}
+``` bash
 cd "$RAW_DIR"
 for f in *cut.fastq.gz; do mv $f "$TRIMMED_DIR"/$f; done
 ```
 
 ## Number of reads per sample after cutadapt
 
-```{bash}
+``` bash
 cd "$RAW_DIR"
 # Déplacement
 mv *cut.fastq.gz "$TRIMMED_DIR"/
@@ -162,7 +153,7 @@ done
 
 ## First, install required packages if needed (uncomment all installation lines)
 
-```{r}
+``` r
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # BiocManager::install(version = "3.10")
@@ -204,7 +195,7 @@ library(biomformat)
 
 # Sample names
 
-```{r}
+``` r
 library(dada2); packageVersion("dada2")
 pathraw <- trimmed_dir
 
@@ -219,7 +210,7 @@ sample.names
 
 ## Quality scores
 
-```{r}
+``` r
 path <- trimmed_dir
 dev.new()
 # Quality scores of R1 reads
@@ -231,12 +222,11 @@ plotQualityProfile(fnFs[41:60])
 plotQualityProfile(fnRs[1:20]) 
 plotQualityProfile(fnRs[21:40])
 plotQualityProfile(fnRs[41:60])
-
 ```
 
 ## Trim the data
 
-```{r}
+``` r
 # Place filtered files in filtered/ subdirectory
 path <- dada2_dir
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
@@ -263,7 +253,7 @@ out
 
 ## Learn the error rates
 
-```{r}
+``` r
 sys_str <- Sys.time()
 set.seed(1) # Since we randomize what samples we use for learning the error rates, we use set.seed() to make the analysis reproducible
 errF <- learnErrors(filtFs, randomize=TRUE, nbases=3e8, multithread=TRUE) # here we need to increase nbases to sample more than only a few samples, default is 1e8
@@ -279,7 +269,7 @@ rm(sys_str)
 
 ## Sample inference
 
-```{r}
+``` r
 sys_str <- Sys.time()
 dadaFs <- dada(derepFs, err=errF, multithread=TRUE)
 dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
@@ -293,7 +283,7 @@ dadaRs[[1]]
 
 ## Merge paired reads
 
-```{r}
+``` r
 mergers <- mergePairs(dadaFs, derepFs, dadaRs, derepRs, verbose=TRUE, trimOverhang=TRUE)
 # Inspect the merger data.frame from the first sample
 head(mergers[[1]])
@@ -301,7 +291,7 @@ head(mergers[[1]])
 
 ## Construct sequence table
 
-```{r}
+``` r
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
 
@@ -311,13 +301,13 @@ table(nchar(getSequences(seqtab)))
 
 ## Remove sequences that appear too short or long to be real
 
-```{r}
+``` r
 seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% 250:274]
 ```
 
 ## Remove chimeras
 
-```{r}
+``` r
 seqtab.nochim <- removeBimeraDenovo(seqtab2, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab2)
@@ -325,7 +315,7 @@ sum(seqtab.nochim)/sum(seqtab2)
 
 ## Track reads through the pipeline
 
-```{r}
+``` r
 getN <- function(x) sum(getUniques(x))
 track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
 # If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
@@ -337,7 +327,7 @@ tail(track)
 
 ## Assign taxonomy
 
-```{r}
+``` r
 #assignTaxonomy using Silva 
 taxa <- assignTaxonomy(seqtab.nochim, silva_taxonomy_db, multithread=TRUE)
 taxa <- addSpecies(taxa, silva_species_db)
@@ -347,11 +337,11 @@ rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
 
-```{r}
+``` r
 dir.create(taxonomy_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 
-```{r}
+``` r
 pathtax <- paste0(taxonomy_dir, "/")
 
 # Save taxonomy assignments from dada2 pipeline
@@ -360,13 +350,13 @@ write.csv2(file=paste(pathtax,"Taxtable_dada2",sep=""),taxa)
 
 # Convert to fasta
 
-```{r}
+``` r
 uniquesToFasta(seqtab.nochim, fout=file.path(taxonomy_dir, "seqtab.nochim.fasta"), ids=colnames(seqtab.nochim))
 ```
 
 # Prepare a phylogenetic tree with phangorn
 
-```{r}
+``` r
 library(DECIPHER) # Make alignment with DECIPHER...
 library(phangorn) # ...then build tree with phangorn
 asv.seqs <- getSequences(seqtab.nochim )
@@ -387,7 +377,7 @@ detach("package:phangorn", unload=TRUE)
 
 ## Evaluate accuracy
 
-```{r}
+``` r
 unqs.mock <- seqtab.nochim["Mock",] 
 unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
 cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
@@ -399,7 +389,7 @@ cat("Of those,", sum(match.ref), "were exact matches to the expected reference s
 
 ## Load and filter the data in phyloseq
 
-```{r}
+``` r
 library(ggplot2)
 library(vegan) # ecological diversity analysis
 library(scales) # scale functions for vizualizations
@@ -435,7 +425,7 @@ tail(tax_table(ps.chl))
 
 ## Export raw ASV table
 
-```{r}
+``` r
 table = merge( tax_table(ps.raw),t(otu_table(ps.raw)), by="row.names")
 
 write.table(table, file.path(dada2_dir, "RawASVtable_dada2taxa.txt"), sep="\t")
@@ -443,7 +433,7 @@ write.table(table, file.path(dada2_dir, "RawASVtable_dada2taxa.txt"), sep="\t")
 
 ## Filter the table and clean the classification
 
-```{r}
+``` r
 #Filter out Eukaryota, mitochondria and chloroplast reads
 ps <- subset_taxa(
   ps.raw,
@@ -506,7 +496,7 @@ tax_table(ps) <- as.matrix(tax.clean)
 
 ## Save the phyloseq object so next time you do not need to rerun the analysis from scratch
 
-```{r}
+``` r
 saveRDS(ps, ps_rds)
 
 # Grab the XStringSet object with the OTU/ASV sequences
@@ -531,7 +521,7 @@ Biostrings::writeXStringSet(rs, file.path(taxonomy_dir, "AllRawASVs.fasta"))
 
 ## Blast all ASVs to complement the taxonomy (optional, requires an HPC cluster with a local NCBI nt database)
 
-```{bash}
+``` bash
 # This step is optional and was run on a compute cluster (HPC) with a local
 # copy of the NCBI nt database and the blastn binary on $PATH (or set
 # BLASTN_BIN / BLAST_NT_DB env vars to point to your own installation).
@@ -544,17 +534,16 @@ cat AllRawASVs.fasta | parallel --block 2000k --recstart '>' --pipe $BLASTN_BIN 
 
 ## Filter Blast results to retain only first hit of each ASV
 
-```{r}
+``` r
 bl <- read.table(file.path(taxonomy_dir, "AllRawASVs_Blast.txt"), header=F, sep = "\t")
 bl <- bl[!duplicated(bl$V1),]
 write.table(bl, file.path(taxonomy_dir, "AllRawASVs_Blast_OnlyFirstHit.txt"), sep = "\t")
 write.table(tax_table(ps), file.path(taxonomy_dir, "TaxTable_ps.txt"), sep = "\t")
 ```
 
-# The analysis can be started from here if the ps object was saved {#analysis-start}
+# The analysis can be started from here if the ps object was saved
 
-```{r}
-
+``` r
 #Stats
 library(phyloseq)
 library(vegan) 
@@ -580,12 +569,11 @@ ps <- readRDS(ps_rds)
 
 #Data frame containing sample information
 samdf = read.table(meta_file, header = T, fill=TRUE,  sep="\t") # fill=TRUE allows to read a table with missing entries
-
 ```
 
 ## Plot distribution of reads per sample
 
-```{r}
+``` r
 # Make a data frame with a column for the read counts of each sample
 sample_sum_df <- data.frame(sum = sample_sums(ps))
 
@@ -613,8 +601,7 @@ set.seed(1)
 
 ## Rarefaction curves
 
-```{r}
-
+``` r
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
@@ -641,12 +628,11 @@ rarecurve(
   step = 50, 
   cex = 0.5
 )
-
 ```
 
 ## Retain only ASVs that have at least 1% relative abundance in minimum 1 sample
 
-```{r}
+``` r
 library(genefilter)
 mothur_proportions = transform_sample_counts(ps, function(x) {x/sum(x)})
 Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(1, 0.01)), TRUE)
@@ -654,7 +640,7 @@ Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(1, 0.01)), TRUE)
 
 ## Plot bacterial stacked bars
 
-```{r}
+``` r
 mdf = psmelt(Filtered)
 # mdf <- mdf[order(factor(mdf$Treatment, levels = c("Axenic", "Native", "Core", "Negative", "Mock"), ordered=TRUE), mdf$Sample), ]  # Let's first sort by Treatment, then hive, then sample ID
 mdf$Sample <- factor(mdf$Sample, levels = unique(mdf$Sample), ordered=TRUE)  # we need to do this to retain the order in plot.
@@ -675,8 +661,7 @@ print(p1, width = 1000, height = 200)
 
 ## See the composition of the gut homogenate
 
-```{r}
-
+``` r
 # --- 1. Subset the correct object ---
 # Use 'ps' (or whichever object gave you the list of 11 treatments above)
 ps_homogenate <- subset_samples(ps, Treatment == "GutHomogenate")
@@ -714,7 +699,7 @@ ggplot(hom_summary[1:15, ], aes(x = reorder(Genus, Mean_Abundance), y = Mean_Abu
 
 ## Plotting only ASVs that have at least 1% relative abundance in 1 sample
 
-```{r}
+``` r
 ps.blanks <- subset_samples(ps, Sample_Type == "Control") 
 ps.mock <- subset_samples(ps, Treatment == "Mock")
 
@@ -724,10 +709,9 @@ proportions.blanks = transform_sample_counts(ps.blanks, function(x) {x/sum(x)})
 Filtered.blanks = filter_taxa(proportions.blanks, filterfun(kOverA(1, 0.01)), TRUE)
 proportions.mock = transform_sample_counts(ps.mock, function(x) {x/sum(x)})
 Filtered.mock = filter_taxa(proportions.mock, filterfun(kOverA(1, 0.01)), TRUE)
-
 ```
 
-```{r}
+``` r
 mdf.blanks = psmelt(Filtered.blanks)
 mdf.mock = psmelt(Filtered.mock)
 
@@ -753,12 +737,11 @@ p3 = ggplot(mdf.mock, aes_string(x = "Sample", y = "Abundance", fill = "Genus"))
 
 print(p2, width = 1000, height = 200)
 print(p3, width = 1000, height = 200)
-
 ```
 
 ## Save plots to pdf
 
-```{r}
+``` r
 pdf(file = file.path(results_dir, "Barplots_allsample-LasioProject.pdf"), width = 12, height = 6, pointsize = 4)
 print(p1)  # On utilise explicitement print() pour s'assurer que le graphique s'écrit dans le PDF
 dev.off()
@@ -770,7 +753,7 @@ dev.off()
 
 ## Distribution of library sizes
 
-```{r}
+``` r
 df <- as.data.frame(sample_data(ps)) # Put sample_data into a ggplot-friendly data.frame
 df$LibrarySize <- sample_sums(ps)
 df <- df[order(df$LibrarySize),]
@@ -785,12 +768,11 @@ ggsave(
   height = 6, 
   useDingbats = FALSE
 )
-
 ```
 
 ## Check which sequences are likely to be contaminants (frequency method)
 
-```{r}
+``` r
 library(decontam); packageVersion("decontam")
 contamdf.freq <- isContaminant(ps, method="frequency", conc="Picogreen")
 head(contamdf.freq)
@@ -801,7 +783,7 @@ which(contamdf.freq$contaminant)
 
 ## Plot frequencies of identified contaminants vs. their concentrations after PCR
 
-```{r}
+``` r
 p_contam <- plot_frequency(ps, taxa_names(ps)[sample(which(contamdf.freq$contaminant), )], conc="Picogreen") + 
   xlab("DNA Concentration (PicoGreen ng/μl)")
 
@@ -815,12 +797,11 @@ ggsave(
   height = 10, 
   useDingbats = FALSE
 )
-
 ```
 
 ## Check which sequences are likely to be contaminants (prevalence method)
 
-```{r}
+``` r
 contamdf.prev <- isContaminant(ps, neg = "Negative", normalize = TRUE, threshold = 0.1, detailed = T)
 table(contamdf.prev$contaminant)
 
@@ -829,7 +810,7 @@ head(which(contamdf.prev$contaminant))
 
 ## Plot prevalences of identified contaminants
 
-```{r}
+``` r
 # Make phyloseq object of presence-absence in negative controls and true samples
 ps.pa <- transform_sample_counts(ps, function(abund) 1*(abund>0))
 ps.pa.neg <- prune_samples(sample_data(ps.pa)$Negative == "TRUE", ps.pa)
@@ -852,12 +833,11 @@ ggsave(
   height = 6, 
   useDingbats = FALSE
 )
-
 ```
 
 ## Both methods combined
 
-```{r}
+``` r
 contamdf.both <- isContaminant(ps, conc = "Picogreen", neg = "Negative", method = "either", normalize = TRUE, detailed = T)
 table(contamdf.both$contaminant)
 
@@ -866,24 +846,22 @@ which(contamdf.both$contaminant)
 
 ## New phyloseq object after filtering out contaminants
 
-```{r}
+``` r
 ps.noncontam <- prune_taxa(!contamdf.both$contaminant, ps)
 ps.noncontam
 ```
 
 ## Remove non experimental samples before replotting MiSeq results
 
-```{r}
-
+``` r
 ps.noncontam.filt <- prune_samples(ps.noncontam@sam_data$Sample_Type == "Experimental", ps.noncontam)
 ps.noncontam.filt = filter_taxa(ps.noncontam.filt, function(x) sum(x) > 0, TRUE)
 ps.noncontam.filt
-
 ```
 
 ## Save filtered ASV table (not normalised by qPCR yet)
 
-```{r}
+``` r
 write.table(
   otu_table(ps.noncontam.filt), 
   file = file.path(results_dir, "LasioProject_ASVtable_OnlyExpSamples.txt"), 
@@ -893,8 +871,7 @@ write.table(
 
 ## Histogram of qPCR 16S rRNA copy numbers
 
-```{r}
-
+``` r
 mdf = sample_data(ps.noncontam.filt)
 
 mdf$Treatment <- factor(mdf$Treatment, levels = c("Ctr", "AntLow", "AntHigh", "AntLow+hom", "AntHigh+hom"))
@@ -923,13 +900,11 @@ p1 <- ggplot(mdf, aes(x = SampleID, y = CopyNum)) +
 # Note: To save with specific dimensions, use ggsave
 # ggsave("plot.pdf", p1, width = 10, height = 5)
 print(p1, width = 100, height = 20)
-
-
 ```
 
 ## Retain only ASVs that have at least 1% relative abundance in minimum 1 sample
 
-```{r}
+``` r
 library(genefilter)
 mothur_proportions = transform_sample_counts(ps.noncontam.filt, function(x) {x/sum(x)})
 Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(1, 0.01)), TRUE)
@@ -937,7 +912,7 @@ Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(1, 0.01)), TRUE)
 
 ## Plot bacterial stacked bars
 
-```{r}
+``` r
 mdf = psmelt(Filtered)
 
 mdf$Treatment <- factor(mdf$Treatment, 
@@ -995,16 +970,11 @@ gt = gt[-(top-1), ]
 # Draw it
 grid.newpage()
 grid.draw(gt)
-
-
-
-
-
 ```
 
 ## Plot qPCR and ampliseq bars together (and export to pdf)
 
-```{r}
+``` r
 pdf(file = file.path(results_dir, "Barplots_Experimentalsamples.pdf"), width = 12, height = 8, pointsize = 4)
 
 plot_grid(
@@ -1029,8 +999,7 @@ plot_grid(
 
 ## Basic descriptive statistics
 
-```{r}
-
+``` r
 # 1. Transform in relative abundance 
 ps_rel <- transform_sample_counts(ps.noncontam.filt, function(x) 100 * x / sum(x))
 
@@ -1051,12 +1020,11 @@ genus_stats <- mdf_rel %>%
   arrange(desc(avg_abundance))
 
 print(head(genus_stats, 10))
-
 ```
 
 ## Calculate Number of ASV
 
-```{r}
+``` r
 ps_exp <- subset_samples(ps.noncontam.filt, 
                          !Treatment %in% c("BeforeExperiment", "GlycerolPBScontrol(FirstStep)", "GutHomogenate"))
 
@@ -1081,8 +1049,7 @@ print(asv_stats)
 
 ## Alpha Diversity
 
-```{r}
-
+``` r
 alpha_div <- estimate_richness(ps_exp, measures = c("Observed", "Shannon"))
 df_alpha <- data.frame(alpha_div, sample_data(ps_exp))
 
@@ -1104,9 +1071,9 @@ kruskal_test <- kruskal.test(Shannon ~ Treatment, data = df_alpha)
 kruskal_test
 ```
 
-## Let’s plot ordinations. Let's first combine qPCR and ampliseq data
+## Let’s plot ordinations. Let’s first combine qPCR and ampliseq data
 
-```{r}
+``` r
 proportions = transform_sample_counts(ps.noncontam.filt, function(x) {x/sum(x)})
 
 #calculate ratios
@@ -1131,12 +1098,11 @@ ps_copies <- phyloseq(otu_table(copies, taxa_are_rows=T),
                sample_data(samdf), 
                tax_table(proportions),
                phy_tree(proportions))
-
 ```
 
 ## Save ASV table
 
-```{r}
+``` r
 write.table(
   otu_table(ps_copies), 
   file = file.path(results_dir, "LasioProject_ASVtable_qPCRnormalised.txt"), 
@@ -1146,7 +1112,7 @@ write.table(
 
 ## Ordinations using qPCR-normalized counts for the whole dataset
 
-```{r}
+``` r
 set.seed(91193)
 
 bee_pcoa <- ordinate(
@@ -1250,12 +1216,11 @@ ggsave(
   height = 5, width = 7, dpi = 300,
   useDingbats = FALSE
 )
-
 ```
 
 ## Run a Permanova test with Adonis.
 
-```{r}
+``` r
 set.seed(8650)
 
 sink(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
@@ -1385,10 +1350,9 @@ sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_interaction.txt"))
 ```
 
-
 # Testing after controlling pseudoreplication
 
-```{r}
+``` r
 # Testing after controlling pseudoreplication
 
 
@@ -1443,12 +1407,11 @@ print(perm_res)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt"))
-
 ```
 
 # Some stats - checking which bacteria differ between treatments - Based **only on relative abundance**
 
-```{r}
+``` r
 library(DESeq2)
 # subset your phyloseq object
 ps.exp <- subset_samples(ps.noncontam.filt, Sample_Type == "Experimental")
@@ -1589,16 +1552,11 @@ ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant
     x = "Log2 Fold Change (Yes / No)",
     y = "-log10 adjusted p-value"
   )
-
-
-
-
-
 ```
 
-# Let's test if any ASV differs between treatment groups - Absolute abundances
+# Let’s test if any ASV differs between treatment groups - Absolute abundances
 
-```{r}
+``` r
 library(multcomp)
 
 # --- 1. DATA PREP ---
@@ -1759,11 +1717,9 @@ write.csv(sig_pairs_all,   file.path(results_dir, "ASV_all_pairs.csv"),     row.
 write.csv(sig_pairs_sig,   file.path(results_dir, "ASV_sig_pairs.csv"),     row.names = FALSE)
 ```
 
-
 ## Who are the ASV that significantly changed ? anova ≤ 0.05 .
 
-```{r}
-
+``` r
 ## Who are the ASV that significantly changed? We plot the ones with ANOVA < 0.05.
 
 # 1. Read input using the results directory path
@@ -1777,12 +1733,11 @@ print(tax_info)
 
 # 2. Export output directly into the results directory
 write.csv(tax_info, file.path(results_dir, "ASV_FDR_Significant_Taxonomy.csv"))
-
 ```
 
 ## Plot indvidual anova ≤ 0.05 + at least one pairwise comparison that is p ≤ 0.05
 
-```{r}
+``` r
 ## Plot individual differences — ASVs with ANOVA p < 0.05 AND ≥1 significant pairwise comparison
 library(tidyr)
 
@@ -1898,13 +1853,11 @@ p_sig_pairs <- ggplot(df_plot, aes(x = Treatment, y = log_cop)) +
 print(p_sig_pairs)
 
 ggsave(file.path(results_dir, "Significant_ASVs_FDR_Condensed_Boxplots.png"), plot = p_sig_pairs, width = 9.5, height = 8, dpi = 300)
-
 ```
 
 # Multipanel visualisation
 
-```{r}
-
+``` r
 # 1.PANEL A PREPARATION (qPCR + Abondances)
 # ==========================================
 
@@ -2107,21 +2060,18 @@ grid.newpage()
 grid.draw(final_plot)
 
 ggsave(file.path(results_dir, "Combined_Microbiome_Final.pdf"), plot = final_plot, width = 18, height = 9, dpi = 300)
-
 ```
 
+# Let’s try to filter out Wolbachia and run analyses again
 
-
-# Let's try to filter out Wolbachia and run analyses again
-
-```{r}
+``` r
 # Filter out Wolbachia
 ps_no_wolbachia <- subset_taxa(ps.noncontam.filt, Genus != "Wolbachia")
 ```
 
 ## Retain only ASVs that have at least 1% relative abundance in minimum 3 sample
 
-```{r}
+``` r
 library(genefilter)
 mothur_proportions = transform_sample_counts(ps_no_wolbachia, function(x) {x/sum(x)})
 Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(3, 0.01)), TRUE)
@@ -2129,7 +2079,7 @@ Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(3, 0.01)), TRUE)
 
 ## Plot bacterial stacked bars
 
-```{r}
+``` r
 mdf = psmelt(Filtered)
 
 mdf <- mdf[order(factor(mdf$Treatment, levels = c("Ctr", "AntLow", "AntHigh", "AntLow+hom", "AntHigh+hom"), ordered=TRUE), mdf$Sample), ]  # Let's first sort by Treatment, then hive, then sample ID
@@ -2146,23 +2096,19 @@ p2 = ggplot(mdf, aes_string(x = "SampleID", y = "Abundance", fill = "Genus")) +
         scale_fill_manual(values=sample(cbPalette(13)))
 
 print(p2, width = 1000, height = 200)
-
 ```
 
 ## Let’s plot ordinations
 
-```{r}
+``` r
 proportions = transform_sample_counts(ps_no_wolbachia, function(x) {x/sum(x)})
 
 ps_copies = proportions 
-
 ```
-
 
 ## Ordinations using qPCR-normalized counts for the whole dataset
 
-```{r}
-
+``` r
 set.seed(91193)
 
 bee_pcoa <- ordinate(
@@ -2266,12 +2212,11 @@ ggsave(
   height = 5, width = 7, dpi = 300,
   useDingbats = FALSE
 )
-
 ```
 
 ## Run a Permanova test with Adonis.
 
-```{r}
+``` r
 set.seed(8650)
 
 sink(file.path(results_dir, "Adonis-Betadisper_FourGroups_NoWolbachia.txt"))
@@ -2359,11 +2304,11 @@ sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_Homogenate_NoWolbachia.txt"))
 ```
 
-
 ## Some stats - checking which bacteria differ between treatments
-We don't expect this to change as we already test on the data wi
 
-```{r}
+We don’t expect this to change as we already test on the data wi
+
+``` r
 library(DESeq2)
 # subset your phyloseq object
 ps.exp <- subset_samples(ps_no_wolbachia, Sample_Type == "Experimental")
@@ -2502,12 +2447,11 @@ ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant
     x = "Log2 Fold Change (Yes / No)",
     y = "-log10 adjusted p-value"
   )
-
 ```
 
 # Alpha diversity
 
-```{r}
+``` r
 plot_richness(ps.noncontam.filt, x="Treatment", color="Treatment", measures=c("Chao1", "Shannon", "Simpson"))
 
 alpha_df <- estimate_richness(ps.noncontam.filt, measures = c("Chao1", "Shannon"))
@@ -2523,13 +2467,11 @@ anova(model_chao1)
 
 model_shannon <- lm(Shannon ~ AntibioticHigh + Homogenate, data = alpha_merged)
 anova(model_shannon)
-
-
 ```
 
 # Without Wolbachia
 
-```{r}
+``` r
 plot_richness(ps_no_wolbachia, x="Treatment", color="Treatment", measures=c("Chao1", "Shannon", "Simpson"))
 
 alpha_df <- estimate_richness(ps_no_wolbachia, measures = c("Chao1", "Shannon", "Simpson"))
@@ -2552,35 +2494,33 @@ anova(model_simpson)
 
 ## To save the session
 
-```{r}
+``` r
 # save.image(file.path(results_dir, "Lasio_Project_Ampliseq.rdata"))
 # load(file.path(results_dir, "Lasio_Project_Ampliseq.rdata"))
 ```
 
 ## Session info
 
-```{r}
+``` r
 sessionInfo()
 ```
 
-```         
-## R version 4.1.0 (2021-05-18)
-## Platform: x86_64-apple-darwin17.0 (64-bit)
-## Running under: macOS Mojave 10.14.6
-## 
-## Matrix products: default
-## BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.dylib
-## LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
-## 
-## locale:
-## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-## 
-## attached base packages:
-## [1] stats     graphics  grDevices utils     datasets  methods   base     
-## 
-## loaded via a namespace (and not attached):
-##  [1] compiler_4.1.0  magrittr_2.0.1  fastmap_1.1.0   tools_4.1.0    
-##  [5] htmltools_0.5.2 yaml_2.2.1      stringi_1.7.6   rmarkdown_2.11 
-##  [9] knitr_1.36      stringr_1.4.0   xfun_0.28       digest_0.6.29  
-## [13] rlang_0.4.12    evaluate_0.14
-```
+    ## R version 4.1.0 (2021-05-18)
+    ## Platform: x86_64-apple-darwin17.0 (64-bit)
+    ## Running under: macOS Mojave 10.14.6
+    ## 
+    ## Matrix products: default
+    ## BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.dylib
+    ## LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
+    ## 
+    ## locale:
+    ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+    ## 
+    ## attached base packages:
+    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## 
+    ## loaded via a namespace (and not attached):
+    ##  [1] compiler_4.1.0  magrittr_2.0.1  fastmap_1.1.0   tools_4.1.0    
+    ##  [5] htmltools_0.5.2 yaml_2.2.1      stringi_1.7.6   rmarkdown_2.11 
+    ##  [9] knitr_1.36      stringr_1.4.0   xfun_0.28       digest_0.6.29  
+    ## [13] rlang_0.4.12    evaluate_0.14

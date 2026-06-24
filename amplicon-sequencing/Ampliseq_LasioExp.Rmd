@@ -1240,6 +1240,8 @@ ggsave(
 ```{r}
 set.seed(67)
 
+n_perm <- 10000
+
 sink(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
 print("###############################################################")
 print("Differences between four groups - Bray-Curtis dissimilarities")
@@ -1250,13 +1252,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ Treatment, data = sampledf)
+adonis2(bray ~ Treatment, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Treatment)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
@@ -1271,13 +1273,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ Antibiotic, data = sampledf)
+adonis2(bray ~ Antibiotic, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Antibiotic)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect.txt"))
@@ -1292,13 +1294,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ AntibioticHigh, data = sampledf)
+adonis2(bray ~ AntibioticHigh, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$AntibioticHigh)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh.txt"))
@@ -1313,13 +1315,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ Homogenate, data = sampledf)
+adonis2(bray ~ Homogenate, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Homogenate)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_Homogenate.txt"))
@@ -1334,13 +1336,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(formula=bray ~ Antibiotic+Homogenate, by = "margin", data = sampledf)
+adonis2(formula=bray ~ Antibiotic+Homogenate, by = "margin", data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Antibiotic)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect_interaction.txt"))
@@ -1355,13 +1357,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(formula=bray ~ AntibioticHigh+Homogenate, by = "margin", data = sampledf)
+adonis2(formula=bray ~ AntibioticHigh+Homogenate, by = "margin", data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$AntibioticHigh)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_interaction.txt"))

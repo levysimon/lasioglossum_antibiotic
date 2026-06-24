@@ -1,7 +1,4 @@
 # Antibiotic impact on gut microbiota and social behavior in the wild bee *Lasioglossum malachurum*
-
-> **Note for peer review:** This README is anonymised. Author names, contact details, and links to the publication will be added upon acceptance.
-
 ---
 
 ## Summary

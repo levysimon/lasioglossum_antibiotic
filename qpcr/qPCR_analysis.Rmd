@@ -23,6 +23,9 @@ library(lmerTest)
 library(ggplot2)
 library(car)
 library(dplyr)
+
+set.seed(67)
+options(contrasts = c("contr.sum", "contr.poly"))
 ```
 
 # Read result and load a dataframe

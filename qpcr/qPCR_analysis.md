@@ -5,9 +5,13 @@
 library(readr)
 library(here)
 library(lme4)
+library(lmerTest)
 library(ggplot2)
 library(car)
 library(dplyr)
+
+set.seed(67)
+options(contrasts = c("contr.sum", "contr.poly"))
 ```
 
 # Read result and load a dataframe
@@ -211,13 +215,13 @@ output_file <- file.path(results_dir, "qpcr_result.txt")
 sink(output_file, append=FALSE)
 
 print(summary(m2))
-print(anova(m2))
+print(Anova(m2, type = "III"))
 
 print(summary(m3))
-print(anova(m3))
+print(Anova(m3, type = "III"))
 
 print(summary(m4))
-print(anova(m4))
+print(Anova(m4, type = "III"))
 
 sink()
 ```

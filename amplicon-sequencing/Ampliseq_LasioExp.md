@@ -21,7 +21,6 @@ raw_dir   <- here("amplicon-sequencing", "data", "RawFiles") #If you download th
 ref_dir   <- here("amplicon-sequencing", "data", "reference")
 meta_file <- here("amplicon-sequencing", "data", "Metadata_Lasio.txt")
 ps_rds    <- here("amplicon-sequencing", "data", "ps_dada2taxa_Lasio.rds")
-mock_ref_fasta    <- file.path(ref_dir, "mock_seq_plasmids.fasta")
 
 # --- you will have to download those database at https://zenodo.org/records/14169026 and add them to the reference folder
 silva_taxonomy_db <- file.path(ref_dir, "silva_nr99_v138.2_toSpecies_trainset.fa") 
@@ -374,10 +373,6 @@ detach("package:phangorn", unload=TRUE)
 unqs.mock <- seqtab.nochim["Mock",] 
 unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
 cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
-
-mock.ref <- getSequences(mock_ref_fasta)
-match.ref <- sum(sapply(names(unqs.mock), function(x) any(grepl(x, mock.ref))))
-cat("Of those,", sum(match.ref), "were exact matches to the expected reference sequences.\n")
 ```
 
 ## Load and filter the data in phyloseq
@@ -1219,6 +1214,8 @@ ggsave(
 ``` r
 set.seed(67)
 
+n_perm <- 10000
+
 sink(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
 print("###############################################################")
 print("Differences between four groups - Bray-Curtis dissimilarities")
@@ -1229,13 +1226,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ Treatment, data = sampledf)
+adonis2(bray ~ Treatment, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Treatment)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_FourGroups.txt"))
@@ -1250,13 +1247,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ Antibiotic, data = sampledf)
+adonis2(bray ~ Antibiotic, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Antibiotic)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect.txt"))
@@ -1271,13 +1268,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ AntibioticHigh, data = sampledf)
+adonis2(bray ~ AntibioticHigh, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$AntibioticHigh)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh.txt"))
@@ -1292,13 +1289,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(bray ~ Homogenate, data = sampledf)
+adonis2(bray ~ Homogenate, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Homogenate)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_Homogenate.txt"))
@@ -1313,13 +1310,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(formula=bray ~ Antibiotic+Homogenate, by = "margin", data = sampledf)
+adonis2(formula=bray ~ Antibiotic+Homogenate, by = "margin", data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Antibiotic)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect_interaction.txt"))
@@ -1334,13 +1331,13 @@ bray <- phyloseq::distance(ps_copies, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_copies))
 
 # Adonis test
-adonis2(formula=bray ~ AntibioticHigh+Homogenate, by = "margin", data = sampledf)
+adonis2(formula=bray ~ AntibioticHigh+Homogenate, by = "margin", data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$AntibioticHigh)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_interaction.txt"))
@@ -1381,7 +1378,7 @@ meta_centroids <- meta_centroids[match(rownames(centroids), meta_centroids$Repli
 adonis_res <- adonis2(
  centroids ~ AntibioticHigh + Homogenate, # Interaction is not significant
  data = meta_centroids,
- permutations = 999,
+ permutations = 10000,
  by = "margin" # Tests each term's unique contribution
 )
 print(adonis_res)
@@ -1400,150 +1397,6 @@ print(perm_res)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_AbsoluteCounts.txt"))
-```
-
-# Some stats - checking which bacteria differ between treatments - Based **only on relative abundance**
-
-``` r
-library(DESeq2)
-# subset your phyloseq object
-ps.exp <- subset_samples(ps.noncontam.filt, Sample_Type == "Experimental")
-
-# (optional but recommended)
-ps.exp <- prune_samples(sample_sums(ps.exp) > 0, ps.exp)
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ Treatment)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_all <- results(dds)
-res_all <- res_all[order(res_all$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_all <- res_all[res_all$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_all <- cbind(tax[rownames(sig_all), ], sig_all)
-
-# Preview
-tax_all
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ Antibiotic)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_ant <- results(dds, contrast = c("Antibiotic", "Yes", "No"))
-res_ant <- res_ant[order(res_ant$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_ant <- res_ant[res_ant$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_ant <- cbind(tax[rownames(sig_ant), ], sig_ant)
-
-# Preview
-tax_ant
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ AntibioticHigh)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_anthigh <- results(dds, contrast = c("AntibioticHigh", "Yes", "No"))
-res_anthigh <- res_anthigh[order(res_anthigh$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_anthigh <- res_anthigh[res_anthigh$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_anthigh <- cbind(tax[rownames(sig_anthigh), ], sig_anthigh)
-
-# Preview
-tax_anthigh
-print(tax_anthigh)
-
-# Convert phyloseq to DESeq2 object
-dds <- phyloseq_to_deseq2(ps.exp, ~ Homogenate)
-
-dds <- estimateSizeFactors(dds, type = "poscounts")
-dds <- DESeq(dds)
-
-# Get results for S vs C
-res_hom <- results(dds, contrast = c("Homogenate", "Yes", "No"))
-res_hom <- res_hom[order(res_hom$padj, na.last = NA), ]
-
-# Significant taxa (FDR < 0.05)
-sig_hom <- res_hom[res_hom$padj < 0.05, ]
-
-# Combine with taxonomy for interpretation
-tax <- as.data.frame(tax_table(ps.exp))
-tax_hom <- cbind(tax[rownames(sig_hom), ], sig_hom)
-
-# Preview
-tax_hom
-
-
-############################################################
-# Volcano plot 
-############################################################
-
-library(ggrepel)
-
-volcano_df <- as.data.frame(res_ant)
-volcano_df$Taxon <- rownames(volcano_df)
-volcano_df$Significant <- ifelse(volcano_df$padj < 0.05, "Yes", "No")
-
-ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant)) +
-  geom_point(alpha = 0.7) +
-  geom_text_repel(aes(label = Taxon), size = 3, max.overlaps = 10) +
-  scale_color_manual(values = c("grey70", "red")) +
-  theme_minimal() +
-  labs(
-    title = "Any antibiotic dose Yes vs No — Differential Abundance",
-    x = "Log2 Fold Change (Yes / No)",
-    y = "-log10 adjusted p-value"
-  )
-
-volcano_df <- as.data.frame(res_anthigh)
-volcano_df$Taxon <- rownames(volcano_df)
-volcano_df$Significant <- ifelse(volcano_df$padj < 0.05, "Yes", "No")
-
-ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant)) +
-  geom_point(alpha = 0.7) +
-  geom_text_repel(aes(label = Taxon), size = 3, max.overlaps = 10) +
-  scale_color_manual(values = c("grey70", "red")) +
-  theme_minimal() +
-  labs(
-    title = "Antibiotic high dose Yes vs No — Differential Abundance",
-    x = "Log2 Fold Change (Yes / No)",
-    y = "-log10 adjusted p-value"
-  )
-
-volcano_df <- as.data.frame(res_hom)
-volcano_df$Taxon <- rownames(volcano_df)
-volcano_df$Significant <- ifelse(volcano_df$padj < 0.05, "Yes", "No")
-
-ggplot(volcano_df, aes(x = log2FoldChange, y = -log10(padj), color = Significant)) +
-  geom_point(alpha = 0.7) +
-  geom_text_repel(aes(label = Taxon), size = 3, max.overlaps = 10) +
-  scale_color_manual(values = c("grey70", "red")) +
-  theme_minimal() +
-  labs(
-    title = "Homogenate reinoculation Yes vs No — Differential Abundance",
-    x = "Log2 Fold Change (Yes / No)",
-    y = "-log10 adjusted p-value"
-  )
 ```
 
 # Let’s test if any ASV differs between treatment groups - Absolute abundances
@@ -1757,6 +1610,12 @@ tax_df <- tax_df %>%
     ),
     ASV_Label = paste0(Group, " (", Genus, ")\n", anova_label)
   )
+
+copynums <- psmelt(ps_copies)
+colnames(copynums)[colnames(copynums) == "OTU"] <- "Group"
+copynums$Abundance[copynums$Abundance == 0] <- 1
+copynums$log_cop <- log10(as.numeric(copynums$Abundance))
+copynums$Treatment <- as.factor(copynums$Treatment)
 
 df_plot <- copynums %>%
   filter(Group %in% target_asvs) %>%
@@ -2071,18 +1930,19 @@ ggsave(file.path(results_dir, "Combined_Microbiome_Final.pdf"), plot = final_plo
 ps_no_wolbachia <- subset_taxa(ps.noncontam.filt, Genus != "Wolbachia")
 ```
 
-## Retain only ASVs that have at least 1% relative abundance in minimum 3 sample
+## Retain only ASVs that have at least 1% relative abundance in minimum 1 sample
 
 ``` r
 library(genefilter)
 mothur_proportions = transform_sample_counts(ps_no_wolbachia, function(x) {x/sum(x)})
-Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(3, 0.01)), TRUE)
+Filtered = filter_taxa(mothur_proportions, filterfun(kOverA(1, 0.01)), TRUE)
 ```
 
-## Plot bacterial stacked bars
+## Plot bacterial stacked bars (with at least 5% in one sample)
 
 ``` r
-mdf = psmelt(Filtered)
+Filtered_2 = filter_taxa(mothur_proportions, filterfun(kOverA(1, 0.05)), TRUE)
+mdf = psmelt(Filtered_2)
 
 mdf <- mdf[order(factor(mdf$Treatment, levels = c("Ctr", "AntLow", "AntHigh", "AntLow+hom", "AntHigh+hom"), ordered=TRUE), mdf$Sample), ]  # Let's first sort by Treatment, then hive, then sample ID
 
@@ -2095,7 +1955,7 @@ p2 = ggplot(mdf, aes_string(x = "SampleID", y = "Abundance", fill = "Genus")) +
         ylab("Relative abundance") +
         facet_grid(.~ Treatment, scales = "free") +
         theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5), legend.position="bottom") +
-        scale_fill_manual(values=sample(cbPalette(13)))
+        scale_fill_manual(values=sample(cbPalette(16)))
 
 print(p2, width = 1000, height = 200)
 ```
@@ -2221,6 +2081,8 @@ ggsave(
 ``` r
 set.seed(67)
 
+n_perm <- 10000
+
 sink(file.path(results_dir, "Adonis-Betadisper_FourGroups_NoWolbachia.txt"))
 print("###############################################################")
 print("Differences between four groups - Bray-Curtis dissimilarities")
@@ -2231,13 +2093,13 @@ bray <- phyloseq::distance(ps_no_wolbachia, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_no_wolbachia))
 
 # Adonis test
-adonis2(bray ~ Treatment, data = sampledf)
+adonis2(bray ~ Treatment, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Treatment)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_FourGroups_NoWolbachia.txt"))
@@ -2252,13 +2114,13 @@ bray <- phyloseq::distance(ps_no_wolbachia, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_no_wolbachia))
 
 # Adonis test
-adonis2(bray ~ Antibiotic, data = sampledf)
+adonis2(bray ~ Antibiotic, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Antibiotic)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticEffect_NoWolbachia.txt"))
@@ -2273,13 +2135,13 @@ bray <- phyloseq::distance(ps_no_wolbachia, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_no_wolbachia))
 
 # Adonis test
-adonis2(bray ~ AntibioticHigh, data = sampledf)
+adonis2(bray ~ AntibioticHigh, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$AntibioticHigh)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_AntibioticHigh_NoWolbachia.txt"))
@@ -2294,59 +2156,16 @@ bray <- phyloseq::distance(ps_no_wolbachia, method = "bray", weighted=TRUE)
 sampledf <- data.frame(sample_data(ps_no_wolbachia))
 
 # Adonis test
-adonis2(bray ~ Homogenate, data = sampledf)
+adonis2(bray ~ Homogenate, data = sampledf, permutations=n_perm)
 
 # test of Homegeneity of dispersion
 beta <- betadisper(bray, sampledf$Homogenate)
 
 # run a permutation test to get a statistic and a significance score
-permutest(beta)
+permutest(beta, permutations=n_perm)
 
 sink()
 file.show(file.path(results_dir, "Adonis-Betadisper_Homogenate_NoWolbachia.txt"))
-```
-
-# Alpha diversity
-
-``` r
-plot_richness(ps.noncontam.filt, x="Treatment", color="Treatment", measures=c("Chao1", "Shannon", "Simpson"))
-
-alpha_df <- estimate_richness(ps.noncontam.filt, measures = c("Chao1", "Shannon"))
-alpha_df$SampleID <- rownames(alpha_df)
-
-meta <- data.frame(sample_data(ps.noncontam.filt))
-meta$SampleID <- rownames(meta)
-
-alpha_merged <- merge(alpha_df, meta, by = "SampleID")
-
-model_chao1 <- lm(Chao1 ~ AntibioticHigh + Homogenate, data = alpha_merged)
-anova(model_chao1)
-
-model_shannon <- lm(Shannon ~ AntibioticHigh + Homogenate, data = alpha_merged)
-anova(model_shannon)
-```
-
-# Without Wolbachia
-
-``` r
-plot_richness(ps_no_wolbachia, x="Treatment", color="Treatment", measures=c("Chao1", "Shannon", "Simpson"))
-
-alpha_df <- estimate_richness(ps_no_wolbachia, measures = c("Chao1", "Shannon", "Simpson"))
-alpha_df$SampleID <- rownames(alpha_df)
-
-meta <- data.frame(sample_data(ps_no_wolbachia))
-meta$SampleID <- rownames(meta)
-
-alpha_merged <- merge(alpha_df, meta, by = "SampleID")
-
-model_chao1 <- lm(Chao1 ~ AntibioticHigh + Homogenate, data = alpha_merged)
-anova(model_chao1)
-
-model_shannon <- lm(Shannon ~ AntibioticHigh + Homogenate, data = alpha_merged)
-anova(model_shannon)
-
-model_simpson <- lm(Simpson ~ AntibioticHigh + Homogenate, data = alpha_merged)
-anova(model_simpson)
 ```
 
 ## To save the session

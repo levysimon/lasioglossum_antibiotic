@@ -1918,7 +1918,7 @@ p2 <- plot_fun(df_behavior, model_nb2_add_bump, "antibiotic", "nb.of.bump", "rei
 p3 <- plot_fun(df_behavior, model_nb2_head_add, "antibiotic", "nb.of.head.to.head", "reinoculation", "Head to Head", row=2)
 p4 <- plot_fun(df_behavior, model_nb2_add_avoid, "antibiotic", "nb.of.avoidance", "reinoculation", "Avoidance", row=2)
 p5 <- plot_fun(df_move, model_beta, "antibiotic", "prop_time_adj", "reinoculation", "Prop. Time Moving", is_perc=TRUE, row=1)
-p6 <- plot_fun(df_interind, model_gauss, "antibiotic", "mean.dist", "reinoculation", "Mean inter-individual distance [cm]", row=2)
+p6 <- plot_fun(df_interind, model_gauss, "antibiotic", "mean.dist", "reinoculation", "Mean inter-individual distance", row=2)
 
 # 3. Layout the panels using patchwork
 design <- "

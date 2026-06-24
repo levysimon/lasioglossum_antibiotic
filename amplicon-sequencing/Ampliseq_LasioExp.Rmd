@@ -31,7 +31,6 @@ raw_dir   <- here("amplicon-sequencing", "data", "RawFiles") #If you download th
 ref_dir   <- here("amplicon-sequencing", "data", "reference")
 meta_file <- here("amplicon-sequencing", "data", "Metadata_Lasio.txt")
 ps_rds    <- here("amplicon-sequencing", "data", "ps_dada2taxa_Lasio.rds")
-mock_ref_fasta    <- file.path(ref_dir, "mock_seq_plasmids.fasta")
 
 # --- you will have to download those database at https://zenodo.org/records/14169026 and add them to the reference folder
 silva_taxonomy_db <- file.path(ref_dir, "silva_nr99_v138.2_toSpecies_trainset.fa") 
@@ -385,10 +384,6 @@ detach("package:phangorn", unload=TRUE)
 unqs.mock <- seqtab.nochim["Mock",] 
 unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
 cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
-
-mock.ref <- getSequences(mock_ref_fasta)
-match.ref <- sum(sapply(names(unqs.mock), function(x) any(grepl(x, mock.ref))))
-cat("Of those,", sum(match.ref), "were exact matches to the expected reference sequences.\n")
 ```
 
 ## Load and filter the data in phyloseq

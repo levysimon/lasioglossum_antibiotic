@@ -1,30 +1,16 @@
----
-output: github_document
-editor_options: 
-  chunk_output_type: console
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  echo = TRUE,
-  results = "hide",
-  fig.show = "hide",
-  message = FALSE,
-  warning = FALSE
-)
-```
 # Load packages
 
-```{r}
+``` r
 library(here)       # For relative file paths
 library(tidyverse)  # Includes ggplot2, dplyr, purrr, readr, tidyr, stringr
 library(survival)   # For core survival analysis models
 library(survminer)  # For ggplot-based survival curves (ggsurvplot)
 ```
 
+# Preprocess the data
 
-# Preprocess the data 
-```{r}
+``` r
 file_2024 <- here::here("survival", "data", "survival_2024_with_pd_number.csv")
 file_2025 <- here::here("survival", "data", "survival_2025_with_pd_number.csv")
 
@@ -121,7 +107,7 @@ surv_individual <- dataset_final %>%
 
 # Fit a survival curve using the Kaplan-Meier method
 
-```{r}
+``` r
 fit_ant <- survfit(Surv(time, status) ~ Antibiotic, type = "kaplan-meier", data=surv_individual)
 fit_reino <- survfit(Surv(time, status) ~ Reinoculation, type = "kaplan-meier", data=surv_individual)
 fit_inter <- survfit(Surv(time, status) ~ Treatment, type = "kaplan-meier", data=surv_individual)
@@ -129,7 +115,7 @@ fit_inter <- survfit(Surv(time, status) ~ Treatment, type = "kaplan-meier", data
 
 # Log-Rank Test
 
-```{r}
+``` r
 surv_diff_ant <- survdiff(Surv(time, status) ~ Antibiotic, data = surv_individual)
 surv_diff_reino <- survdiff(Surv(time, status) ~ Reinoculation, data = surv_individual)
 surv_diff_inter <- survdiff(Surv(time, status) ~ Treatment, data = surv_individual)
@@ -137,7 +123,7 @@ surv_diff_inter <- survdiff(Surv(time, status) ~ Treatment, data = surv_individu
 
 # Create the plots
 
-```{r}
+``` r
 temps_2024 <- c(0, 4, 21, 24, 26.5, 28.5, 45, 48, 50.5, 52.5, 69, 72, 115.5, 117, 118)
 temps_2025 <- c(0, 15, 18, 21, 24, 39, 42, 45, 48, 63, 66, 69, 72, 135, 138)
 
@@ -210,8 +196,7 @@ p_ant$plot <- p_ant$plot +
 print(p_ant)
 ```
 
-
-```{r} 
+``` r
 p_reino <- ggsurvplot(
   fit_reino,
   title = "Impact of Re-inoculation on survival",
@@ -241,8 +226,9 @@ p_reino$plot <- p_reino$plot +
   )
 
 p_reino
+```
 
-
+``` r
 p_inter <- ggsurvplot(
   fit_inter,
   title = "Impact of Antibiotics and Re-inoculation on survival",
@@ -272,14 +258,16 @@ p_inter$plot <- p_inter$plot +
   )
 p_inter
 ```
-# Justifying the joining of zero and low 
-```{r}
+
+# Justifying the joining of zero and low
+
+``` r
 survdiff(Surv(time, status) ~ Antibiotic, data = subset(surv_individual, Antibiotic %in% c("no", "low")))
 ```
 
 # Save the plot and stats
 
-```{r}
+``` r
 results_dir <- here::here("survival", "result")
 
 if (!dir.exists(results_dir)) {
@@ -341,13 +329,10 @@ sink()
 
 # Optionnel : Afficher le fichier généré dans RStudio pour vérification
 file.show(output_file)
-
 ```
-
 
 ## Session info
 
-```{r}
+``` r
 sessionInfo()
 ```
-

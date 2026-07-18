@@ -14,8 +14,8 @@ library(survminer)  # For ggplot-based survival curves (ggsurvplot)
 file_2024 <- here::here("survival", "data", "survival_2024_with_pd_number.csv")
 file_2025 <- here::here("survival", "data", "survival_2025_with_pd_number.csv")
 
-tableau_2024 <- read_delim(file_2024, delim = ";", locale = locale(encoding = "latin1"))
-tableau_2025 <- read_delim(file_2025, delim=";",locale = locale(encoding = "latin1"))
+table_2024 <- read_delim(file_2024, delim = ";", locale = locale(encoding = "latin1"))
+table_2025 <- read_delim(file_2025, delim=";",locale = locale(encoding = "latin1"))
 
 
 transform_survival <- function(df, year_val) {
@@ -89,10 +89,10 @@ transform_survival <- function(df, year_val) {
   return(final_df)
 }
 
-survie_2024 <- transform_survival(tableau_2024, 2024)
-survie_2025 <- transform_survival(tableau_2025, 2025)
+survivial_2024 <- transform_survival(table_2024, 2024)
+survivial_2025 <- transform_survival(table_2025, 2025)
 
-dataset_final <- bind_rows(survie_2024, survie_2025)
+dataset_final <- bind_rows(survivial_2024, survivial_2025)
 
 surv_individual <- dataset_final %>%
   mutate(
@@ -124,8 +124,8 @@ surv_diff_inter <- survdiff(Surv(time, status) ~ Treatment, data = surv_individu
 # Create the plots
 
 ``` r
-temps_2024 <- c(0, 4, 21, 24, 26.5, 28.5, 45, 48, 50.5, 52.5, 69, 72, 115.5, 117, 118)
-temps_2025 <- c(0, 15, 18, 21, 24, 39, 42, 45, 48, 63, 66, 69, 72, 135, 138)
+time_2024 <- c(0, 4, 21, 24, 26.5, 28.5, 45, 48, 50.5, 52.5, 69, 72, 115.5, 117, 118)
+time_2025 <- c(0, 15, 18, 21, 24, 39, 42, 45, 48, 63, 66, 69, 72, 135, 138)
 
 p_ant <- ggsurvplot(
   fit_ant,
@@ -146,7 +146,7 @@ p_ant <- ggsurvplot(
   alpha = 0.65
 )
 
-heures_observation <- sort(unique(c(temps_2024, temps_2025)))
+heures_observation <- sort(unique(c(time_2024, time_2025)))
 df_surv <- surv_summary(fit_ant)
 
 points_artificiels <- df_surv %>%
@@ -327,7 +327,6 @@ cat("P-value:", pair_low_high$pvalue, "\n")
 
 sink()
 
-# Optionnel : Afficher le fichier généré dans RStudio pour vérification
 file.show(output_file)
 ```
 

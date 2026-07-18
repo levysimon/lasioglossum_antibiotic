@@ -1,4 +1,5 @@
-## \# Antibiotic impact on gut microbiota and social behavior in the wild bee *Lasioglossum malachurum*
+# Antibiotic impact on gut microbiota and social behavior in the wild bee *Lasioglossum malachurum*
+---
 
 ## Summary
 
@@ -64,7 +65,7 @@ Raw sequencing data are deposited at the SRA database under accession **SRP66670
 
 All other raw data files (behavioral logs, qPCR plates, survival monitoring) are included in the respective `data/` subdirectories.
 
-Video recordings of the bees behaviors from which the behavioral event logs and activity-tracking outputs in **`activity-and-behavior/`** were derived are archived on Zenodo: [https://zenodo.org/records/20828421](https://zenodo.org/records/20828421.){.uri}
+Video recordings of the bees behaviors from which the behavioral event logs and activity-tracking outputs in **`activity-and-behavior/`** were derived are archived on Zenodo: [https://zenodo.org/records/20828421](https://zenodo.org/records/20828421.)
 
 ------------------------------------------------------------------------
 

@@ -1,10 +1,5 @@
 
-# *Lasioglossum malachurum* antiobiotic exposure microbiome experiment
-
-Joanito Liberti and Simon Lévy, University of Geneva
-
-The code is adapted from
-<https://github.com/JoanitoLiberti/The-gut-microbiota-affects-the-social-network-of-honeybees/blob/master/Gut_microbiota/Amplicon-sequencing/02-Ampliseq-RNAseqExp.md>
+# *Lasioglossum malachurum* antibiotic exposure microbiome experiment
 
 If you have the ps object (“ps_dada2taxa_Lasio.rds”), you can start
 later with it directly (but please run the first chunk {r setup-paths}
@@ -637,7 +632,7 @@ tail(mdf, 4)
 library(RColorBrewer)
 cbPalette<-colorRampPalette(brewer.pal(12, "Paired"))
 
-set.seed(7) # Here we use set.seed to make the colors reproducible, because in the scale_fill_manual we use "sample" to shuffle the order of colors in the palette
+set.seed(67) # Here we use set.seed to make the colors reproducible, because in the scale_fill_manual we use "sample" to shuffle the order of colors in the palette
 p1 = ggplot(mdf, aes_string(x = "Sample", y = "Abundance", fill = "Genus")) +
         geom_bar(stat = "identity", position = "stack", color = "black") +
         ylab("Relative abundance") +
@@ -731,7 +726,7 @@ print(p3, width = 1000, height = 200)
 
 ``` r
 pdf(file = file.path(results_dir, "Barplots_allsample-LasioProject.pdf"), width = 12, height = 6, pointsize = 4)
-print(p1)  # On utilise explicitement print() pour s'assurer que le graphique s'écrit dans le PDF
+print(p1)  
 dev.off()
 
 pdf(file = file.path(results_dir, "Barplots_ControlSamples-LasioProject.pdf"), width = 14, height = 20, pointsize = 4)
@@ -1712,7 +1707,7 @@ ggsave(file.path(results_dir, "Significant_ASVs_FDR_Condensed_Boxplots.png"), pl
 # Multipanel visualisation
 
 ``` r
-# 1.PANEL A PREPARATION (qPCR + Abondances)
+# 1.PANEL A PREPARATION (qPCR + Abundance)
 # ==========================================
 
 # --- qPCR ---
@@ -1788,7 +1783,7 @@ sous_bloc_A <- (p1 / p2) +
   plot_layout(heights = c(4, 6)) +
   labs(tag = "A")
 
-# 2.PANEL B PRÉPARATION 
+# 2.PANEL B PREPARATION 
 # ========================================
 
 sig_summary   <- read.csv(file.path(results_dir, "ASV_stats_summary.csv"))

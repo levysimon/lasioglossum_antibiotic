@@ -215,70 +215,70 @@ Now that the data is correctly pre-processed, we can start the EDA and the analy
 ## Behavioral analysis
 ### Basic stats
 ```{r}
-moyenne_bump <- tapply(df_behavior$nb.of.bump, df_behavior$treatment, mean, na.rm = TRUE)
-ecarts_bump <- tapply(df_behavior$nb.of.bump, df_behavior$treatment, sd, na.rm = TRUE)
+mean_bump <- tapply(df_behavior$nb.of.bump, df_behavior$treatment, mean, na.rm = TRUE)
+sd_bump <- tapply(df_behavior$nb.of.bump, df_behavior$treatment, sd, na.rm = TRUE)
 
-resultats_bump <- data.frame(
-  Moyenne = moyenne_bump,
-  Ecart_Type = ecarts_bump
+result_bump <- data.frame(
+  Mean = mean_bump,
+  Std_dev = sd_bump
 )
 
-moyenne_avoidance <- tapply(df_behavior$nb.of.avoidance, df_behavior$treatment, mean, na.rm = TRUE)
-ecarts_avoidance <- tapply(df_behavior$nb.of.avoidance, df_behavior$treatment, sd, na.rm = TRUE)
+mean_avoidance <- tapply(df_behavior$nb.of.avoidance, df_behavior$treatment, mean, na.rm = TRUE)
+sd_avoidance <- tapply(df_behavior$nb.of.avoidance, df_behavior$treatment, sd, na.rm = TRUE)
 
-resultats_avoidance <- data.frame(
-  Moyenne = moyenne_avoidance,
-  Ecart_Type = ecarts_avoidance
+result_avoidance <- data.frame(
+  Mean = mean_avoidance,
+  Std_dev = sd_avoidance
 )
 
-moyenne_head_to_head <- tapply(df_behavior$nb.of.head.to.head, df_behavior$treatment, mean, na.rm = TRUE)
-ecarts_head_to_head <- tapply(df_behavior$nb.of.head.to.head, df_behavior$treatment, sd, na.rm = TRUE)
+mean_head_to_head <- tapply(df_behavior$nb.of.head.to.head, df_behavior$treatment, mean, na.rm = TRUE)
+sd_head_to_head <- tapply(df_behavior$nb.of.head.to.head, df_behavior$treatment, sd, na.rm = TRUE)
 
 resultats_head_to_head <- data.frame(
-  Moyenne = moyenne_head_to_head,
-  Ecart_Type = ecarts_head_to_head
+  Mean = mean_head_to_head,
+  Std_dev = sd_head_to_head
 )
 
-moyenne_touch <- tapply(df_behavior$nb.of.touch, df_behavior$treatment, mean, na.rm = TRUE)
-ecarts_touch <- tapply(df_behavior$nb.of.touch, df_behavior$treatment, sd, na.rm = TRUE)
+mean_touch <- tapply(df_behavior$nb.of.touch, df_behavior$treatment, mean, na.rm = TRUE)
+sd_touch <- tapply(df_behavior$nb.of.touch, df_behavior$treatment, sd, na.rm = TRUE)
 
-resultats_touch <- data.frame(
-  Moyenne = moyenne_touch,
-  Ecart_Type = ecarts_touch
+result_touch <- data.frame(
+  Mean = mean_touch,
+  Std_dev = sd_touch
 )
 
-formater_stats <- function(moyenne, et) {
-  paste0(round(moyenne, 1), " \u00B1 ", round(et, 1)) # \u00B1 is the symbol +/-
+formating_stats <- function(mean, sd) {
+  paste0(round(mean, 1), " \u00B1 ", round(sd, 1)) # \u00B1 is the symbol +/-
 }
 
-tableau_publication <- data.frame(
-  Category = rownames(resultats_bump), 
+table_publication <- data.frame(
+  Category = rownames(result_bump), 
   stringsAsFactors = FALSE
 )
 
-tableau_publication$`Random bump` <- formater_stats(
-  moyenne_bump, 
-  ecarts_bump
+table_publication$`Random bump` <- formating_stats(
+  mean_bump, 
+  sd_bump
 )
 
-tableau_publication$`Short antennal touch` <- formater_stats(
-  moyenne_touch, 
-  ecarts_touch
+table_publication$`Short antennal touch` <- formating_stats(
+  mean_touch, 
+  sd_touch
 )
 
-tableau_publication$`Head-to-head interaction` <- formater_stats(
-  moyenne_head_to_head, 
-  ecarts_head_to_head
+table_publication$`Head-to-head interaction` <- formating_stats(
+  mean_head_to_head, 
+  sd_head_to_head
 )
 
-tableau_publication$Avoidance <- formater_stats(
-  moyenne_avoidance, 
-  ecarts_avoidance
+table_publication$Avoidance <- formating_stats(
+  mean_avoidance, 
+  sd_avoidance
 )
 
-colnames(tableau_publication)[1] <- "Treatment"
+colnames(table_publication)[1] <- "Treatment"
 
-tableau_publication
+table_publication
 ```
 
 ```{r, results='hide'}
@@ -289,7 +289,7 @@ if (!dir.exists(result_dir)) {
   dir.create(result_dir, recursive = TRUE)
 }
 output_file_path <- file.path(result_dir, "table_behavior_stats.csv")
-write.csv(tableau_publication, file = output_file_path, row.names = FALSE)
+write.csv(table_publication, file = output_file_path, row.names = FALSE)
 ```
 
 #------------------------------------------------------
@@ -934,20 +934,20 @@ sink()
 # Analysis for interindividual data 
 ## Basic stats
 ```{r}
-moyenne_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, mean, na.rm = TRUE)
-ecarts_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, sd, na.rm = TRUE)
+mean_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, mean, na.rm = TRUE)
+sd_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, sd, na.rm = TRUE)
 
-resultats_mean_dist <- data.frame(
-  Moyenne_cm = moyenne_Mean_dist,
-  Ecart_Type_cm = ecarts_Mean_dist
+result_mean_dist <- data.frame(
+  Mean_cm = mean_Mean_dist,
+  Sd_cm = sd_Mean_dist
 )
 
-resultats_mean_dist
+result_mean_dist
 
 #save table
 dir.create(here::here("activity-and-behavior", "result", "inter_individual_dist"), recursive = TRUE, showWarnings = FALSE)
 
-write.csv(resultats_mean_dist, here::here("activity-and-behavior", "result", "inter_individual_dist", "table_dist_interind.csv"), row.names = TRUE)
+write.csv(result_mean_dist, here::here("activity-and-behavior", "result", "inter_individual_dist", "table_dist_interind.csv"), row.names = TRUE)
 ```
 
 # LMM model on 3 x 2 
@@ -1181,26 +1181,26 @@ sink()
 #Analysis for activity (avg speed + time spent moving) 
 ## Basic stats
 ```{r}
-moyenne_speed <- tapply(df_move$average.speed, df_move$treatment, mean, na.rm = TRUE)
-ecarts_speed <- tapply(df_move$average.speed, df_move$treatment, sd, na.rm = TRUE)
+mean_speed <- tapply(df_move$average.speed, df_move$treatment, mean, na.rm = TRUE)
+sd_speed <- tapply(df_move$average.speed, df_move$treatment, sd, na.rm = TRUE)
 
-resultats_speed <- data.frame(
-  Moyenne = moyenne_speed,
-  Ecart_Type = ecarts_speed
+result_speed <- data.frame(
+  Mean = mean_speed,
+  Std_dev = sd_speed
 )
 
-moyenne_prop <- tapply(df_move$prop.time.moving, df_move$treatment, mean, na.rm = TRUE)
-ecarts_prop <- tapply(df_move$prop.time.moving, df_move$treatment, sd, na.rm = TRUE)
+mean_prop <- tapply(df_move$prop.time.moving, df_move$treatment, mean, na.rm = TRUE)
+sd_prop <- tapply(df_move$prop.time.moving, df_move$treatment, sd, na.rm = TRUE)
 
-resultats_prop <- data.frame(
-  Moyenne = moyenne_prop,
-  Ecart_Type = ecarts_prop
+result_prop <- data.frame(
+  Mean = mean_prop,
+  Std_dev = sd_prop
 )
 
 #save table
 dir.create(here::here("activity-and-behavior", "result", "activity"), recursive = TRUE, showWarnings = FALSE)
-write.csv(resultats_speed, here::here("activity-and-behavior", "result", "activity", "avg_speed_table.csv"), row.names = TRUE)
-write.csv(resultats_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
+write.csv(result_speed, here::here("activity-and-behavior", "result", "activity", "avg_speed_table.csv"), row.names = TRUE)
+write.csv(result_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
 ```
 
 #------------------------------------------------------
@@ -1903,7 +1903,7 @@ all_pairwise <- pairs(emm)
 emm_df <- as.data.frame(emm)
 
 p1 <- ggplot() +
-  # 1. Résultats du modèle LMM : Moustaches IC95 (En noir, fines)
+  # 1. LMM Result:IC95 
   geom_errorbar(
     data = emm_df,
     aes(x = antibiotic, ymin = lower.CL, ymax = upper.CL, group = reinoculation),
@@ -1911,7 +1911,7 @@ p1 <- ggplot() +
     linewidth = 0.5,
     position = position_dodge(0.8)
   ) +
-  # 2. Résultats du modèle LMM : Ligne horizontale pour la Moyenne prédite
+  # 2. LMM  Result : Horizontal line for predicted mean
   geom_errorbar(
     data = emm_df,
     aes(x = antibiotic, ymin = emmean, ymax = emmean, group = reinoculation),
@@ -1919,7 +1919,7 @@ p1 <- ggplot() +
     linewidth = 1.2,
     position = position_dodge(0.8)
   ) +
-  # 3. Données brutes : Points individuels avec contour noir (style habituel)
+  # 3. Raw data : Individual dots 
   geom_point(
     data = df_pca_7, 
     aes(x = antibiotic, y = combined, fill = reinoculation), 
@@ -1930,13 +1930,12 @@ p1 <- ggplot() +
     size = 3.5, 
     position = position_jitterdodge(jitter.width = 0.37, dodge.width = 0.8, seed = 32)
   ) +
-  # 4. Palette de couleurs et étiquettes épurées
+  # 4. Color palette
   scale_fill_manual(
     values = c("no" = "#4F77B4", "yes" = "#FFBF00"),
     labels = c("No", "Yes")
   ) +
   scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) +
-  # 5. Thème classique épuré (Cadre noir complet, pas de lignes d'axes)
   theme_classic() + 
   theme(
     panel.border = element_rect(color = "black", fill = NA, linewidth = 1),

@@ -1856,6 +1856,71 @@ ado_reino <- adonis2(dist_matrix ~ reinoculation, strata=df_pca_7$year, data = d
 ado_reino
 ```
 
+## Extract and save PCA loadings (variable contributions to PC1/PC2)
+```{r}
+# Extract variable coordinates/loadings from the dimensio PCA object 
+
+var_coords <- get_coordinates(X, margin = 2, principal = TRUE)
+loadings_df <- as.data.frame(var_coords)
+loadings_df$Variable <- rownames(loadings_df)
+
+# Keep only the axes of interest (PC1 = F1, PC2 = F2 in dimensio's convention)
+loadings_df <- loadings_df %>%
+  dplyr::select(Variable, F1, F2) %>%
+  dplyr::rename(PC1 = F1, PC2 = F2) %>%
+  dplyr::arrange(desc(abs(PC1)))
+
+# --- 2. Save the loadings table ---
+results_dir_pca <- here::here("activity-and-behavior", "result", "PCA_on_7metrics")
+
+dir.create(
+  path = results_dir_pca, 
+  showWarnings = FALSE, 
+  recursive = TRUE
+)
+
+write.csv(
+  loadings_df,
+  file.path(results_dir_pca, "PCA_7metrics_loadings.csv"),
+  row.names = FALSE
+)
+
+# --- 3. Nice loadings plot for PC1 (main axis of interest) ---
+p_loadings_pc1 <- ggplot(loadings_df, aes(x = reorder(Variable, PC1), y = PC1, fill = PC1 > 0)) +
+  geom_col(width = 0.45, alpha = 1) +
+  geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
+  coord_flip() +
+  scale_fill_manual(values = c("TRUE" = "#4F77B4", "FALSE" = "#FFBF00"), guide = "none") +
+  scale_y_continuous(
+    expand = expansion(mult = c(0.00, 0.08)),
+    breaks = scales::breaks_width(0.1)
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    axis.line.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text = element_text(size = 11, color = "black"),
+    axis.title.x = element_text(size = 12, face = "bold"),
+    panel.grid.major.x = element_line(color = "grey70", linewidth = 0.3),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    x = NULL,
+    y = "Loading on PC1"
+  )
+
+print(p_loadings_pc1)
+
+ggsave(
+  filename = file.path(results_dir_pca, "PCA_7metrics_PC1_loadings.pdf"),
+  plot = p_loadings_pc1,
+  width = 7, height = 5
+)
+
+```
+
+
+
 ### PCA on the PC1
 ```{r}
 #### extract the PC1
@@ -1950,11 +2015,6 @@ p1 <- ggplot() +
 
 p1
 
-dir.create(
-  path = here::here("activity-and-behavior", "result", "PCA_on_7metrics"), 
-  showWarnings = FALSE, 
-  recursive = TRUE
-)
 
 ggsave(
   filename = here::here("activity-and-behavior", "result", "PCA_on_7metrics", "PC1_Plot.pdf"), 

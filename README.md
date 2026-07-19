@@ -73,6 +73,7 @@ Video recordings of the bees behaviors from which the behavioral event logs and 
 
 -   Silva v138.2 reference database: <https://zenodo.org/records/14169026>
 -   SRA accession: SRP666708
+-   Video recordings of behavioral and activity tracking: <https://zenodo.org/records/20828421>
 
 ------------------------------------------------------------------------
 

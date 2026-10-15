@@ -125,7 +125,7 @@ surv_individual <- dataset_final %>%
 ```{r}
 fit_ant <- survfit(Surv(time, status) ~ Antibiotic, type = "kaplan-meier", data=surv_individual)
 fit_reino <- survfit(Surv(time, status) ~ Reinoculation, type = "kaplan-meier", data=surv_individual)
-fit_inter <- survfit(Surv(time, status) ~ Treatment, type = "kaplan-meier", data=surv_individual)
+fit_inter <- survfit(Surv(time, status) ~ interaction(Antibiotic, Reinoculation), type = "kaplan-meier", data=surv_individual)
 ```
 
 # Log-Rank Test
@@ -133,7 +133,8 @@ fit_inter <- survfit(Surv(time, status) ~ Treatment, type = "kaplan-meier", data
 ```{r}
 surv_diff_ant <- survdiff(Surv(time, status) ~ Antibiotic, data = surv_individual)
 surv_diff_reino <- survdiff(Surv(time, status) ~ Reinoculation, data = surv_individual)
-surv_diff_inter <- survdiff(Surv(time, status) ~ Treatment, data = surv_individual)
+surv_diff_inter <- coxph(Surv(time, status) ~ Antibiotic * Reinoculation, data = surv_individual)
+
 ```
 
 # Create the plots
@@ -247,7 +248,7 @@ p_reino
 p_inter <- ggsurvplot(
   fit_inter,
   title = "Impact of Antibiotics and Re-inoculation on survival",
-  pval = TRUE,
+  pval = FALSE,
   pval.size = 6,
   pval.method = TRUE,
   conf.int = FALSE,
@@ -314,7 +315,7 @@ print(surv_diff_reino)
 cat("P-value Global:", surv_diff_reino$pvalue, "\n")
 
 cat("\n---------------------------------------------------------\n")
-print(surv_diff_inter)
+print(anova(surv_diff_inter))
 cat("P-value Global:", surv_diff_inter$pvalue, "\n")
 
 cat("\n\n=========================================================\n")

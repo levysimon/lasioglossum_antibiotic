@@ -1479,6 +1479,27 @@ pairs(emm, by = "antibiotic")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
+## Additionals test 
+```{r}
+library(glmmTMB); library(emmeans); library(car)
+
+df_move$year <- factor(df_move$year)
+
+# Modèle with year as fixed effect
+m_year <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year,
+                  family = beta_family(link = "logit"), data = df_move)
+Anova(m_year, type = "III")
+
+# Interaction : LRT with vs without
+m_year_add <- update(m_year, . ~ antibiotic + reinoculation + year + (1|year:arena))
+anova(m_year_add, m_year)
+
+# Contrastes (moyennés sur les années)
+pairs(emmeans(m_year, ~ antibiotic * reinoculation), by = "reinoculation", adjust = "tukey")
+
+```
+
+
 ## Visualisation
 ### Simple boxplot
 ```{r}

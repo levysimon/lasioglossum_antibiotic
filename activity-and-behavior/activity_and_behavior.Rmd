@@ -630,11 +630,9 @@ permu_treat <- permutest(dispersion_mod, permutations = 10000)
 permu_treat
 
 # PERMANOVA (Adonis2) "Are the centers of the groups significantly different?"
-ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior$year, data = df_behavior, method = "euclidean", permutations = 10000)
+ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior$year, data = df_behavior, by = "terms", method = "euclidean", permutations = 10000)
 ado_treat
-
-ado_ant <- adonis2(dist_matrix ~ antibiotic, strata = df_behavior$year, data = df_behavior, permutations = 10000)
-ado_gut <- adonis2(dist_matrix ~ reinoculation, strata = df_behavior$year, data = df_behavior, permutations = 10000)
+  
 ```
 
 ## Save result for LMM and PCA 3 x 2 model 
@@ -703,10 +701,6 @@ cat("\n[5A. Homogeneity of Multivariate Dispersions]\n")
 print(permu_treat)
 cat("\n[5B. Global PERMANOVA (Treatment)]\n")
 print(ado_treat)
-cat("\n[5C. PERMANOVA (Antibiotic Main Effect)]\n")
-print(ado_ant)
-cat("\n[5D. PERMANOVA (Reinoculation Main Effect)]\n")
-print(ado_gut)
 sink()
 ```
 
@@ -864,11 +858,9 @@ permu_treat2x2 <- permutest(dispersion_mod, permutations = 10000)
 permu_treat2x2
 # PERMANOVA (Adonis2) "Are the centers of the groups significantly different?"
 
-ado_treat2x2 <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior_reduce$year, data = df_behavior_reduce, method = "euclidean", permutations = 10000)
+ado_treat2x2 <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior_reduce$year, data = df_behavior_reduce, by="terms", method = "euclidean", permutations = 10000)
 ado_treat2x2
 
-ado_ant2x2 <- adonis2(dist_matrix ~ antibiotic, strata=df_behavior_reduce$year, data = df_behavior_reduce, method = "euclidean", permutations = 10000)
-ado_gut2x2 <- adonis2(dist_matrix ~ reinoculation, strata=df_behavior_reduce$year, data = df_behavior_reduce, method = "euclidean", permutations = 10000)
 ```
 
 ## Save result for LMM and PCA 2 x 2 model 
@@ -920,10 +912,6 @@ cat("\n[5A. Homogeneity of Multivariate Dispersions]\n")
 print(permu_treat2x2)
 cat("\n[5B. Global PERMANOVA (Treatment)]\n")
 print(ado_treat2x2)
-cat("\n[5C. PERMANOVA (Antibiotic Main Effect)]\n")
-print(ado_ant2x2)
-cat("\n[5D. PERMANOVA (Reinoculation Main Effect)]\n")
-print(ado_gut2x2)
 cat("\n=====================================\n")
 cat("END OF ANALYSIS\n")
 cat("=====================================\n")
@@ -1486,7 +1474,7 @@ library(glmmTMB); library(emmeans); library(car)
 df_move$year <- factor(df_move$year)
 
 # Modèle with year as fixed effect
-m_year <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year,
+m_year <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year + (1|year:arena),
                   family = beta_family(link = "logit"), data = df_move)
 Anova(m_year, type = "III")
 
@@ -1830,6 +1818,7 @@ ggsave(
 # PCA ON 7 METRICS
 ### PCA for Treatment (3 x 2 levels)
 ```{r}
+set.seed(67)
 data2 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "year", "arena", "antibiotic", "reinoculation"))]
 head(data2)
 
@@ -1867,14 +1856,9 @@ permu_treat
 
 # C. PERMANOVA (Adonis2)
 # This tests: "Are the centers of the groups significantly different?" Test 1: Simple effect of Treatment
-ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata = df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
+ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata = df_pca_7$year, data = df_pca_7, method = "euclidean", by="terms",permutations = 10000)
 ado_treat
 
-ado_ant <- adonis2(dist_matrix ~ antibiotic, strata=df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
-ado_ant
-
-ado_reino <- adonis2(dist_matrix ~ reinoculation, strata=df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
-ado_reino
 ```
 
 ## Extract and save PCA loadings (variable contributions to PC1/PC2)
@@ -2068,10 +2052,6 @@ cat("\n[2A. Homogeneity of Multivariate Dispersions (Betadisper)]\n")
 print(permu_treat)
 cat("\n[2B. Global PERMANOVA (Interaction antibiotic * reinoculation)]\n")
 print(ado_treat)
-cat("\n[2C. PERMANOVA (Antibiotic Main Effect)]\n")
-print(ado_ant)
-cat("\n[2D. PERMANOVA (Reinoculation Main Effect)]\n")
-print(ado_reino)
 cat("\n=====================================\n")
 cat("--- 3. LINEAR MIXED MODEL (LMM) ON PC1 ---\n")
 cat("=====================================\n")

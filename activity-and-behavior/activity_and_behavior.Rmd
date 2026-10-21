@@ -209,6 +209,24 @@ df_pca_7 <- df_move_aggregated %>%
   )
 ```
 
+## Permanova function 
+```{r}
+run_perm <- function(df, vars, model_type = "full", by_val = "terms") {
+  # 'd' est créé localement ici à partir du df spécifique de l'analyse
+  X <- scale(df[, vars])                      
+  d <- dist(X, method = "euclidean")          
+  
+  stopifnot(nrow(as.matrix(d)) == nrow(df))   # Vérifie l'alignement des lignes
+  
+  if (model_type == "full") {
+    adonis2(d ~ antibiotic * reinoculation, data = df,
+            by = by_val, permutations = 10000, strata = df$year)
+  } else {
+    adonis2(d ~ antibiotic + reinoculation, data = df,
+            by = by_val, permutations = 10000, strata = df$year)
+  }
+}
+```
 # ==============================
 Now that the data is correctly pre-processed, we can start the EDA and the analysis 
 
@@ -615,23 +633,27 @@ p1 <- viz_individuals(
   ellipse = list(type = "tolerance", level = 0.95)
 )
 
-# Data Preparation for Vegan
-stats_matrix <- data2[, sapply(data2, is.numeric)]
-# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+vars4 <- c("nb.of.bump", "nb.of.touch", "nb.of.head.to.head", "nb.of.avoidance")
 
-# Check for Homogeneity of Dispersion (Betadisper). This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix, df_behavior$treatment)
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+# A. Homogénéité de la dispersion (Betadisper avec données standardisées)
+X_behav <- scale(df_behavior[, vars4])
+dist_matrix_behav <- dist(X_behav, method = "euclidean")
+
+dispersion_mod <- betadisper(dist_matrix_behav, df_behavior$treatment)
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper - 3x2)")
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 
-# BETADIASPER RESULT - Test significance of dispersion
 permu_treat <- permutest(dispersion_mod, permutations = 10000)
 permu_treat
 
-# PERMANOVA (Adonis2) "Are the centers of the groups significantly different?"
-ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior$year, data = df_behavior, by = "terms", method = "euclidean", permutations = 10000)
+# B. PERMANOVA (Adonis2)
+# Interaction valide avec by = "terms"
+ado_treat <- run_perm(df_behavior, vars4, model_type = "full", by_val = "terms")
 ado_treat
+
+# Effets principaux robustes avec modèle additif et by = "margin"
+ado_treat_main <- run_perm(df_behavior, vars4, model_type = "additive", by_val = "margin")
+ado_treat_main
   
 ```
 
@@ -855,23 +877,20 @@ viz_individuals(
   ellipse = list(type = "tolerance", level = 0.95)
 )
 
-# Data Preparation for Vegan
-stats_matrix <- data2[, sapply(data2, is.numeric)]
-# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+# A. Betadisper avec données standardisées
+X_behav_red <- scale(df_behavior_reduce[, vars4])
+dist_matrix_red <- dist(X_behav_red, method = "euclidean")
 
-# Check for Homogeneity of Dispersion (Betadisper) "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix, df_behavior_reduce$treatment)
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
-boxplot(dispersion_mod, main = "Distance to Centroid per Group")
-
-# BETADIASPER RESULT - Test significance of dispersion
-permu_treat2x2 <- permutest(dispersion_mod, permutations = 10000)
+dispersion_mod_red <- betadisper(dist_matrix_red, df_behavior_reduce$treatment)
+permu_treat2x2 <- permutest(dispersion_mod_red, permutations = 10000)
 permu_treat2x2
-# PERMANOVA (Adonis2) "Are the centers of the groups significantly different?"
 
-ado_treat2x2 <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior_reduce$year, data = df_behavior_reduce, by="terms", method = "euclidean", permutations = 10000)
+# B. PERMANOVA (Adonis2)
+ado_treat2x2 <- run_perm(df_behavior_reduce, vars4, model_type = "full", by_val = "terms")
 ado_treat2x2
+
+ado_treat2x2_main <- run_perm(df_behavior_reduce, vars4, model_type = "additive", by_val = "margin")
+ado_treat2x2_main
 
 ```
 
@@ -1851,25 +1870,24 @@ viz_individuals(
 
 
 set.seed(67) 
-# Data Preparation for Vegan
-stats_matrix <- data2[, sapply(data2, is.numeric)]
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+# Définition des 7 métriques (comportement + activité + distance interindividuelle)
+vars7 <- c("nb.of.bump", "nb.of.touch", "nb.of.head.to.head", "nb.of.avoidance", 
+           "moy_prop_time_moving", "moy_average_speed", "mean.dist")
 
-# B. Check for Homogeneity of Dispersion (Betadisper) "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix,df_pca_7$treatment)
+# A. Betadisper avec données standardisées
+X_7 <- scale(df_pca_7[, vars7])
+dist_matrix_7 <- dist(X_7, method = "euclidean")
 
-# Visualize the dispersion
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
-boxplot(dispersion_mod, main = "Distance to Centroid per Group")
+dispersion_mod_7 <- betadisper(dist_matrix_7, df_pca_7$treatment)
+permu_treat_7 <- permutest(dispersion_mod_7, permutations = 10000)
+permu_treat_7
 
-# BETADIASPER RESULT - Test significance of dispersion
-permu_treat <- permutest(dispersion_mod, permutations = 10000)
-permu_treat
+# B. PERMANOVA (Adonis2)
+ado_treat_7 <- run_perm(df_pca_7, vars7, model_type = "full", by_val = "terms")
+ado_treat_7
 
-# C. PERMANOVA (Adonis2)
-# This tests: "Are the centers of the groups significantly different?" Test 1: Simple effect of Treatment
-ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata = df_pca_7$year, data = df_pca_7, method = "euclidean", by="terms",permutations = 10000)
-ado_treat
+ado_treat_7_main <- run_perm(df_pca_7, vars7, model_type = "additive", by_val = "margin")
+ado_treat_7_main
 
 ```
 
@@ -1974,7 +1992,7 @@ a1 <- Anova(model_lmm, type=3)
 a1
 
 emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
-pairs(emm, by = "antibiotic")
+pairs(emm, by = "antibiotic", , adjust = "tukey")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
@@ -2061,9 +2079,9 @@ cat("\n=====================================\n")
 cat("--- 2. MULTIVARIATE DISPERSION & PERMANOVA ---\n")
 cat("=====================================\n")
 cat("\n[2A. Homogeneity of Multivariate Dispersions (Betadisper)]\n")
-print(permu_treat)
+print(permu_treat_7)
 cat("\n[2B. Global PERMANOVA (Interaction antibiotic * reinoculation)]\n")
-print(ado_treat)
+print(ado_treat_7)
 cat("\n=====================================\n")
 cat("--- 3. LINEAR MIXED MODEL (LMM) ON PC1 ---\n")
 cat("=====================================\n")

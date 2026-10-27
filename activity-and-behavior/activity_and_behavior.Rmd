@@ -212,11 +212,11 @@ df_pca_7 <- df_move_aggregated %>%
 ## Permanova function 
 ```{r}
 run_perm <- function(df, vars, model_type = "full", by_val = "terms") {
-  # 'd' est créé localement ici à partir du df spécifique de l'analyse
+
   X <- scale(df[, vars])                      
   d <- dist(X, method = "euclidean")          
   
-  stopifnot(nrow(as.matrix(d)) == nrow(df))   # Vérifie l'alignement des lignes
+  stopifnot(nrow(as.matrix(d)) == nrow(df)) 
   
   if (model_type == "full") {
     adonis2(d ~ antibiotic * reinoculation, data = df,

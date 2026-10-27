@@ -128,13 +128,12 @@ fit_reino <- survfit(Surv(time, status) ~ Reinoculation, type = "kaplan-meier", 
 fit_inter <- survfit(Surv(time, status) ~ interaction(Antibiotic, Reinoculation), type = "kaplan-meier", data=surv_individual)
 ```
 
-# Log-Rank Test
+# Log-Rank Test, stratifying by year
 
 ```{r}
-surv_diff_ant <- survdiff(Surv(time, status) ~ Antibiotic, data = surv_individual)
-surv_diff_reino <- survdiff(Surv(time, status) ~ Reinoculation, data = surv_individual)
-surv_diff_inter <- coxph(Surv(time, status) ~ Antibiotic * Reinoculation, data = surv_individual)
-
+surv_diff_ant   <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year), data = surv_individual)
+surv_diff_reino <- survdiff(Surv(time, status) ~ Reinoculation + strata(Year), data = surv_individual)
+surv_diff_inter <- coxph(Surv(time, status) ~ Antibiotic * Reinoculation + strata(Year), data = surv_individual)
 ```
 
 # Create the plots
@@ -145,7 +144,7 @@ time_2025 <- c(0, 15, 18, 21, 24, 39, 42, 45, 48, 63, 66, 69, 72, 135, 138)
 
 p_ant <- ggsurvplot(
   fit_ant,
-  pval = TRUE,
+  pval = FALSE,
   pval.size = 5,
   pval.method = TRUE,
   conf.int = FALSE,

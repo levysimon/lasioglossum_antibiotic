@@ -1222,7 +1222,7 @@ write.csv(result_speed, here::here("activity-and-behavior", "result", "activity"
 write.csv(result_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
 ```
 
-#------------------------------------------------------
+#-------------------------------------------------------
 # Average speed analysis
 ## LLM full model
 
@@ -1231,7 +1231,7 @@ hist(df_move$average.speed, breaks = 50)
 qqnorm(df_move$average.speed)
 
 #Full model
-model_avg.speed <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move)
+model_avg.speed <- lmer(average.speed ~ antibiotic * reinoculation + year + (1 | year:arena), data = df_move)
 simulateResiduals(model_avg.speed) |> plot()
 testDispersion(model_avg.speed)
 testResiduals(model_avg.speed)
@@ -1240,7 +1240,7 @@ a1 <- Anova(model_avg.speed, type = "III")
 a1 
 
 #Additive Model
-model_avg.speed_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move)
+model_avg.speed_add <- lmer(average.speed ~ antibiotic + reinoculation + year + (1 | year:arena), data = df_move)
 a2 <- Anova(model_avg.speed_add, type = "II")
 a2
 
@@ -1387,7 +1387,7 @@ hist(df_move_red$average.speed, breaks = 50)
 qqnorm(df_move_red$average.speed)
 
 #Full model
-model_avg.speed_red <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move_red)
+model_avg.speed_red <- lmer(average.speed ~ antibiotic * reinoculation + year + (1 | year:arena), data = df_move_red)
 simulateResiduals(model_avg.speed_red) |> plot()
 testDispersion(model_avg.speed_red)
 testResiduals(model_avg.speed_red)
@@ -1396,7 +1396,7 @@ a3 <- Anova(model_avg.speed_red, type = "III")
 a3 
 
 #Additive Model
-model_avg.speed_red_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move_red)
+model_avg.speed_red_add <- lmer(average.speed ~ antibiotic + reinoculation + year + (1 | year:arena), data = df_move_red)
 a4 <- Anova(model_avg.speed_red_add, type = "II")
 a4
 
@@ -1466,7 +1466,7 @@ y_adj <- (df_move$prop.time.moving * (n - 1) + 0.5) / n
 df_move$prop_time_adj <- y_adj
 range(df_move$prop_time_adj)
 
-model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year:arena),
+model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"), #Beta-regression is best suited for this
                       data=df_move) 
 
@@ -1483,7 +1483,7 @@ a1
 
 
 #Additive Model
-model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year:arena),
+model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"), #Beta-regression is best suited for this
                       data=df_move) 
 
@@ -1497,27 +1497,6 @@ emm <- emmeans(model_beta, ~ antibiotic * reinoculation)
 pairs(emm, by = "antibiotic")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
-
-## Additionals test 
-```{r}
-library(glmmTMB); library(emmeans); library(car)
-
-df_move$year <- factor(df_move$year)
-
-# Modèle with year as fixed effect
-m_year <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year + (1|year:arena),
-                  family = beta_family(link = "logit"), data = df_move)
-Anova(m_year, type = "III")
-
-# Interaction : LRT with vs without
-m_year_add <- update(m_year, . ~ antibiotic + reinoculation + year + (1|year:arena))
-anova(m_year_add, m_year)
-
-# Contrastes (moyennés sur les années)
-pairs(emmeans(m_year, ~ antibiotic * reinoculation), by = "reinoculation", adjust = "tukey")
-
-```
-
 
 ## Visualisation
 ### Simple boxplot
@@ -1644,7 +1623,7 @@ y_adj <- (df_move_red$prop.time.moving * (n - 1) + 0.5) / n
 df_move_red$prop_time_adj <- y_adj
 range(df_move_red$prop_time_adj)
 
-model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year:arena),
+model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"),
                       data=df_move_red) 
 
@@ -1660,7 +1639,7 @@ a3 <- Anova(model_beta_red, type=3)
 a3
 
 #Additive Model
-model_beta_red_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year:arena),
+model_beta_red_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"), #Beta-regression is best suited for this
                       data=df_move_red) 
 
@@ -1981,24 +1960,24 @@ df_pca_7$combined <- combined_interaction_data
 hist(df_pca_7$combined, breaks = 10)
 qqnorm(df_pca_7$combined)
 
-model_lmm <- lmer(combined ~ antibiotic * reinoculation + (1 | year), data = df_pca_7)
+model_pc1 <- lm(combined ~ antibiotic * reinoculation +  year, data = df_pca_7)
 
-res <- simulateResiduals(model_lmm)
+res <- simulateResiduals(model_pc1)
 plot(res)
 testDispersion(res)
 testUniformity(res) # This is the standard test for residual distribution
 
-a1 <- Anova(model_lmm, type=3)
+a1 <- Anova(model_pc1, type=3)
 a1
 
-emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
-pairs(emm, by = "antibiotic", , adjust = "tukey")
+emm <- emmeans(model_pc1, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic", adjust = "tukey")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ### Visualisation
 ```{r}
-emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
+emm <- emmeans(model_pc1, ~ antibiotic * reinoculation)
 all_pairwise <- pairs(emm)
 emm_df <- as.data.frame(emm)
 
@@ -2086,7 +2065,7 @@ cat("\n=====================================\n")
 cat("--- 3. LINEAR MIXED MODEL (LMM) ON PC1 ---\n")
 cat("=====================================\n")
 cat("\n[3A. Type III Wald Chisquare Tests (Anova)]\n")
-print(Anova(model_lmm, type = 3))
+print(Anova(model_pc1, type = 3))
 cat("\n[3B. Post-Hoc Breakdown: Reinoculation effect within each Antibiotic dose]\n")
 print(pairs(emm, by = "antibiotic"))
 cat("\n[3C. Post-Hoc Breakdown: Antibiotic effect within each Reinoculation status]\n")

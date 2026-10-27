@@ -128,7 +128,7 @@ df_behavior$year <- factor(df_behavior$year)
 ### Inter-individual distance data
 ```{r}
 data_dir <- here::here("activity-and-behavior", "data", "animal_ta")
-file_path <- file.path(data_dir, "inderindividual_dist.csv")
+file_path <- file.path(data_dir, "interindividual_dist.csv")
            
 df_interind <- read_delim(file_path,
                        delim = ";",
@@ -212,18 +212,17 @@ df_pca_7 <- df_move_aggregated %>%
 ## Permanova function 
 ```{r}
 run_perm <- function(df, vars, model_type = "full", by_val = "terms") {
+  df$year <- as.factor(df$year)
+  X <- scale(df[, vars])
+  d <- dist(X, method = "euclidean")
+  stopifnot(nrow(as.matrix(d)) == nrow(df))
 
-  X <- scale(df[, vars])                      
-  d <- dist(X, method = "euclidean")          
-  
-  stopifnot(nrow(as.matrix(d)) == nrow(df)) 
-  
   if (model_type == "full") {
-    adonis2(d ~ antibiotic * reinoculation, data = df,
-            by = by_val, permutations = 10000, strata = df$year)
+    adonis2(d ~ year + antibiotic * reinoculation, data = df,
+            by = by_val, permutations = 10000)
   } else {
-    adonis2(d ~ antibiotic + reinoculation, data = df,
-            by = by_val, permutations = 10000, strata = df$year)
+    adonis2(d ~ year + antibiotic + reinoculation, data = df,
+            by = by_val, permutations = 10000)
   }
 }
 ```
@@ -316,7 +315,7 @@ write.csv(table_publication, file = output_file_path, row.names = FALSE)
 ```{r}
 # Full model
 model_nb2_single_touch <- glmmTMB(
-  nb.of.touch ~ antibiotic * reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -324,7 +323,7 @@ Anova(model_nb2_single_touch, type=3)
 
 #Additive model
 model_nb2_add_single_touch <- glmmTMB(
-  nb.of.touch ~ antibiotic + reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -349,7 +348,7 @@ aggregate(nb.of.head.to.head ~ antibiotic, df_behavior, sum)
 
 # Full model
 model_nb2_head <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -357,7 +356,7 @@ Anova(model_nb2_head, type=3)
 
 #Additive model
 model_nb2_head_add <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic + reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -383,7 +382,7 @@ aggregate(nb.of.avoidance ~ antibiotic, df_behavior, sum)
 
 #Full model
 model_nb2_avoid <- glmmTMB(
-  nb.of.avoidance ~ antibiotic * reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -391,7 +390,7 @@ Anova(model_nb2_avoid, type=3)
 
 #Additive model
 model_nb2_add_avoid <- glmmTMB(
-  nb.of.avoidance ~ antibiotic + reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -416,7 +415,7 @@ aggregate(nb.of.bump ~ antibiotic, df_behavior, sum)
 
 #Full model
 model_nb2_bump <- glmmTMB(
-  nb.of.bump ~ antibiotic * reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -424,7 +423,7 @@ Anova(model_nb2_bump, type=3)
 
 #Additive model
 model_nb2_add_bump <- glmmTMB(
-  nb.of.bump ~ antibiotic + reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -618,7 +617,7 @@ set.seed(67)
 
 data2 <- df_behavior[, !(names(df_behavior) %in% c("antibiotic", "reinoculation", "year", "arena"))]
 head(data2)
-X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "treatment")
+X <- dimensio::pca(data2, center = TRUE, scale = TRUE, sup_quali = "treatment")
 get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 biplot(X, type = "form", labels = "variables")
@@ -635,11 +634,13 @@ p1 <- viz_individuals(
 
 vars4 <- c("nb.of.bump", "nb.of.touch", "nb.of.head.to.head", "nb.of.avoidance")
 
-# A. Homogénéité de la dispersion (Betadisper avec données standardisées)
 X_behav <- scale(df_behavior[, vars4])
 dist_matrix_behav <- dist(X_behav, method = "euclidean")
 
-dispersion_mod <- betadisper(dist_matrix_behav, df_behavior$treatment)
+X_behav <- scale(df_behavior[, vars4])
+dist_matrix_behav <- dist(X_behav)
+dispersion_mod <- betadisper(dist_matrix_behav,group = df_behavior$treatment)
+
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper - 3x2)")
 boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 
@@ -647,14 +648,11 @@ permu_treat <- permutest(dispersion_mod, permutations = 10000)
 permu_treat
 
 # B. PERMANOVA (Adonis2)
-# Interaction valide avec by = "terms"
 ado_treat <- run_perm(df_behavior, vars4, model_type = "full", by_val = "terms")
 ado_treat
 
-# Effets principaux robustes avec modèle additif et by = "margin"
 ado_treat_main <- run_perm(df_behavior, vars4, model_type = "additive", by_val = "margin")
 ado_treat_main
-  
 ```
 
 ## Save result for LMM and PCA 3 x 2 model 
@@ -680,6 +678,7 @@ cat("\n[1D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
 print(pairs(emmeans(model_nb2_add_single_touch, ~ reinoculation), type = "response"))
 cat("\n[1.E. Model Summary / Coefficients]\n")
 print(summary(model_nb2_add_single_touch))
+
 cat("\n=====================================\n")
 cat("--- 2. Head-to-Head Interaction ---\n")
 cat("=====================================\n")
@@ -687,7 +686,7 @@ cat("\n[2A. Interaction & Model Comparison (LRT)]\n")
 print(Anova(model_nb2_head, type = "III"))
 cat("\n--> Model Comparison (Full vs Additive):\n")
 print(anova(model_nb2_head, model_nb2_head_add))
-cat("\n[2B. Main Effects Test (Additive Model Type II)]\n")
+cat("\n[2B. Main Effects Test (Full Model Type II)]\n")
 print(Anova(model_nb2_head_add, type = "II"))
 cat("\n[2C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
 print(pairs(emmeans(model_nb2_head_add, ~ antibiotic), adjust = "tukey", type = "response"))
@@ -740,6 +739,7 @@ sink()
 
 #-----------------------------------------------------
 ## Linear mixed models (2 x 2 model)
+Sensitivity analysis
 ```{r}
 # We join togheter low and zero into the "zero category"
 df_behavior_reduce <- df_behavior
@@ -761,7 +761,7 @@ aggregate(nb.of.touch ~ antibiotic, df_behavior_reduce, sum)
 
 # Full model
 model_nb2_single_touch_red <- glmmTMB(
-  nb.of.touch ~ antibiotic * reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -769,7 +769,7 @@ summary(model_nb2_single_touch_red)
 
 #Additive model
 model_nb2_add_single_touch_red <- glmmTMB(
-  nb.of.touch ~ antibiotic + reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -785,7 +785,7 @@ aggregate(nb.of.head.to.head ~ antibiotic, df_behavior_reduce, sum)
 
 #Full model
 model_nb2_head_red <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic * reinoculation + year ,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -793,7 +793,7 @@ summary(model_nb2_head_red)
 
 #Additive model
 model_nb2_add_head_red <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic + reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic + reinoculation + year ,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -809,7 +809,7 @@ aggregate(nb.of.avoidance ~ antibiotic, df_behavior_reduce, sum)
 
 # Full model
 model_nb2_avoid_red <- glmmTMB(
-  nb.of.avoidance ~ antibiotic * reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -817,7 +817,7 @@ summary(model_nb2_avoid_red)
 
 #Additive model 
 model_nb2_add_avoid_red <- glmmTMB(
-  nb.of.avoidance ~ antibiotic + reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -833,7 +833,7 @@ aggregate(nb.of.bump ~ antibiotic, df_behavior_reduce, sum)
 
 # Full model
 model_nb2_bump_red <- glmmTMB(
-  nb.of.bump ~ antibiotic * reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -841,7 +841,7 @@ summary(model_nb2_bump_red)
 
 #Additive model
 model_nb2_add_bump_red <- glmmTMB(
-  nb.of.bump ~ antibiotic + reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -861,7 +861,7 @@ set.seed(67)
 data2 <- df_behavior_reduce[, !(names(df_behavior_reduce) %in% c("antibiotic", "reinoculation", "year", "arena"))]
 head(data2)
 
-X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "treatment")
+X <- dimensio::pca(data2, center = TRUE, scale = TRUE, sup_quali = "treatment")
 
 get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)

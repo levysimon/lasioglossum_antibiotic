@@ -13,6 +13,11 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 Sys.setenv(TZ = "UTC")
+
+# Force treatment (dummy) contrasts for this script, regardless of any
+# options set elsewhere (e.g. contr.sum set in activity_and_behavior.Rmd).
+# Coxph coefficient names (and the lookups below) assume contr.treatment.
+options(contrasts = c("contr.treatment", "contr.poly"))
 ```
 # Load packages
 
@@ -118,7 +123,6 @@ surv_individual <- dataset_final %>%
     Reinoculation = relevel(Reinoculation, ref = "no"),
     Year = factor(Year),
     Petridish_number = factor(Petridish_number),
-    # Unique dish ID (Petridish_number alone may repeat across groups/years)
     dish_id = interaction(Year, Category_base, Petridish_number, drop = TRUE))
 ```
 
@@ -132,6 +136,9 @@ fit_inter <- survfit(Surv(time, status) ~ interaction(Antibiotic, Reinoculation)
 
 
 # Log-rank tests (stratified by year), individual factors
+# NOTE: these are descriptive / sensitivity checks. The primary inferential
+# test for the manuscript is the Cox robust Wald test below (m_add), since
+# it accounts for dish-level clustering; the log-rank test does not.
 
 ```{r}
 surv_diff_ant   <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year), data = surv_individual)
@@ -154,6 +161,9 @@ table(period = cp$period, reinoc_td = cp$reinoc_td, status = cp$status)
 ```
 
 # Cox models: strata = year, robust SE clustered by dish
+# This is the PRIMARY model for the manuscript (dose effect, re-inoculation
+# effect, and interaction should be reported from here, not from the
+# unstratified-by-dish log-rank tests above).
 ```{r}
 
 # Additive model
@@ -323,6 +333,9 @@ survdiff(Surv(time, status) ~ Antibiotic + strata(Year), data = subset(surv_indi
 ```
 
 # Pairwise comparisons (stratified by year)
+# NOTE: three comparisons are run on the same family of hypotheses
+# (no vs low, no vs high, low vs high), so the raw p-values are corrected
+# for multiple comparisons with a Holm step-down procedure below.
 
 ```{r}
 pair_no_low   <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year),
@@ -331,6 +344,23 @@ pair_no_high  <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year),
                           data = subset(surv_individual, Antibiotic %in% c("no", "high")))
 pair_low_high <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year),
                           data = subset(surv_individual, Antibiotic %in% c("low", "high")))
+
+# Raw p-values (1 df chi-square each)
+pairwise_p_raw <- c(
+  no_vs_low   = pair_no_low$pvalue,
+  no_vs_high  = pair_no_high$pvalue,
+  low_vs_high = pair_low_high$pvalue
+)
+
+# Holm correction across the 3 pairwise comparisons
+pairwise_p_holm <- p.adjust(pairwise_p_raw, method = "holm")
+
+pairwise_table <- data.frame(
+  comparison = names(pairwise_p_raw),
+  p_raw      = signif(pairwise_p_raw, 3),
+  p_holm     = signif(pairwise_p_holm, 3)
+)
+pairwise_table
 ```
 
 # Save the plot and stats
@@ -359,8 +389,10 @@ cat("\n---------------------------------------------------------\n")
 print(fit_inter)
 
 cat("\n\n=========================================================\n")
-cat("2. SURVIVAL DIFFERENCES\n")
+cat("2. SURVIVAL DIFFERENCES (descriptive / sensitivity checks only)\n")
 cat("=========================================================\n\n")
+cat("The log-rank tests below do not account for dish-level clustering and\n")
+cat("are reported here only as a sensitivity check.\n\n")
 cat("--> Log-rank (stratified by year): Antibiotic\n")
 print(surv_diff_ant)
 cat("P-value:", surv_diff_ant$pvalue, "\n")
@@ -376,7 +408,8 @@ print(table(period = cp$period, status = cp$status))
 print(table(period = cp$period, reinoc_td = cp$reinoc_td, status = cp$status))
 
 cat("\n---------------------------------------------------------\n")
-cat("--> Cox additive model (time-dependent re-inoculation, strata(Year), cluster(dish))\n")
+cat("--> Cox additive model (PRIMARY TEST; time-dependent re-inoculation,\n")
+cat("    strata(Year), cluster(dish)) -- report this for dose & reinoc effects\n")
 print(summary(m_add))
 cat("Antibiotic Wald test (robust): chisq =", wald, " df =", length(idx), " p =", p_ant_wald, "\n")
 
@@ -391,24 +424,29 @@ print(cox.zph(m_add))
 
 cat("\n\n=========================================================\n")
 cat("3. PAIRWISE POST-HOC COMPARISONS (ANTIBIOTIC EFFECTS, stratified by year)\n")
+cat("   Holm-corrected for 3 comparisons -- report p_holm, not raw p\n")
 cat("=========================================================\n\n")
 
 cat("--> Pairwise: Control (no) vs Low Dose (low)\n")
 print(pair_no_low)
-cat("P-value:", pair_no_low$pvalue, "\n\n")
+cat("P-value (raw):", pair_no_low$pvalue, "\n\n")
 
 cat("---------------------------------------------------------\n")
 cat("--> Pairwise: Control (no) vs High Dose (high)\n")
 print(pair_no_high)
-cat("P-value:", pair_no_high$pvalue, "\n\n")
+cat("P-value (raw):", pair_no_high$pvalue, "\n\n")
 
 cat("---------------------------------------------------------\n")
 cat("--> Pairwise: Low Dose (low) vs High Dose (high)\n")
 print(pair_low_high)
-cat("P-value:", pair_low_high$pvalue, "\n")
+cat("P-value (raw):", pair_low_high$pvalue, "\n")
+
+cat("\n---------------------------------------------------------\n")
+cat("--> Holm-adjusted pairwise p-values (report these)\n")
+print(pairwise_table)
 
 cat("\n\n=========================================================\n")
-cat("4. VALUES TO REPORT (Results text)\n")
+cat("4. VALUES REPORTED (Results text)\n")
 cat("=========================================================\n\n")
 
 # Antibiotic dose: robust Wald, 2 df (computed above)
@@ -417,10 +455,13 @@ df_ab  <- length(idx)
 p_ab   <- p_ant_wald
 
 # Re-inoculation: robust Wald, 1 df (chi2 = robust z^2)
-cf     <- summary(m_add)$coefficients
-chi_re <- unname(cf["reinoc_tdyes", "z"]^2)
+cf <- summary(m_add)$coefficients
+reinoc_row <- grep("^reinoc_td", rownames(cf))
+stopifnot("Could not find a unique reinoc_td coefficient - check contrasts()" =
+            length(reinoc_row) == 1)
+chi_re <- unname(cf[reinoc_row, "z"]^2)
 df_re  <- 1
-p_re   <- unname(cf["reinoc_tdyes", "Pr(>|z|)"])
+p_re   <- unname(cf[reinoc_row, "Pr(>|z|)"])
 
 # Interaction: likelihood ratio (second row of the anova table)
 chi_in <- lrt_inter$Chisq[2]
@@ -434,7 +475,7 @@ mort_ab     <- surv_individual %>% group_by(Antibiotic)    %>% summarise(d = sum
 mort_re_all <- surv_individual %>% group_by(Reinoculation) %>% summarise(d = sum(status), n = n())
 mort_re_72  <- cp %>% filter(period == 2) %>% group_by(Reinoculation) %>% summarise(d = sum(status), n = n())
 
-cat("--> Test summary\n")
+cat("--> Test summary \n")
 print(data.frame(
   test  = c("Antibiotic (robust Wald)", "Re-inoculation (robust Wald)", "Interaction (LRT)"),
   chisq = round(c(chi_ab, chi_re, chi_in), 2),

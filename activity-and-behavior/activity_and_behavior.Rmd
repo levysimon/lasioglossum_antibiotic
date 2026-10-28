@@ -470,10 +470,10 @@ get_emm_data <- function(model, label_name) {
   return(df)
 }
 
-df_touch <- get_emm_data(model_nb2_single_touch, "Single Antennal Touch")
+df_touch <- get_emm_data(model_nb2_add_single_touch, "Single Antennal Touch")
 df_head  <- get_emm_data(model_nb2_head, "Head to Head")
-df_avoid <- get_emm_data(model_nb2_avoid, "Avoidance")
-df_bump  <- get_emm_data(model_nb2_bump, "Bump")
+df_avoid <- get_emm_data(model_nb2_add_avoid, "Avoidance")
+df_bump  <- get_emm_data(model_nb2_add_bump, "Bump")
 
 emm_all <- rbind(df_touch, df_head, df_avoid, df_bump)
 ```
@@ -636,9 +636,6 @@ vars4 <- c("nb.of.bump", "nb.of.touch", "nb.of.head.to.head", "nb.of.avoidance")
 
 X_behav <- scale(df_behavior[, vars4])
 dist_matrix_behav <- dist(X_behav, method = "euclidean")
-
-X_behav <- scale(df_behavior[, vars4])
-dist_matrix_behav <- dist(X_behav)
 dispersion_mod <- betadisper(dist_matrix_behav,group = df_behavior$treatment)
 
 plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper - 3x2)")
@@ -686,14 +683,14 @@ cat("\n[2A. Interaction & Model Comparison (LRT)]\n")
 print(Anova(model_nb2_head, type = "III"))
 cat("\n--> Model Comparison (Full vs Additive):\n")
 print(anova(model_nb2_head, model_nb2_head_add))
-cat("\n[2B. Main Effects Test (Full Model Type II)]\n")
-print(Anova(model_nb2_head_add, type = "II"))
+cat("\n[2B. Main Effects Test (Full Model Type III)]\n")
+print(Anova(model_nb2_head, type = "III"))
 cat("\n[2C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
-print(pairs(emmeans(model_nb2_head_add, ~ antibiotic), adjust = "tukey", type = "response"))
+print(pairs(emmeans(model_nb2_head, ~ antibiotic), adjust = "tukey", type = "response"))
 cat("\n[2D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
-print(pairs(emmeans(model_nb2_head_add, ~ reinoculation), type = "response"))
+print(pairs(emmeans(model_nb2_head, ~ reinoculation), type = "response"))
 cat("\n[2E. Model Summary / Coefficients]\n")
-print(summary(model_nb2_head_add))
+print(summary(model_nb2_head))
 
 cat("\n=====================================\n")
 cat("--- 3. Avoidance ---\n")
@@ -738,8 +735,8 @@ sink()
 ```
 
 #-----------------------------------------------------
-## Linear mixed models (2 x 2 model)
-Sensitivity analysis
+## Linear mixed models (2 x 2 model) - Sensitivity analysis 
+
 ```{r}
 # We join togheter low and zero into the "zero category"
 df_behavior_reduce <- df_behavior
@@ -1245,9 +1242,9 @@ a2 <- Anova(model_avg.speed_add, type = "II")
 a2
 
 #to test if the interaction if significant
-anova(model_avg.speed_add, model_avg.speed)  #Here the interaction model is a better fit
+anova(model_avg.speed_add, model_avg.speed)  #Here the additive model is a better fit
 
-emm <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+emm <- emmeans(model_avg.speed_add, ~ antibiotic + reinoculation)
 pairs(emm, by = "antibiotic")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
@@ -1307,7 +1304,7 @@ ggsave(
 
 ### The model prediction
 ```{r}
-emm <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+emm <- emmeans(model_avg.speed_add, ~ antibiotic + reinoculation)
 emm_df <- as.data.frame(emm)
 
 p_model <- ggplot() +
@@ -1426,11 +1423,12 @@ print(Anova(model_avg.speed_add, type = "II"))
 cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
 print(anova(model_avg.speed_add, model_avg.speed))
 cat("\n[1D. Post-Hoc Simple Effects Breakdown]\n")
-emm_full <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+emm_add <- emmeans(model_avg.speed_add, ~ antibiotic + reinoculation)
+emm_add
 cat("\n* Reinoculation effect within each Antibiotic dose:\n")
-print(pairs(emm_full, by = "antibiotic"))
+print(pairs(emm_add, by = "antibiotic"))
 cat("\n* Antibiotic effect within each Reinoculation status (Tukey HSD):\n")
-print(pairs(emm_full, by = "reinoculation", adjust = "tukey"))
+print(pairs(emm_add, by = "reinoculation", adjust = "tukey"))
 cat("\n=====================================\n")
 cat("--- 2. REDUCED MODEL (2 x 2) ---\n")
 cat("=====================================\n")
@@ -1480,7 +1478,6 @@ testZeroInflation(model_beta)
 
 a1 <- Anova(model_beta, type = "III")
 a1 
-
 
 #Additive Model
 model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + year + (1|year:arena),
@@ -1955,7 +1952,7 @@ combined_interaction_data <- pca_scores$F1
 df_pca_7$combined <- combined_interaction_data
 ```
 
-#### LMM on PC1
+#### LM on PC1
 ```{r}
 hist(df_pca_7$combined, breaks = 10)
 qqnorm(df_pca_7$combined)

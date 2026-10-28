@@ -102,23 +102,69 @@ surv_individual <- dataset_final %>%
     Reinoculation = factor(Reinoculation),
     Reinoculation = relevel(Reinoculation, ref = "no"),
     Year = factor(Year),
-    Petridish_number = factor(Petridish_number))
+    Petridish_number = factor(Petridish_number),
+    # Unique dish ID (Petridish_number alone may repeat across groups/years)
+    dish_id = interaction(Year, Category_base, Petridish_number, drop = TRUE))
 ```
 
-# Fit a survival curve using the Kaplan-Meier method
+# Fit a survival curve using the Kaplan-Meier method (descriptive, not stratified by year)
 
 ``` r
 fit_ant <- survfit(Surv(time, status) ~ Antibiotic, type = "kaplan-meier", data=surv_individual)
 fit_reino <- survfit(Surv(time, status) ~ Reinoculation, type = "kaplan-meier", data=surv_individual)
-fit_inter <- survfit(Surv(time, status) ~ Treatment, type = "kaplan-meier", data=surv_individual)
+fit_inter <- survfit(Surv(time, status) ~ interaction(Antibiotic, Reinoculation), type = "kaplan-meier", data=surv_individual)
 ```
 
-# Log-Rank Test
+# Log-rank tests (stratified by year), individual factors
 
 ``` r
-surv_diff_ant <- survdiff(Surv(time, status) ~ Antibiotic, data = surv_individual)
-surv_diff_reino <- survdiff(Surv(time, status) ~ Reinoculation, data = surv_individual)
-surv_diff_inter <- survdiff(Surv(time, status) ~ Treatment, data = surv_individual)
+surv_diff_ant   <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year), data = surv_individual)
+surv_diff_reino <- survdiff(Surv(time, status) ~ Reinoculation + strata(Year), data = surv_individual)
+```
+
+# Time-dependent re-inoculation (switches on at 72 h)
+
+``` r
+# Split follow-up at 72 h: re-inoculation is a time-dependent covariate
+cp <- survSplit(Surv(time, status) ~ ., data = surv_individual,
+                cut = 72, episode = "period")   # creates tstart / time / status
+
+cp$reinoc_td <- factor(ifelse(cp$period == 2 & cp$Reinoculation == "yes", "yes", "no"),
+                       levels = c("no", "yes"))
+
+# Sanity check: deaths before / after 72 h
+table(period = cp$period, status = cp$status)
+table(period = cp$period, reinoc_td = cp$reinoc_td, status = cp$status)
+```
+
+# Cox models: strata = year, robust SE clustered by dish
+
+``` r
+# Additive model
+m_add <- coxph(Surv(tstart, time, status) ~ Antibiotic + reinoc_td +
+                 strata(Year) + cluster(dish_id), data = cp)
+
+# Interaction model
+m_int <- coxph(Surv(tstart, time, status) ~ Antibiotic * reinoc_td +
+                 strata(Year) + cluster(dish_id), data = cp)
+
+# Antibiotic dose effect: robust Wald test (2 df)
+idx        <- grep("^Antibiotic", names(coef(m_add)))
+b          <- coef(m_add)[idx]
+V          <- vcov(m_add)[idx, idx]          # robust variance (cluster)
+wald       <- as.numeric(t(b) %*% solve(V) %*% b)
+p_ant_wald <- pchisq(wald, df = length(idx), lower.tail = FALSE)
+c(chisq = wald, df = length(idx), p = p_ant_wald)
+
+# Interaction test 1: likelihood ratio (anova() does not work with cluster(),
+# so refit the same models without it)
+m_add_nc  <- coxph(Surv(tstart, time, status) ~ Antibiotic + reinoc_td + strata(Year), data = cp)
+m_int_nc  <- coxph(Surv(tstart, time, status) ~ Antibiotic * reinoc_td + strata(Year), data = cp)
+lrt_inter <- anova(m_add_nc, m_int_nc)
+lrt_inter
+
+# Proportional hazards check
+cox.zph(m_add)
 ```
 
 # Create the plots
@@ -129,7 +175,7 @@ time_2025 <- c(0, 15, 18, 21, 24, 39, 42, 45, 48, 63, 66, 69, 72, 135, 138)
 
 p_ant <- ggsurvplot(
   fit_ant,
-  pval = TRUE,
+  pval = FALSE,
   pval.size = 5,
   pval.method = TRUE,
   conf.int = FALSE,
@@ -172,10 +218,10 @@ p_ant$plot <- p_ant$plot +
     size = 1,        
     stroke = 0.8    
   ) +
-  geom_vline(xintercept = 70, linetype = "dotted", linewidth = 0.7) +
+  geom_vline(xintercept = 72, linetype = "dotted", linewidth = 0.7) +
   annotate(
     "text",
-    x = 70, y = 0.20,
+    x = 72, y = 0.20,
     label = "Re-inoculation",
     angle = 90,
     vjust = -0.5,
@@ -200,9 +246,7 @@ print(p_ant)
 p_reino <- ggsurvplot(
   fit_reino,
   title = "Impact of Re-inoculation on survival",
-  pval = TRUE,
-  pval.size = 7,
-  pval.method = TRUE,
+  pval = FALSE,   # unstratified log-rank p-value removed; report the Cox result instead
   conf.int = FALSE,
   surv.scale = "percent",
   xlab = "Time [h]",
@@ -214,11 +258,11 @@ p_reino <- ggsurvplot(
   alpha = 0.8
 )
 p_reino$plot <- p_reino$plot +
-  geom_vline(xintercept = 70, linetype = "dotted", size = 0.7) +
+  geom_vline(xintercept = 72, linetype = "dotted", linewidth = 0.7) +
   annotate(
     "text",
-    x = 70, y = 0.20,           # adjust y to be at top of plot
-    label = "Re-inoculation",      # this will act as legend label
+    x = 72, y = 0.20,
+    label = "Re-inoculation",
     angle = 90,
     vjust = -0.5,
     color = "black",
@@ -232,9 +276,7 @@ p_reino
 p_inter <- ggsurvplot(
   fit_inter,
   title = "Impact of Antibiotics and Re-inoculation on survival",
-  pval = TRUE,
-  pval.size = 6,
-  pval.method = TRUE,
+  pval = FALSE,
   conf.int = FALSE,
   surv.scale = "percent",
   xlab = "Time [h]",
@@ -246,11 +288,11 @@ p_inter <- ggsurvplot(
   alpha = 0.8
 )
 p_inter$plot <- p_inter$plot +
-  geom_vline(xintercept = 70, linetype = "dotted", size = 0.7) +
+  geom_vline(xintercept = 72, linetype = "dotted", linewidth = 0.7) +
   annotate(
     "text",
-    x = 70, y = 0.20,           # adjust y to be at top of plot
-    label = "Re-inoculation",      # this will act as legend label
+    x = 72, y = 0.20,
+    label = "Re-inoculation",
     angle = 90,
     vjust = -0.5,
     color = "black",
@@ -262,7 +304,18 @@ p_inter
 # Justifying the joining of zero and low
 
 ``` r
-survdiff(Surv(time, status) ~ Antibiotic, data = subset(surv_individual, Antibiotic %in% c("no", "low")))
+survdiff(Surv(time, status) ~ Antibiotic + strata(Year), data = subset(surv_individual, Antibiotic %in% c("no", "low")))
+```
+
+# Pairwise comparisons (stratified by year)
+
+``` r
+pair_no_low   <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year),
+                          data = subset(surv_individual, Antibiotic %in% c("no", "low")))
+pair_no_high  <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year),
+                          data = subset(surv_individual, Antibiotic %in% c("no", "high")))
+pair_low_high <- survdiff(Surv(time, status) ~ Antibiotic + strata(Year),
+                          data = subset(surv_individual, Antibiotic %in% c("low", "high")))
 ```
 
 # Save the plot and stats
@@ -291,39 +344,95 @@ cat("\n---------------------------------------------------------\n")
 print(fit_inter)
 
 cat("\n\n=========================================================\n")
-cat("2. SURVIVAL DIFFERENCES (LOG-RANK TESTS) & P-VALUES\n")
+cat("2. SURVIVAL DIFFERENCES\n")
 cat("=========================================================\n\n")
+cat("--> Log-rank (stratified by year): Antibiotic\n")
 print(surv_diff_ant)
-cat("P-value Global:", surv_diff_ant$pvalue, "\n")
+cat("P-value:", surv_diff_ant$pvalue, "\n")
 
 cat("\n---------------------------------------------------------\n")
+cat("--> Log-rank (stratified by year): Reinoculation (from time 0, descriptive)\n")
 print(surv_diff_reino)
-cat("P-value Global:", surv_diff_reino$pvalue, "\n")
+cat("P-value:", surv_diff_reino$pvalue, "\n")
 
 cat("\n---------------------------------------------------------\n")
-print(surv_diff_inter)
-cat("P-value Global:", surv_diff_inter$pvalue, "\n")
+cat("--> Deaths before / after 72 h\n")
+print(table(period = cp$period, status = cp$status))
+print(table(period = cp$period, reinoc_td = cp$reinoc_td, status = cp$status))
+
+cat("\n---------------------------------------------------------\n")
+cat("--> Cox additive model (time-dependent re-inoculation, strata(Year), cluster(dish))\n")
+print(summary(m_add))
+cat("Antibiotic Wald test (robust): chisq =", wald, " df =", length(idx), " p =", p_ant_wald, "\n")
+
+cat("\n---------------------------------------------------------\n")
+cat("--> Interaction test: likelihood ratio (models without cluster)\n")
+print(lrt_inter)
+cat("(Robust Wald not reported: interaction model unstable, groups with no deaths after 72 h)\n")
+
+cat("\n---------------------------------------------------------\n")
+cat("--> Proportional hazards check\n")
+print(cox.zph(m_add))
 
 cat("\n\n=========================================================\n")
-cat("3. PAIRWISE POST-HOC COMPARISONS (ANTIBIOTIC EFFECTS)\n")
+cat("3. PAIRWISE POST-HOC COMPARISONS (ANTIBIOTIC EFFECTS, stratified by year)\n")
 cat("=========================================================\n\n")
 
 cat("--> Pairwise: Control (no) vs Low Dose (low)\n")
-pair_no_low <- survdiff(Surv(time, status) ~ Antibiotic, data = subset(surv_individual, Antibiotic %in% c("no", "low")))
 print(pair_no_low)
 cat("P-value:", pair_no_low$pvalue, "\n\n")
 
 cat("---------------------------------------------------------\n")
 cat("--> Pairwise: Control (no) vs High Dose (high)\n")
-pair_no_high <- survdiff(Surv(time, status) ~ Antibiotic, data = subset(surv_individual, Antibiotic %in% c("no", "high")))
 print(pair_no_high)
 cat("P-value:", pair_no_high$pvalue, "\n\n")
 
 cat("---------------------------------------------------------\n")
 cat("--> Pairwise: Low Dose (low) vs High Dose (high)\n")
-pair_low_high <- survdiff(Surv(time, status) ~ Antibiotic, data = subset(surv_individual, Antibiotic %in% c("low", "high")))
 print(pair_low_high)
 cat("P-value:", pair_low_high$pvalue, "\n")
+
+cat("\n\n=========================================================\n")
+cat("4. VALUES TO REPORT (Results text)\n")
+cat("=========================================================\n\n")
+
+# Antibiotic dose: robust Wald, 2 df (computed above)
+chi_ab <- wald
+df_ab  <- length(idx)
+p_ab   <- p_ant_wald
+
+# Re-inoculation: robust Wald, 1 df (chi2 = robust z^2)
+cf     <- summary(m_add)$coefficients
+chi_re <- unname(cf["reinoc_tdyes", "z"]^2)
+df_re  <- 1
+p_re   <- unname(cf["reinoc_tdyes", "Pr(>|z|)"])
+
+# Interaction: likelihood ratio (second row of the anova table)
+chi_in <- lrt_inter$Chisq[2]
+df_in  <- lrt_inter$Df[2]
+p_in   <- lrt_inter$`Pr(>|Chi|)`[2]
+
+fmt_p <- function(p) ifelse(p < 0.001, "p < 0.001", sprintf("p = %.3f", p))
+
+# Deaths / N
+mort_ab     <- surv_individual %>% group_by(Antibiotic)    %>% summarise(d = sum(status), n = n())
+mort_re_all <- surv_individual %>% group_by(Reinoculation) %>% summarise(d = sum(status), n = n())
+mort_re_72  <- cp %>% filter(period == 2) %>% group_by(Reinoculation) %>% summarise(d = sum(status), n = n())
+
+cat("--> Test summary\n")
+print(data.frame(
+  test  = c("Antibiotic (robust Wald)", "Re-inoculation (robust Wald)", "Interaction (LRT)"),
+  chisq = round(c(chi_ab, chi_re, chi_in), 2),
+  df    = c(df_ab, df_re, df_in),
+  p     = signif(c(p_ab, p_re, p_in), 3)
+))
+
+cat("\n--> Deaths / N by antibiotic (whole follow-up)\n");              print(as.data.frame(mort_ab))
+cat("\n--> Deaths / N by re-inoculation (whole follow-up)\n");          print(as.data.frame(mort_re_all))
+cat("\n--> Deaths / N by re-inoculation, after 72 h only (N = bees alive at 72 h)\n"); print(as.data.frame(mort_re_72))
+
+ab <- setNames(paste0(mort_ab$d, "/", mort_ab$n), mort_ab$Antibiotic)
+rp <- setNames(paste0(mort_re_72$d, "/", mort_re_72$n), mort_re_72$Reinoculation)
 
 sink()
 

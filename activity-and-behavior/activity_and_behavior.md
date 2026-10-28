@@ -117,7 +117,7 @@ df_behavior$year <- factor(df_behavior$year)
 
 ``` r
 data_dir <- here::here("activity-and-behavior", "data", "animal_ta")
-file_path <- file.path(data_dir, "inderindividual_dist.csv")
+file_path <- file.path(data_dir, "interindividual_dist.csv")
            
 df_interind <- read_delim(file_path,
                        delim = ";",
@@ -196,6 +196,25 @@ df_pca_7 <- df_move_aggregated %>%
     antibiotic  = factor(antibiotic, levels = c("zero", "low", "high")),
     reinoculation = factor(reinoculation, levels = c("no", "yes"))
   )
+```
+
+## Permanova function
+
+``` r
+run_perm <- function(df, vars, model_type = "full", by_val = "terms") {
+  df$year <- as.factor(df$year)
+  X <- scale(df[, vars])
+  d <- dist(X, method = "euclidean")
+  stopifnot(nrow(as.matrix(d)) == nrow(df))
+
+  if (model_type == "full") {
+    adonis2(d ~ year + antibiotic * reinoculation, data = df,
+            by = by_val, permutations = 10000)
+  } else {
+    adonis2(d ~ year + antibiotic + reinoculation, data = df,
+            by = by_val, permutations = 10000)
+  }
+}
 ```
 
 # ==============================
@@ -291,7 +310,7 @@ antennal touch
 ``` r
 # Full model
 model_nb2_single_touch <- glmmTMB(
-  nb.of.touch ~ antibiotic * reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -299,7 +318,7 @@ Anova(model_nb2_single_touch, type=3)
 
 #Additive model
 model_nb2_add_single_touch <- glmmTMB(
-  nb.of.touch ~ antibiotic + reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -325,7 +344,7 @@ aggregate(nb.of.head.to.head ~ antibiotic, df_behavior, sum)
 
 # Full model
 model_nb2_head <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -333,7 +352,7 @@ Anova(model_nb2_head, type=3)
 
 #Additive model
 model_nb2_head_add <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic + reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -359,7 +378,7 @@ aggregate(nb.of.avoidance ~ antibiotic, df_behavior, sum)
 
 #Full model
 model_nb2_avoid <- glmmTMB(
-  nb.of.avoidance ~ antibiotic * reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -367,7 +386,7 @@ Anova(model_nb2_avoid, type=3)
 
 #Additive model
 model_nb2_add_avoid <- glmmTMB(
-  nb.of.avoidance ~ antibiotic + reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -393,7 +412,7 @@ aggregate(nb.of.bump ~ antibiotic, df_behavior, sum)
 
 #Full model
 model_nb2_bump <- glmmTMB(
-  nb.of.bump ~ antibiotic * reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -401,7 +420,7 @@ Anova(model_nb2_bump, type=3)
 
 #Additive model
 model_nb2_add_bump <- glmmTMB(
-  nb.of.bump ~ antibiotic + reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior
 )
@@ -615,7 +634,7 @@ set.seed(67)
 
 data2 <- df_behavior[, !(names(df_behavior) %in% c("antibiotic", "reinoculation", "year", "arena"))]
 head(data2)
-X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "treatment")
+X <- dimensio::pca(data2, center = TRUE, scale = TRUE, sup_quali = "treatment")
 get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
 ```
@@ -643,14 +662,13 @@ p1 <- viz_individuals(
 ```
 
 ``` r
-# Data Preparation for Vegan
-stats_matrix <- data2[, sapply(data2, is.numeric)]
-# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+vars4 <- c("nb.of.bump", "nb.of.touch", "nb.of.head.to.head", "nb.of.avoidance")
 
-# Check for Homogeneity of Dispersion (Betadisper). This tests: "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix, df_behavior$treatment)
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
+X_behav <- scale(df_behavior[, vars4])
+dist_matrix_behav <- dist(X_behav, method = "euclidean")
+dispersion_mod <- betadisper(dist_matrix_behav,group = df_behavior$treatment)
+
+plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper - 3x2)")
 ```
 
 ``` r
@@ -658,16 +676,15 @@ boxplot(dispersion_mod, main = "Distance to Centroid per Group")
 ```
 
 ``` r
-# BETADIASPER RESULT - Test significance of dispersion
 permu_treat <- permutest(dispersion_mod, permutations = 10000)
 permu_treat
 
-# PERMANOVA (Adonis2) "Are the centers of the groups significantly different?"
-ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior$year, data = df_behavior, method = "euclidean", permutations = 10000)
+# B. PERMANOVA (Adonis2)
+ado_treat <- run_perm(df_behavior, vars4, model_type = "full", by_val = "terms")
 ado_treat
 
-ado_ant <- adonis2(dist_matrix ~ antibiotic, strata = df_behavior$year, data = df_behavior, permutations = 10000)
-ado_gut <- adonis2(dist_matrix ~ reinoculation, strata = df_behavior$year, data = df_behavior, permutations = 10000)
+ado_treat_main <- run_perm(df_behavior, vars4, model_type = "additive", by_val = "margin")
+ado_treat_main
 ```
 
 ## Save result for LMM and PCA 3 x 2 model
@@ -681,6 +698,7 @@ cat("=========================================================================\n
 cat("\n=====================================\n")
 cat("--- 1. Single Antennal Touch ---\n")
 cat("=====================================\n")
+
 cat("\n[1A. Interaction & Model Comparison (LRT)]\n")
 print(Anova(model_nb2_single_touch, type = "III"))
 cat("\n--> Model Comparison (Full vs Additive):\n")
@@ -691,6 +709,9 @@ cat("\n[1C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
 print(pairs(emmeans(model_nb2_add_single_touch, ~ antibiotic), adjust = "tukey", type = "response"))
 cat("\n[1D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
 print(pairs(emmeans(model_nb2_add_single_touch, ~ reinoculation), type = "response"))
+cat("\n[1.E. Model Summary / Coefficients]\n")
+print(summary(model_nb2_add_single_touch))
+
 cat("\n=====================================\n")
 cat("--- 2. Head-to-Head Interaction ---\n")
 cat("=====================================\n")
@@ -698,12 +719,15 @@ cat("\n[2A. Interaction & Model Comparison (LRT)]\n")
 print(Anova(model_nb2_head, type = "III"))
 cat("\n--> Model Comparison (Full vs Additive):\n")
 print(anova(model_nb2_head, model_nb2_head_add))
-cat("\n[2B. Main Effects Test (Additive Model Type II)]\n")
-print(Anova(model_nb2_head_add, type = "II"))
+cat("\n[2B. Main Effects Test (Full Model Type III)]\n")
+print(Anova(model_nb2_head, type = "III"))
 cat("\n[2C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
-print(pairs(emmeans(model_nb2_head_add, ~ antibiotic), adjust = "tukey", type = "response"))
+print(pairs(emmeans(model_nb2_head, ~ antibiotic), adjust = "tukey", type = "response"))
 cat("\n[2D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
-print(pairs(emmeans(model_nb2_head_add, ~ reinoculation), type = "response"))
+print(pairs(emmeans(model_nb2_head, ~ reinoculation), type = "response"))
+cat("\n[2E. Model Summary / Coefficients]\n")
+print(summary(model_nb2_head))
+
 cat("\n=====================================\n")
 cat("--- 3. Avoidance ---\n")
 cat("=====================================\n")
@@ -717,6 +741,9 @@ cat("\n[3C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
 print(pairs(emmeans(model_nb2_add_avoid, ~ antibiotic), adjust = "tukey", type = "response"))
 cat("\n[3D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
 print(pairs(emmeans(model_nb2_add_avoid, ~ reinoculation), type = "response"))
+cat("\n[3E. Model Summary / Coefficients]\n")
+print(summary(model_nb2_add_avoid))
+
 cat("\n=====================================\n")
 cat("--- 4. Bumps ---\n")
 cat("=====================================\n")
@@ -730,6 +757,9 @@ cat("\n[4C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
 print(pairs(emmeans(model_nb2_add_bump, ~ antibiotic), adjust = "tukey", type = "response"))
 cat("\n[4D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
 print(pairs(emmeans(model_nb2_add_bump, ~ reinoculation), type = "response"))
+cat("\n[4E. Model Summary / Coefficients]\n")
+print(summary(model_nb2_add_bump))
+
 cat("\n=====================================\n")
 cat("--- 5. PERMANOVA & PCA 3x2 ---\n")
 cat("=====================================\n")
@@ -737,14 +767,11 @@ cat("\n[5A. Homogeneity of Multivariate Dispersions]\n")
 print(permu_treat)
 cat("\n[5B. Global PERMANOVA (Treatment)]\n")
 print(ado_treat)
-cat("\n[5C. PERMANOVA (Antibiotic Main Effect)]\n")
-print(ado_ant)
-cat("\n[5D. PERMANOVA (Reinoculation Main Effect)]\n")
-print(ado_gut)
 sink()
 ```
 
-\#—————————————————– \## Linear mixed models (2 x 2 model)
+\#—————————————————– \## Linear mixed models (2 x 2 model) - Sensitivity
+analysis
 
 ``` r
 # We join togheter low and zero into the "zero category"
@@ -768,7 +795,7 @@ aggregate(nb.of.touch ~ antibiotic, df_behavior_reduce, sum)
 
 # Full model
 model_nb2_single_touch_red <- glmmTMB(
-  nb.of.touch ~ antibiotic * reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -776,7 +803,7 @@ summary(model_nb2_single_touch_red)
 
 #Additive model
 model_nb2_add_single_touch_red <- glmmTMB(
-  nb.of.touch ~ antibiotic + reinoculation + (1 | year),
+  nb.of.touch ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -793,7 +820,7 @@ aggregate(nb.of.head.to.head ~ antibiotic, df_behavior_reduce, sum)
 
 #Full model
 model_nb2_head_red <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic * reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic * reinoculation + year ,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -801,7 +828,7 @@ summary(model_nb2_head_red)
 
 #Additive model
 model_nb2_add_head_red <- glmmTMB(
-  nb.of.head.to.head ~ antibiotic + reinoculation + (1 | year),
+  nb.of.head.to.head ~ antibiotic + reinoculation + year ,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -818,7 +845,7 @@ aggregate(nb.of.avoidance ~ antibiotic, df_behavior_reduce, sum)
 
 # Full model
 model_nb2_avoid_red <- glmmTMB(
-  nb.of.avoidance ~ antibiotic * reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -826,7 +853,7 @@ summary(model_nb2_avoid_red)
 
 #Additive model 
 model_nb2_add_avoid_red <- glmmTMB(
-  nb.of.avoidance ~ antibiotic + reinoculation + (1 | year),
+  nb.of.avoidance ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -843,7 +870,7 @@ aggregate(nb.of.bump ~ antibiotic, df_behavior_reduce, sum)
 
 # Full model
 model_nb2_bump_red <- glmmTMB(
-  nb.of.bump ~ antibiotic * reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic * reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -851,7 +878,7 @@ summary(model_nb2_bump_red)
 
 #Additive model
 model_nb2_add_bump_red <- glmmTMB(
-  nb.of.bump ~ antibiotic + reinoculation + (1 | year),
+  nb.of.bump ~ antibiotic + reinoculation + year,
   family = nbinom2,
   data = df_behavior_reduce
 )
@@ -871,7 +898,7 @@ set.seed(67)
 data2 <- df_behavior_reduce[, !(names(df_behavior_reduce) %in% c("antibiotic", "reinoculation", "year", "arena"))]
 head(data2)
 
-X <- dimensio::pca(data2, center = TRUE, scale = FALSE, sup_quali = "treatment")
+X <- dimensio::pca(data2, center = TRUE, scale = TRUE, sup_quali = "treatment")
 
 get_eigenvalues(X)
 screeplot(X, cumulative = TRUE)
@@ -900,31 +927,20 @@ viz_individuals(
 ```
 
 ``` r
-# Data Preparation for Vegan
-stats_matrix <- data2[, sapply(data2, is.numeric)]
-# Calculate Euclidean Distance Matrix // We use Euclidean because PCA preserves Euclidean distances.
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+# A. Betadisper avec données standardisées
+X_behav_red <- scale(df_behavior_reduce[, vars4])
+dist_matrix_red <- dist(X_behav_red, method = "euclidean")
 
-# Check for Homogeneity of Dispersion (Betadisper) "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix, df_behavior_reduce$treatment)
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
-```
-
-``` r
-boxplot(dispersion_mod, main = "Distance to Centroid per Group")
-```
-
-``` r
-# BETADIASPER RESULT - Test significance of dispersion
-permu_treat2x2 <- permutest(dispersion_mod, permutations = 10000)
+dispersion_mod_red <- betadisper(dist_matrix_red, df_behavior_reduce$treatment)
+permu_treat2x2 <- permutest(dispersion_mod_red, permutations = 10000)
 permu_treat2x2
-# PERMANOVA (Adonis2) "Are the centers of the groups significantly different?"
 
-ado_treat2x2 <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata=df_behavior_reduce$year, data = df_behavior_reduce, method = "euclidean", permutations = 10000)
+# B. PERMANOVA (Adonis2)
+ado_treat2x2 <- run_perm(df_behavior_reduce, vars4, model_type = "full", by_val = "terms")
 ado_treat2x2
 
-ado_ant2x2 <- adonis2(dist_matrix ~ antibiotic, strata=df_behavior_reduce$year, data = df_behavior_reduce, method = "euclidean", permutations = 10000)
-ado_gut2x2 <- adonis2(dist_matrix ~ reinoculation, strata=df_behavior_reduce$year, data = df_behavior_reduce, method = "euclidean", permutations = 10000)
+ado_treat2x2_main <- run_perm(df_behavior_reduce, vars4, model_type = "additive", by_val = "margin")
+ado_treat2x2_main
 ```
 
 ## Save result for LMM and PCA 2 x 2 model
@@ -977,10 +993,6 @@ cat("\n[5A. Homogeneity of Multivariate Dispersions]\n")
 print(permu_treat2x2)
 cat("\n[5B. Global PERMANOVA (Treatment)]\n")
 print(ado_treat2x2)
-cat("\n[5C. PERMANOVA (Antibiotic Main Effect)]\n")
-print(ado_ant2x2)
-cat("\n[5D. PERMANOVA (Reinoculation Main Effect)]\n")
-print(ado_gut2x2)
 cat("\n=====================================\n")
 cat("END OF ANALYSIS\n")
 cat("=====================================\n")
@@ -1292,7 +1304,7 @@ write.csv(result_speed, here::here("activity-and-behavior", "result", "activity"
 write.csv(result_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
 ```
 
-\#—————————————————— \# Average speed analysis \## LLM full model
+\#——————————————————- \# Average speed analysis \## LLM full model
 
 ``` r
 hist(df_move$average.speed, breaks = 50)
@@ -1304,7 +1316,7 @@ qqnorm(df_move$average.speed)
 
 ``` r
 #Full model
-model_avg.speed <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move)
+model_avg.speed <- lmer(average.speed ~ antibiotic * reinoculation + year + (1 | year:arena), data = df_move)
 simulateResiduals(model_avg.speed) |> plot()
 ```
 
@@ -1321,14 +1333,14 @@ a1 <- Anova(model_avg.speed, type = "III")
 a1 
 
 #Additive Model
-model_avg.speed_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move)
+model_avg.speed_add <- lmer(average.speed ~ antibiotic + reinoculation + year + (1 | year:arena), data = df_move)
 a2 <- Anova(model_avg.speed_add, type = "II")
 a2
 
 #to test if the interaction if significant
-anova(model_avg.speed_add, model_avg.speed)  #Here the interaction model is a better fit
+anova(model_avg.speed_add, model_avg.speed)  #Here the additive model is a better fit
 
-emm <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+emm <- emmeans(model_avg.speed, ~ antibiotic + reinoculation)
 pairs(emm, by = "antibiotic")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
@@ -1393,7 +1405,7 @@ ggsave(
 ### The model prediction
 
 ``` r
-emm <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+emm <- emmeans(model_avg.speed, ~ antibiotic + reinoculation)
 emm_df <- as.data.frame(emm)
 
 p_model <- ggplot() +
@@ -1481,7 +1493,7 @@ qqnorm(df_move_red$average.speed)
 
 ``` r
 #Full model
-model_avg.speed_red <- lmer(average.speed ~ antibiotic * reinoculation + (1 | year:arena), data = df_move_red)
+model_avg.speed_red <- lmer(average.speed ~ antibiotic * reinoculation + year + (1 | year:arena), data = df_move_red)
 simulateResiduals(model_avg.speed_red) |> plot()
 ```
 
@@ -1498,7 +1510,7 @@ a3 <- Anova(model_avg.speed_red, type = "III")
 a3 
 
 #Additive Model
-model_avg.speed_red_add <- lmer(average.speed ~ antibiotic + reinoculation + (1 | year:arena), data = df_move_red)
+model_avg.speed_red_add <- lmer(average.speed ~ antibiotic + reinoculation + year + (1 | year:arena), data = df_move_red)
 a4 <- Anova(model_avg.speed_red_add, type = "II")
 a4
 
@@ -1528,11 +1540,12 @@ print(Anova(model_avg.speed_add, type = "II"))
 cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
 print(anova(model_avg.speed_add, model_avg.speed))
 cat("\n[1D. Post-Hoc Simple Effects Breakdown]\n")
-emm_full <- emmeans(model_avg.speed, ~ antibiotic * reinoculation)
+emm_add <- emmeans(model_avg.speed, ~ antibiotic + reinoculation)
+emm_add
 cat("\n* Reinoculation effect within each Antibiotic dose:\n")
-print(pairs(emm_full, by = "antibiotic"))
+print(pairs(emm_add, by = "antibiotic"))
 cat("\n* Antibiotic effect within each Reinoculation status (Tukey HSD):\n")
-print(pairs(emm_full, by = "reinoculation", adjust = "tukey"))
+print(pairs(emm_add, by = "reinoculation", adjust = "tukey"))
 cat("\n=====================================\n")
 cat("--- 2. REDUCED MODEL (2 x 2) ---\n")
 cat("=====================================\n")
@@ -1577,7 +1590,7 @@ y_adj <- (df_move$prop.time.moving * (n - 1) + 0.5) / n
 df_move$prop_time_adj <- y_adj
 range(df_move$prop_time_adj)
 
-model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year:arena),
+model_beta <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"), #Beta-regression is best suited for this
                       data=df_move) 
 
@@ -1606,9 +1619,8 @@ testZeroInflation(model_beta)
 a1 <- Anova(model_beta, type = "III")
 a1 
 
-
 #Additive Model
-model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year:arena),
+model_beta_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"), #Beta-regression is best suited for this
                       data=df_move) 
 
@@ -1763,7 +1775,7 @@ y_adj <- (df_move_red$prop.time.moving * (n - 1) + 0.5) / n
 df_move_red$prop_time_adj <- y_adj
 range(df_move_red$prop_time_adj)
 
-model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + (1|year:arena),
+model_beta_red <- glmmTMB(prop_time_adj ~ antibiotic * reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"),
                       data=df_move_red) 
 
@@ -1793,7 +1805,7 @@ a3 <- Anova(model_beta_red, type=3)
 a3
 
 #Additive Model
-model_beta_red_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + (1|year:arena),
+model_beta_red_add <- glmmTMB(prop_time_adj ~ antibiotic + reinoculation + year + (1|year:arena),
                       family = beta_family(link="logit"), #Beta-regression is best suited for this
                       data=df_move_red) 
 
@@ -1982,6 +1994,7 @@ ggsave(
 Treatment (3 x 2 levels)
 
 ``` r
+set.seed(67)
 data2 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "year", "arena", "antibiotic", "reinoculation"))]
 head(data2)
 
@@ -2007,36 +2020,24 @@ viz_individuals(
 
 ``` r
 set.seed(67) 
-# Data Preparation for Vegan
-stats_matrix <- data2[, sapply(data2, is.numeric)]
-dist_matrix <- vegdist(stats_matrix, method = "euclidean")
+# Définition des 7 métriques (comportement + activité + distance interindividuelle)
+vars7 <- c("nb.of.bump", "nb.of.touch", "nb.of.head.to.head", "nb.of.avoidance", 
+           "moy_prop_time_moving", "moy_average_speed", "mean.dist")
 
-# B. Check for Homogeneity of Dispersion (Betadisper) "Do some groups have more variable behavior than others?" If this is significant, the groups have different shapes/spreads.
-dispersion_mod <- betadisper(dist_matrix,df_pca_7$treatment)
+# A. Betadisper avec données standardisées
+X_7 <- scale(df_pca_7[, vars7])
+dist_matrix_7 <- dist(X_7, method = "euclidean")
 
-# Visualize the dispersion
-plot(dispersion_mod, main = "Multivariate Dispersion (Betadisper)")
-```
+dispersion_mod_7 <- betadisper(dist_matrix_7, df_pca_7$treatment)
+permu_treat_7 <- permutest(dispersion_mod_7, permutations = 10000)
+permu_treat_7
 
-``` r
-boxplot(dispersion_mod, main = "Distance to Centroid per Group")
-```
+# B. PERMANOVA (Adonis2)
+ado_treat_7 <- run_perm(df_pca_7, vars7, model_type = "full", by_val = "terms")
+ado_treat_7
 
-``` r
-# BETADIASPER RESULT - Test significance of dispersion
-permu_treat <- permutest(dispersion_mod, permutations = 10000)
-permu_treat
-
-# C. PERMANOVA (Adonis2)
-# This tests: "Are the centers of the groups significantly different?" Test 1: Simple effect of Treatment
-ado_treat <- adonis2(dist_matrix ~ antibiotic*reinoculation, strata = df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
-ado_treat
-
-ado_ant <- adonis2(dist_matrix ~ antibiotic, strata=df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
-ado_ant
-
-ado_reino <- adonis2(dist_matrix ~ reinoculation, strata=df_pca_7$year, data = df_pca_7, method = "euclidean", permutations = 10000)
-ado_reino
+ado_treat_7_main <- run_perm(df_pca_7, vars7, model_type = "additive", by_val = "margin")
+ado_treat_7_main
 ```
 
 ## Extract and save PCA loadings (variable contributions to PC1/PC2)
@@ -2136,7 +2137,7 @@ combined_interaction_data <- pca_scores$F1
 df_pca_7$combined <- combined_interaction_data
 ```
 
-#### LMM on PC1
+#### LM on PC1
 
 ``` r
 hist(df_pca_7$combined, breaks = 10)
@@ -2147,9 +2148,9 @@ qqnorm(df_pca_7$combined)
 ```
 
 ``` r
-model_lmm <- lmer(combined ~ antibiotic * reinoculation + (1 | year), data = df_pca_7)
+model_pc1 <- lm(combined ~ antibiotic * reinoculation +  year, data = df_pca_7)
 
-res <- simulateResiduals(model_lmm)
+res <- simulateResiduals(model_pc1)
 plot(res)
 ```
 
@@ -2162,18 +2163,18 @@ testUniformity(res) # This is the standard test for residual distribution
 ```
 
 ``` r
-a1 <- Anova(model_lmm, type=3)
+a1 <- Anova(model_pc1, type=3)
 a1
 
-emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
-pairs(emm, by = "antibiotic")
+emm <- emmeans(model_pc1, ~ antibiotic * reinoculation)
+pairs(emm, by = "antibiotic", adjust = "tukey")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ### Visualisation
 
 ``` r
-emm <- emmeans(model_lmm, ~ antibiotic * reinoculation)
+emm <- emmeans(model_pc1, ~ antibiotic * reinoculation)
 all_pairwise <- pairs(emm)
 emm_df <- as.data.frame(emm)
 
@@ -2255,18 +2256,14 @@ cat("\n=====================================\n")
 cat("--- 2. MULTIVARIATE DISPERSION & PERMANOVA ---\n")
 cat("=====================================\n")
 cat("\n[2A. Homogeneity of Multivariate Dispersions (Betadisper)]\n")
-print(permu_treat)
+print(permu_treat_7)
 cat("\n[2B. Global PERMANOVA (Interaction antibiotic * reinoculation)]\n")
-print(ado_treat)
-cat("\n[2C. PERMANOVA (Antibiotic Main Effect)]\n")
-print(ado_ant)
-cat("\n[2D. PERMANOVA (Reinoculation Main Effect)]\n")
-print(ado_reino)
+print(ado_treat_7)
 cat("\n=====================================\n")
 cat("--- 3. LINEAR MIXED MODEL (LMM) ON PC1 ---\n")
 cat("=====================================\n")
 cat("\n[3A. Type III Wald Chisquare Tests (Anova)]\n")
-print(Anova(model_lmm, type = 3))
+print(Anova(model_pc1, type = 3))
 cat("\n[3B. Post-Hoc Breakdown: Reinoculation effect within each Antibiotic dose]\n")
 print(pairs(emm, by = "antibiotic"))
 cat("\n[3C. Post-Hoc Breakdown: Antibiotic effect within each Reinoculation status]\n")
@@ -2284,7 +2281,7 @@ sessionInfo()
 
     ## R version 4.4.3 (2025-02-28)
     ## Platform: aarch64-apple-darwin20
-    ## Running under: macOS 26.5
+    ## Running under: macOS 26.6.1
     ## 
     ## Matrix products: default
     ## BLAS:   /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRblas.0.dylib 
@@ -2293,7 +2290,7 @@ sessionInfo()
     ## locale:
     ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
     ## 
-    ## time zone: Europe/Zurich
+    ## time zone: Europe/London
     ## tzcode source: internal
     ## 
     ## attached base packages:

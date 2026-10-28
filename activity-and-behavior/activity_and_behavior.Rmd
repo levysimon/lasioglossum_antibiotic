@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 # Behavior and activity statistics
+
 ## Load library
 
 ```{r}
@@ -38,11 +39,14 @@ library(patchwork)
 library(scales)
 
 set.seed(67)
+
 options(contrasts = c("contr.sum", "contr.poly"))
 ```
 
-# Data pre-processing 
+# Data pre-processing
+
 ### Behavioral data
+
 ```{r}
 categories_all <- list(
   control  = c(5, 8, 13, 40, 41, 42, 43),
@@ -126,6 +130,7 @@ df_behavior$year <- factor(df_behavior$year)
 ```
 
 ### Inter-individual distance data
+
 ```{r}
 data_dir <- here::here("activity-and-behavior", "data", "animal_ta")
 file_path <- file.path(data_dir, "interindividual_dist.csv")
@@ -152,6 +157,7 @@ df_interind <- df_interind %>%
 ```
 
 ### Activity data
+
 ```{r}
 data_dir <- here::here("activity-and-behavior", "data", "animal_ta")
 file_path <- file.path(data_dir, "moving.csv")
@@ -178,8 +184,7 @@ df_move <- df_move %>%
   )
 ```
 
-
-### PCA on the 7 metrics 
+### PCA on the 7 metrics
 
 ```{r}
 df_move_aggregated <- df_move %>%
@@ -209,7 +214,8 @@ df_pca_7 <- df_move_aggregated %>%
   )
 ```
 
-## Permanova function 
+## Permanova function
+
 ```{r}
 run_perm <- function(df, vars, model_type = "full", by_val = "terms") {
   df$year <- as.factor(df$year)
@@ -226,11 +232,13 @@ run_perm <- function(df, vars, model_type = "full", by_val = "terms") {
   }
 }
 ```
-# ==============================
-Now that the data is correctly pre-processed, we can start the EDA and the analysis 
 
-## Behavioral analysis
+Now that the data is correctly pre-processed, we can start the EDA and the analysis
+
+# Behavioral analysis
+
 ### Basic stats
+
 ```{r}
 mean_bump <- tapply(df_behavior$nb.of.bump, df_behavior$treatment, mean, na.rm = TRUE)
 sd_bump <- tapply(df_behavior$nb.of.bump, df_behavior$treatment, sd, na.rm = TRUE)
@@ -309,9 +317,11 @@ output_file_path <- file.path(result_dir, "table_behavior_stats.csv")
 write.csv(table_publication, file = output_file_path, row.names = FALSE)
 ```
 
-#------------------------------------------------------
+
 ## Linear mixed models (3 x 2 model)
+
 ### Single antennal touch
+
 ```{r}
 # Full model
 model_nb2_single_touch <- glmmTMB(
@@ -343,6 +353,7 @@ pairs(emm_reino, type = "response")
 ```
 
 ### Head to head interaction
+
 ```{r}
 aggregate(nb.of.head.to.head ~ antibiotic, df_behavior, sum)
 
@@ -410,6 +421,7 @@ pairs(emm_reino, type = "response")
 ```
 
 ### Bumps
+
 ```{r}
 aggregate(nb.of.bump ~ antibiotic, df_behavior, sum) 
 
@@ -442,7 +454,8 @@ summary(emm_reino, type = "response")
 pairs(emm_reino, type = "response")
 ```
 
-## Test residuals 
+## Test residuals
+
 ```{r}
 ### Function to run DHARMa diagnostics
 check_my_model <- function(model, title = "Model Diagnostics") {
@@ -461,6 +474,7 @@ check_my_model(model_nb2_add_bump, "3x2 Bump")
 ```
 
 ## Visualisation behaviors
+
 ```{r}
 ### Extraction of predictions (EMMEANS) for the 4 behavioral metrics (additive model as they were the one retained)
 get_emm_data <- function(model, label_name) {
@@ -479,6 +493,7 @@ emm_all <- rbind(df_touch, df_head, df_avoid, df_bump)
 ```
 
 ### Preparation of raw data (long format)
+
 ```{r}
 df_behavior_long <- df_behavior %>%
   pivot_longer(
@@ -501,6 +516,7 @@ df_behavior_long$Behavior <- factor(df_behavior_long$Behavior,
 ```
 
 ### Boxplot
+
 ```{r}
 p_combined_boxplot <- ggplot(df_behavior_long, aes(x = antibiotic, y = Count, fill = reinoculation)) +
   stat_boxplot(
@@ -555,6 +571,7 @@ ggsave(
 ```
 
 ### Model prediction plot
+
 ```{r}
 p_model_pred <- ggplot() +
   geom_errorbar(
@@ -610,8 +627,10 @@ ggsave(
 )
 ```
 
-## PCA on 3 x 2 model 
+## PCA on 3 x 2 model
+
 ### PCA for Treatment (3X2)
+
 ```{r}
 set.seed(67) 
 
@@ -652,7 +671,8 @@ ado_treat_main <- run_perm(df_behavior, vars4, model_type = "additive", by_val =
 ado_treat_main
 ```
 
-## Save result for LMM and PCA 3 x 2 model 
+## Save result for LMM and PCA 3 x 2 model
+
 ```{r}
 sink(here::here("activity-and-behavior", "result", "behavior", "behavior_3x2_summary.txt"), split = TRUE)
 
@@ -683,8 +703,8 @@ cat("\n[2A. Interaction & Model Comparison (LRT)]\n")
 print(Anova(model_nb2_head, type = "III"))
 cat("\n--> Model Comparison (Full vs Additive):\n")
 print(anova(model_nb2_head, model_nb2_head_add))
-cat("\n[2B. Main Effects Test (Full Model Type III)]\n")
-print(Anova(model_nb2_head, type = "III"))
+cat("\n[2B. Main Effects Test (Additive Model Type II)]\n")
+print(Anova(model_nb2_head_add, type = "II"))
 cat("\n[2C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
 print(pairs(emmeans(model_nb2_head, ~ antibiotic), adjust = "tukey", type = "response"))
 cat("\n[2D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
@@ -734,8 +754,7 @@ print(ado_treat)
 sink()
 ```
 
-#-----------------------------------------------------
-## Linear mixed models (2 x 2 model) - Sensitivity analysis 
+## Linear mixed models (2 x 2 model) - Sensitivity analysis
 
 ```{r}
 # We join togheter low and zero into the "zero category"
@@ -753,6 +772,7 @@ df_behavior_reduce$year <- factor(df_behavior_reduce$year)
 ```
 
 ### Single antennal touch
+
 ```{r}
 aggregate(nb.of.touch ~ antibiotic, df_behavior_reduce, sum) 
 
@@ -777,6 +797,7 @@ anova(model_nb2_add_single_touch_red, model_nb2_single_touch_red)
 ```
 
 ### Head to head interaction
+
 ```{r}
 aggregate(nb.of.head.to.head ~ antibiotic, df_behavior_reduce, sum)
 
@@ -801,6 +822,7 @@ anova(model_nb2_head_red, model_nb2_add_head_red)
 ```
 
 ### Avoidance
+
 ```{r}
 aggregate(nb.of.avoidance ~ antibiotic, df_behavior_reduce, sum) 
 
@@ -825,6 +847,7 @@ anova(model_nb2_avoid_red, model_nb2_add_avoid_red)
 ```
 
 ### Bumps
+
 ```{r}
 aggregate(nb.of.bump ~ antibiotic, df_behavior_reduce, sum) 
 
@@ -848,7 +871,7 @@ summary(model_nb2_add_bump_red)
 anova(model_nb2_bump_red, model_nb2_add_bump_red)
 ```
 
-## PCA on 2 x 2 model 
+## PCA on 2 x 2 model
 
 ### PCA for Treatment (2X2)
 
@@ -891,7 +914,8 @@ ado_treat2x2_main
 
 ```
 
-## Save result for LMM and PCA 2 x 2 model 
+## Save result for LMM and PCA 2 x 2 model
+
 ```{r}
 sink(here::here("activity-and-behavior", "result", "behavior", "behavior_2x2_summary.txt"), split = TRUE)
 cat("=========================================================================\n")
@@ -946,9 +970,12 @@ cat("=====================================\n")
 sink()
 ```
 
-#==============================
-# Analysis for interindividual data 
+
+
+# Analysis for interindividual data
+
 ## Basic stats
+
 ```{r}
 mean_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, mean, na.rm = TRUE)
 sd_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, sd, na.rm = TRUE)
@@ -966,7 +993,8 @@ dir.create(here::here("activity-and-behavior", "result", "inter_individual_dist"
 write.csv(result_mean_dist, here::here("activity-and-behavior", "result", "inter_individual_dist", "table_dist_interind.csv"), row.names = TRUE)
 ```
 
-# LMM model on 3 x 2 
+# LMM model on 3 x 2
+
 ```{r}
 hist(df_interind$mean.dist, breaks = 15)
 qqnorm(df_interind$mean.dist)
@@ -997,6 +1025,7 @@ pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ### Visualisation
+
 ```{r}
 emm <- emmeans(model_gauss, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
@@ -1055,7 +1084,8 @@ ggsave(
 )
 ```
 
-# Reduced model 
+# Reduced model
+
 ```{r}
 # Joining low and zero
 df_interind_reduced <- df_interind
@@ -1101,6 +1131,7 @@ anova(model_gauss_red, model_gauss_red_add)
 ```
 
 ### Visualisation
+
 ```{r}
 emm <- emmeans(model_gauss_red, ~ antibiotic * reinoculation)
 emm_df <- as.data.frame(emm)
@@ -1160,6 +1191,7 @@ ggsave(
 ```
 
 # Save the result in a .txt file
+
 ```{r}
 sink(here::here("activity-and-behavior", "result", "inter_individual_dist", "interind_dist_result.txt"), split = TRUE)
 cat("=========================================================================\n")
@@ -1193,9 +1225,11 @@ cat("=====================================\n")
 sink()
 ```
 
-#==============================
-#Analysis for activity (avg speed + time spent moving) 
+
+# Analysis for activity (avg speed + time spent moving)
+
 ## Basic stats
+
 ```{r}
 mean_speed <- tapply(df_move$average.speed, df_move$treatment, mean, na.rm = TRUE)
 sd_speed <- tapply(df_move$average.speed, df_move$treatment, sd, na.rm = TRUE)
@@ -1219,8 +1253,9 @@ write.csv(result_speed, here::here("activity-and-behavior", "result", "activity"
 write.csv(result_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
 ```
 
-#-------------------------------------------------------
+
 # Average speed analysis
+
 ## LLM full model
 
 ```{r}
@@ -1250,7 +1285,9 @@ pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ## Visualisation
-### Simple box plot 
+
+### Simple box plot
+
 ```{r}
 p_boxplot <- ggplot(df_move, aes(x = antibiotic, y = average.speed, fill = reinoculation)) +
   stat_boxplot(
@@ -1303,6 +1340,7 @@ ggsave(
 ```
 
 ### The model prediction
+
 ```{r}
 emm <- emmeans(model_avg.speed_add, ~ antibiotic + reinoculation)
 emm_df <- as.data.frame(emm)
@@ -1360,6 +1398,7 @@ ggsave(
 ```
 
 ## Reduced model
+
 ```{r}
 #Same stats but joining low and zero
 df_move_red <- df_move
@@ -1407,6 +1446,7 @@ pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ## Save the result in a .txt file
+
 ```{r}
 sink(here::here("activity-and-behavior", "result", "activity", "avg_speed_result.txt"), split = TRUE)
 
@@ -1450,9 +1490,11 @@ cat("=====================================\n")
 sink()
 ```
 
-# ------------------------------------------------------
-# Proportion of time spent moving 
+
+# Proportion of time spent moving
+
 # LLM Full model
+
 ```{r}
 hist(df_move$prop.time.moving, breaks = 35)
 qqnorm(df_move$prop.time.moving)
@@ -1496,7 +1538,9 @@ pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ## Visualisation
+
 ### Simple boxplot
+
 ```{r}
 p_boxplot_beta <- ggplot(df_move, aes(x = antibiotic, y = prop_time_adj, fill = reinoculation)) +
   stat_boxplot(
@@ -1550,6 +1594,7 @@ ggsave(
 ```
 
 ### The model prediction
+
 ```{r}
 emm <- emmeans(model_beta, ~ antibiotic * reinoculation, type = "response") 
 emm_df <- as.data.frame(emm)
@@ -1608,7 +1653,9 @@ ggsave(
 ```
 
 # Reduced model
+
 ## LLM reduced
+
 ```{r}
 hist(df_move_red$prop.time.moving, breaks = 35)
 qqnorm(df_move_red$prop.time.moving)
@@ -1695,9 +1742,8 @@ cat("=====================================\n")
 sink()
 ```
 
-
-
 # Global visualisation
+
 ```{r}
 library(cowplot) 
 
@@ -1760,7 +1806,7 @@ plot_fun <- function(df, model, x, y, group, label, is_lmm=FALSE, is_perc=FALSE,
 # 2. Generate the 6 individual plots using the models already in your environment
 p1 <- plot_fun(df_behavior, model_nb2_add_single_touch, "antibiotic", "nb.of.touch", "reinoculation", "Single Antennal Touch", row=1)
 p2 <- plot_fun(df_behavior, model_nb2_add_bump, "antibiotic", "nb.of.bump", "reinoculation", "Random Bump", row=1)
-p3 <- plot_fun(df_behavior, model_nb2_head_add, "antibiotic", "nb.of.head.to.head", "reinoculation", "Head to Head", row=2)
+p3 <- plot_fun(df_behavior, model_nb2_head, "antibiotic", "nb.of.head.to.head", "reinoculation", "Head to Head", row=2)
 p4 <- plot_fun(df_behavior, model_nb2_add_avoid, "antibiotic", "nb.of.avoidance", "reinoculation", "Avoidance", row=2)
 p5 <- plot_fun(df_move, model_beta, "antibiotic", "prop_time_adj", "reinoculation", "Prop. Time Moving", is_perc=TRUE, row=1)
 p6 <- plot_fun(df_interind, model_gauss, "antibiotic", "mean.dist", "reinoculation", "Mean inter-individual distance", row=2)
@@ -1821,9 +1867,11 @@ ggsave(
 )
 ```
 
-#===============================
+
 # PCA ON 7 METRICS
+
 ### PCA for Treatment (3 x 2 levels)
+
 ```{r}
 set.seed(67)
 data2 <- df_pca_7[, !(names(df_pca_7) %in% c("treatment", "year", "arena", "antibiotic", "reinoculation"))]
@@ -1868,6 +1916,7 @@ ado_treat_7_main
 ```
 
 ## Extract and save PCA loadings (variable contributions to PC1/PC2)
+
 ```{r}
 # Extract variable coordinates/loadings from the dimensio PCA object 
 
@@ -1930,9 +1979,8 @@ ggsave(
 
 ```
 
-
-
 ### PCA on the PC1
+
 ```{r}
 #### extract the PC1
 data3 <- df_pca_7[, !(names(df_pca_7) %in% c("year", "arena", "antibiotic", "reinoculation"))]
@@ -1953,6 +2001,7 @@ df_pca_7$combined <- combined_interaction_data
 ```
 
 #### LM on PC1
+
 ```{r}
 hist(df_pca_7$combined, breaks = 10)
 qqnorm(df_pca_7$combined)
@@ -1962,7 +2011,7 @@ model_pc1 <- lm(combined ~ antibiotic * reinoculation +  year, data = df_pca_7)
 res <- simulateResiduals(model_pc1)
 plot(res)
 testDispersion(res)
-testUniformity(res) # This is the standard test for residual distribution
+testUniformity(res)
 
 a1 <- Anova(model_pc1, type=3)
 a1
@@ -1973,6 +2022,7 @@ pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
 
 ### Visualisation
+
 ```{r}
 emm <- emmeans(model_pc1, ~ antibiotic * reinoculation)
 all_pairwise <- pairs(emm)
@@ -2037,6 +2087,7 @@ ggsave(
 ```
 
 # Save the result in a .txt file
+
 ```{r}
 sink(
   file = here::here("activity-and-behavior", "result", "PCA_on_7metrics", "pca_result.txt"), 
@@ -2069,6 +2120,112 @@ cat("\n[3C. Post-Hoc Breakdown: Antibiotic effect within each Reinoculation stat
 print(pairs(emm, by = "reinoculation", adjust = "tukey"))
 cat("\n[3D. All Pairwise Comparisons]\n")
 print(all_pairwise)
+sink()
+```
+
+
+# TABLE 1 — treatment-contrast effect sizes for the manuscript
+
+**Why this section exists:** the whole script uses `contr.sum` (sum-to-zero) contrasts, which is required for the Type III omnibus tests above to be correct. But it means `summary(model)$coefficients` for the additive models are labelled `antibiotic1`, `antibiotic2`, `reinoculation1` — each level's deviation from the grand mean — NOT "Low vs Control", "High vs Control" or "Re-inoculation (Yes vs No)". Copying those coefficients into Table 1 would mislabel every row.
+
+The fix used here: build Table 1 from `emmeans` contrasts (`method = "trt.vs.ctrl"`), computed on the response scale. Estimated marginal means and their contrasts are **invariant to the contrast coding** used to fit the model — they depend only on the fitted predictions — so this works correctly regardless of the global `contr.sum` option, with no need to refit any model.
+
+-   Count models (negative binomial, log link): reported as **rate ratios**.
+-   Beta model (proportion of time moving, logit link): reported as **odds ratios**.
+-   Gaussian models (mean distance, average speed, PC1, identity link): reported as **mean differences** (original units).
+
+All contrasts are "treatment vs control": Low vs Control, High vs Control (reference = zero antibiotic), and Yes vs No (reference = no reinoculation).
+
+```{r}
+# Harmonise an emmeans contrast() output (which uses different column names
+# depending on the link function) into a common Estimate / LCL / UCL / p format
+tidy_contrast <- function(ctr_obj, scale_label) {
+  df <- as.data.frame(ctr_obj)
+
+  est_col <- intersect(c("ratio", "odds.ratio", "estimate"), names(df))[1]
+  lcl_col <- intersect(c("asymp.LCL", "lower.CL"), names(df))[1]
+  ucl_col <- intersect(c("asymp.UCL", "upper.CL"), names(df))[1]
+
+  stopifnot(!is.na(est_col), !is.na(lcl_col), !is.na(ucl_col))
+
+  data.frame(
+    Comparison = as.character(df$contrast),
+    Scale      = scale_label,
+    Estimate   = df[[est_col]],
+    LCL        = df[[lcl_col]],
+    UCL        = df[[ucl_col]],
+    p.value    = df$p.value,
+    stringsAsFactors = FALSE
+  )
+}
+
+# For one additive model, build the 3 labelled treatment-vs-control rows
+# (Low vs Control, High vs Control, Yes vs No)
+make_table1_block <- function(model, metric_label, scale_label) {
+  emm_ab <- emmeans(model, ~ antibiotic)
+  emm_re <- emmeans(model, ~ reinoculation)
+
+  # infer = c(TRUE, TRUE) requests both CI and test -> adds LCL/UCL columns,
+  # which contrast() otherwise omits by default (this was the bug).
+  ctr_ab <- contrast(emm_ab, method = "trt.vs.ctrl", ref = 1,
+                      type = "response", infer = c(TRUE, TRUE))
+  ctr_re <- contrast(emm_re, method = "trt.vs.ctrl", ref = 1,
+                      type = "response", infer = c(TRUE, TRUE))
+
+  out <- rbind(
+    tidy_contrast(ctr_ab, scale_label),
+    tidy_contrast(ctr_re, scale_label)
+  )
+
+  out$Comparison <- dplyr::recode(
+    out$Comparison,
+    "low - zero"  = "Low vs Control",
+    "high - zero" = "High vs Control",
+    "yes - no"    = "Re-inoculation (Yes vs No)"
+  )
+
+  out$Metric <- metric_label
+  dplyr::select(out, Metric, Comparison, Scale, Estimate, LCL, UCL, p.value)
+}
+
+# Build Table 1 from the additive (main-effects) models already fit above,
+# for the 3x2 model. Each row is directly interpretable, independent of the
+# global contr.sum setting.
+table1_df <- dplyr::bind_rows(
+  make_table1_block(model_nb2_add_single_touch, "Single Antennal Touch", "Rate ratio"),
+  make_table1_block(model_nb2_head_add,         "Head-to-Head",          "Rate ratio"),
+  make_table1_block(model_nb2_add_avoid,        "Avoidance",             "Rate ratio"),
+  make_table1_block(model_nb2_add_bump,         "Random Bump",           "Rate ratio"),
+  make_table1_block(model_beta_add,             "Proportion of Time Moving", "Odds ratio"),
+  make_table1_block(model_avg.speed_add,        "Average Speed [cm/s]",  "Mean difference"),
+  make_table1_block(model_gauss_add,            "Mean Inter-individual Distance [cm]", "Mean difference"),
+  make_table1_block(model_pc1,                   "PC1 (7-metric composite)", "Mean difference")
+)
+
+table1_df
+```
+
+```{r, results='hide'}
+results_dir_table1 <- here::here("activity-and-behavior", "result", "table1")
+dir.create(results_dir_table1, recursive = TRUE, showWarnings = FALSE)
+
+write.csv(
+  table1_df,
+  file.path(results_dir_table1, "table1_treatment_contrasts.csv"),
+  row.names = FALSE
+)
+
+sink(file.path(results_dir_table1, "table1_treatment_contrasts.txt"), split = TRUE)
+cat("=========================================================================\n")
+cat("   TABLE 1 — TREATMENT-VS-CONTROL EFFECT SIZES (emmeans contrasts)\n")
+cat("   Low vs Control / High vs Control (ref = zero antibiotic)\n")
+cat("   Re-inoculation Yes vs No (ref = no reinoculation)\n")
+cat("   Computed on the response scale: rate ratio (count models),\n")
+cat("   odds ratio (beta model), mean difference (Gaussian models).\n")
+cat("   These are NOT the raw summary() coefficients (which use contr.sum\n")
+cat("   and are deviations from the grand mean, mislabelled if copied as-is).\n")
+cat("=========================================================================\n\n")
+print(table1_df, row.names = FALSE)
 sink()
 ```
 

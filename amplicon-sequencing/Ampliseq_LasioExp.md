@@ -1,6 +1,10 @@
 
 # *Lasioglossum malachurum* antibiotic exposure microbiome experiment
 
+Joanito Liberti and Simon Lévy, University of Geneva The code is adapted
+from
+<https://github.com/JoanitoLiberti/The-gut-microbiota-affects-the-social-network-of-honeybees/blob/master/Gut_microbiota/Amplicon-sequencing/02-Ampliseq-RNAseqExp.md>
+
 If you have the ps object (“ps_dada2taxa_Lasio.rds”), you can start
 later with it directly (but please run the first chunk {r setup-paths}
 before, than you can click [there](#analysis-start).).

@@ -24,6 +24,7 @@ library(patchwork)
 library(scales)
 
 set.seed(67)
+
 options(contrasts = c("contr.sum", "contr.poly"))
 ```
 
@@ -217,12 +218,10 @@ run_perm <- function(df, vars, model_type = "full", by_val = "terms") {
 }
 ```
 
-# ==============================
-
 Now that the data is correctly pre-processed, we can start the EDA and
 the analysis
 
-## Behavioral analysis
+# Behavioral analysis
 
 ### Basic stats
 
@@ -304,8 +303,9 @@ output_file_path <- file.path(result_dir, "table_behavior_stats.csv")
 write.csv(table_publication, file = output_file_path, row.names = FALSE)
 ```
 
-\#—————————————————— \## Linear mixed models (3 x 2 model) \### Single
-antennal touch
+## Linear mixed models (3 x 2 model)
+
+### Single antennal touch
 
 ``` r
 # Full model
@@ -478,10 +478,10 @@ get_emm_data <- function(model, label_name) {
   return(df)
 }
 
-df_touch <- get_emm_data(model_nb2_single_touch, "Single Antennal Touch")
+df_touch <- get_emm_data(model_nb2_add_single_touch, "Single Antennal Touch")
 df_head  <- get_emm_data(model_nb2_head, "Head to Head")
-df_avoid <- get_emm_data(model_nb2_avoid, "Avoidance")
-df_bump  <- get_emm_data(model_nb2_bump, "Bump")
+df_avoid <- get_emm_data(model_nb2_add_avoid, "Avoidance")
+df_bump  <- get_emm_data(model_nb2_add_bump, "Bump")
 
 emm_all <- rbind(df_touch, df_head, df_avoid, df_bump)
 ```
@@ -719,8 +719,8 @@ cat("\n[2A. Interaction & Model Comparison (LRT)]\n")
 print(Anova(model_nb2_head, type = "III"))
 cat("\n--> Model Comparison (Full vs Additive):\n")
 print(anova(model_nb2_head, model_nb2_head_add))
-cat("\n[2B. Main Effects Test (Full Model Type III)]\n")
-print(Anova(model_nb2_head, type = "III"))
+cat("\n[2B. Main Effects Test (Additive Model Type II)]\n")
+print(Anova(model_nb2_head_add, type = "II"))
 cat("\n[2C. Pairwise Comparisons: Antibiotic Doses (Tukey HSD)]\n")
 print(pairs(emmeans(model_nb2_head, ~ antibiotic), adjust = "tukey", type = "response"))
 cat("\n[2D. Pairwise Comparisons: Reinoculation (Yes vs No)]\n")
@@ -770,8 +770,7 @@ print(ado_treat)
 sink()
 ```
 
-\#—————————————————– \## Linear mixed models (2 x 2 model) - Sensitivity
-analysis
+## Linear mixed models (2 x 2 model) - Sensitivity analysis
 
 ``` r
 # We join togheter low and zero into the "zero category"
@@ -999,8 +998,9 @@ cat("=====================================\n")
 sink()
 ```
 
-\#============================== \# Analysis for interindividual data
-\## Basic stats
+# Analysis for interindividual data
+
+## Basic stats
 
 ``` r
 mean_Mean_dist <- tapply(df_interind$mean.dist, df_interind$treatment, mean, na.rm = TRUE)
@@ -1278,8 +1278,9 @@ cat("=====================================\n")
 sink()
 ```
 
-\#============================== \#Analysis for activity (avg speed +
-time spent moving) \## Basic stats
+# Analysis for activity (avg speed + time spent moving)
+
+## Basic stats
 
 ``` r
 mean_speed <- tapply(df_move$average.speed, df_move$treatment, mean, na.rm = TRUE)
@@ -1304,7 +1305,9 @@ write.csv(result_speed, here::here("activity-and-behavior", "result", "activity"
 write.csv(result_prop, here::here("activity-and-behavior", "result", "activity", "prop_of_time_moving_table.csv"), row.names = TRUE)
 ```
 
-\#——————————————————- \# Average speed analysis \## LLM full model
+# Average speed analysis
+
+## LLM full model
 
 ``` r
 hist(df_move$average.speed, breaks = 50)
@@ -1340,7 +1343,7 @@ a2
 #to test if the interaction if significant
 anova(model_avg.speed_add, model_avg.speed)  #Here the additive model is a better fit
 
-emm <- emmeans(model_avg.speed, ~ antibiotic + reinoculation)
+emm <- emmeans(model_avg.speed_add, ~ antibiotic + reinoculation)
 pairs(emm, by = "antibiotic")
 pairs(emm, by = "reinoculation", adjust = "tukey")
 ```
@@ -1405,7 +1408,7 @@ ggsave(
 ### The model prediction
 
 ``` r
-emm <- emmeans(model_avg.speed, ~ antibiotic + reinoculation)
+emm <- emmeans(model_avg.speed_add, ~ antibiotic + reinoculation)
 emm_df <- as.data.frame(emm)
 
 p_model <- ggplot() +
@@ -1540,7 +1543,7 @@ print(Anova(model_avg.speed_add, type = "II"))
 cat("\n[1C. Likelihood Ratio Test (LRT)]\n")
 print(anova(model_avg.speed_add, model_avg.speed))
 cat("\n[1D. Post-Hoc Simple Effects Breakdown]\n")
-emm_add <- emmeans(model_avg.speed, ~ antibiotic + reinoculation)
+emm_add <- emmeans(model_avg.speed_add, ~ antibiotic + reinoculation)
 emm_add
 cat("\n* Reinoculation effect within each Antibiotic dose:\n")
 print(pairs(emm_add, by = "antibiotic"))
@@ -1566,8 +1569,6 @@ cat("END OF ANALYSIS\n")
 cat("=====================================\n")
 sink()
 ```
-
-# ——————————————————
 
 # Proportion of time spent moving
 
@@ -1927,7 +1928,7 @@ plot_fun <- function(df, model, x, y, group, label, is_lmm=FALSE, is_perc=FALSE,
 # 2. Generate the 6 individual plots using the models already in your environment
 p1 <- plot_fun(df_behavior, model_nb2_add_single_touch, "antibiotic", "nb.of.touch", "reinoculation", "Single Antennal Touch", row=1)
 p2 <- plot_fun(df_behavior, model_nb2_add_bump, "antibiotic", "nb.of.bump", "reinoculation", "Random Bump", row=1)
-p3 <- plot_fun(df_behavior, model_nb2_head_add, "antibiotic", "nb.of.head.to.head", "reinoculation", "Head to Head", row=2)
+p3 <- plot_fun(df_behavior, model_nb2_head, "antibiotic", "nb.of.head.to.head", "reinoculation", "Head to Head", row=2)
 p4 <- plot_fun(df_behavior, model_nb2_add_avoid, "antibiotic", "nb.of.avoidance", "reinoculation", "Avoidance", row=2)
 p5 <- plot_fun(df_move, model_beta, "antibiotic", "prop_time_adj", "reinoculation", "Prop. Time Moving", is_perc=TRUE, row=1)
 p6 <- plot_fun(df_interind, model_gauss, "antibiotic", "mean.dist", "reinoculation", "Mean inter-individual distance", row=2)
@@ -1990,8 +1991,9 @@ ggsave(
 )
 ```
 
-\#=============================== \# PCA ON 7 METRICS \### PCA for
-Treatment (3 x 2 levels)
+# PCA ON 7 METRICS
+
+### PCA for Treatment (3 x 2 levels)
 
 ``` r
 set.seed(67)
@@ -2159,7 +2161,7 @@ testDispersion(res)
 ```
 
 ``` r
-testUniformity(res) # This is the standard test for residual distribution
+testUniformity(res)
 ```
 
 ``` r
